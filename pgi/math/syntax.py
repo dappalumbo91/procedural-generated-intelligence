@@ -145,6 +145,13 @@ def pretty(term: Term, parent: int = 0, right: bool = False) -> str:
         if prec < parent or (right and prec == parent):
             return f"({body})"
         return body
+    if term.op == "row":
+        return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
+    if term.op == "matrix":
+        return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
+    if term.op in {"det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues"}:
+        inner = ", ".join(pretty(arg) for arg in term.args)
+        return f"{term.op}({inner})"
     prec = 2 if term.op in {"mul", "div"} else 1
     symbol = {"add": "+", "sub": "-", "mul": "*", "div": "/"}[term.op]
     left = pretty(term.args[0], prec, False)
@@ -176,9 +183,9 @@ def _split_eq(text: str) -> tuple[str, str | None]:
     index = 0
     while index < len(text):
         char = text[index]
-        if char in "{(":
+        if char in "{([":
             depth += 1
-        elif char in "})":
+        elif char in "})]":
             depth -= 1
         elif char == "<" and index + 1 < len(text) and text[index + 1] == "=":
             index += 2
@@ -262,12 +269,18 @@ class _Parser:
             return App("sup", (self._factor(),))
         if token == "{":
             return self._set()
+        if token == "[":
+            return self._bracket()
         if token is not None and token.isdigit():
             self._pop()
             return IntLit(int(token))
         if token is not None and token[:1].isalpha() or (token or "").startswith("_"):
+            name = token or ""
+            if self._ahead(1) == "(":
+                self._pop()
+                return self._call(name)
             self._pop()
-            return Var(token or "")
+            return Var(name)
         raise ParseError("factor")
 
     def _set(self) -> Term:
@@ -287,6 +300,46 @@ class _Parser:
                 self._pop()
                 return App("set", tuple(items))
             raise ParseError("set")
+
+    def _bracket(self) -> Term:
+        self._pop()
+        if self._peek() == "]":
+            raise ParseError("matrix")
+        items: list[Term] = []
+        while True:
+            if self._peek() == "[":
+                items.append(self._bracket())
+            else:
+                items.append(self._arith())
+            if self._peek() == ",":
+                self._pop()
+                continue
+            if self._peek() == "]":
+                self._pop()
+                break
+            raise ParseError("matrix")
+        if all(isinstance(item, App) and item.op == "row" for item in items):
+            return App("matrix", tuple(items))
+        if any(isinstance(item, App) and item.op in {"row", "matrix"} for item in items):
+            raise ParseError("matrix")
+        return App("row", tuple(items))
+
+    def _call(self, name: str) -> Term:
+        if self._pop() != "(":
+            raise ParseError("call")
+        if self._peek() == ")":
+            self._pop()
+            return App(name, ())
+        args: list[Term] = []
+        while True:
+            args.append(self._expr())
+            if self._peek() == ",":
+                self._pop()
+                continue
+            if self._peek() == ")":
+                self._pop()
+                return App(name, tuple(args))
+            raise ParseError("call")
 
     def _starts_collect(self) -> bool:
         token = self._peek()
@@ -456,7 +509,7 @@ def _tokenize(text: str) -> list[str]:
             tokens.append("=")
             index += 1
             continue
-        if char in "+-*/(),":
+        if char in "+-*/(),[]":
             tokens.append(char)
             index += 1
             continue

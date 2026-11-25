@@ -220,9 +220,13 @@ The seven SI defining constants are exact rationals: `Δν_Cs = 9 192 631 770 Hz
 
 The tests check the stored numbers against each other in exact rational arithmetic, never against a number this system derived. `e^2/(2 ε_0 h c)` agrees with `α` inside the combined standard uncertainty. So do `2 α h/(e^2 c)` with `μ_0`, `μ_0 ε_0 c^2` with 1, `1/α` with the inverse, `α^2 m_e c/(2h)` with `R_∞`, `α/(4π R_∞)` with `a_0` at both ends of a Machin enclosure of π, `m_p/m_e` with the ratio, and each `m c^2/e` with its MeV equivalent. Moving `ε_0` by ten standard uncertainties fails the `α` check. Asserting `derived(codata2022.h)` contests the board.
 
+### Exact rational matrices
+
+A matrix over the rationals is a rectangular array of reduced fractions. Addition, multiplication, and transpose use those exact entries. A determinant is the Bareiss value after clearing denominators, and through degree five the cofactor expansion has to agree. `det([[1, 2], [3, 4]])` is `-2`. `det([[1, 2, 3], [4, 5, 6], [7, 8, 10]])` is `-3`. `det([[1/2, 0], [0, 1/3]])` is `1/6`. A rank is kept only when a pivot minor has a nonzero determinant and every other row is the corresponding linear combination of the pivot rows. `rank([[1, 2], [3, 4]])` is `2`. `rank([[1, 2], [2, 4]])` is `1`. An inverse is kept only when both products are the identity. `inv([[1, 2], [3, 4]])` is `[[-2, 1], [3/2, -1/2]]`. A singular inverse and a non-square determinant stay open. An entry that is not an exact rational stays open. Characteristic polynomials and eigenvalues are still ahead.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.47.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.48.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -230,5 +234,5 @@ This list is the current state as of `pgi-0.47.0`. Earlier sections above are hi
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
-- Linear algebra, manifolds, differential geometry, Hilbert space, and gauge theory are still ahead of any physical law.
+- Characteristic polynomials and eigenvalues of exact rational matrices, then manifolds, differential geometry, Hilbert space, and gauge theory, are still ahead of any physical law.
 - The Particle Data Group, gravitational-wave catalogs, the Mercury residual in arcseconds, and a stored Rayleigh–Jeans formula are still not ingested. CODATA 2022 is on the board.

@@ -846,11 +846,11 @@ def _split_cmp(text: str) -> tuple[str, str, str] | None:
     index = 0
     while index < len(text):
         char = text[index]
-        if char in "{(":
+        if char in "{([":
             depth += 1
             index += 1
             continue
-        if char in "})":
+        if char in "}])":
             depth -= 1
             index += 1
             continue
@@ -883,11 +883,11 @@ def _split_token(text: str, token: str) -> tuple[str, str] | None:
     index = 0
     while index < len(text):
         char = text[index]
-        if char in "{(":
+        if char in "{([":
             depth += 1
             index += 1
             continue
-        if char in "})":
+        if char in "}])":
             depth -= 1
             index += 1
             continue

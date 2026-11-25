@@ -642,3 +642,11 @@ The stored numbers are checked against one another in exact rational arithmetic:
 The next slice is the Particle Data Group: the W, Z, Higgs, and top masses, the leptons, the light quarks as quoted, `α_s(M_Z)`, `G_F`, `sin^2 θ_W`, and the CKM fit.
 
 `python -m unittest discover -s tests -v` finished 144 tests, 0 failures, about 49.35 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — exact rational matrices pgi-0.48.0
+
+A matrix over the rationals is a rectangular array of reduced fractions. Addition, multiplication, and transpose use those exact entries. A determinant is the Bareiss value after clearing denominators, and through degree five the cofactor expansion has to agree. `det([[1, 2], [3, 4]])` is `-2`. `det([[1, 2, 3], [4, 5, 6], [7, 8, 10]])` is `-3`. `det([[1/2, 0], [0, 1/3]])` is `1/6`. A rank is kept only when a pivot minor has a nonzero determinant and every other row is the corresponding linear combination of the pivot rows. `rank([[1, 2], [3, 4]])` is `2`. `rank([[1, 2], [2, 4]])` is `1`. An inverse is kept only when both products are the identity. `inv([[1, 2], [3, 4]])` is `[[-2, 1], [3/2, -1/2]]`. A singular inverse and a non-square determinant stay open. An entry that is not an exact rational stays open.
+
+Characteristic polynomials and eigenvalues of these matrices are the next mathematics, using the existing algebraic-number kernel. Manifolds, differential geometry, Hilbert space, and gauge theory follow. The Particle Data Group is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 148 tests, 0 failures, about 47.04 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

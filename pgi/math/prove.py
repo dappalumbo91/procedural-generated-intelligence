@@ -26,6 +26,7 @@ from pgi.math.kernel import (
 from pgi.math.order import rules_from_body as order_rules
 from pgi.math.rational import equality_rules, eval_rat, order_rule, ratio_rule
 from pgi.math.real import eval_real, real_equality_rules, real_order_rule, real_value_rule
+from pgi.math.matrix import eval_lin_result, has_matrix, lin_equality_rules, lin_value_rule
 from pgi.math.quant import is_quantifier, quantifier_rules
 from pgi.math.set import (
     contains_set,
@@ -83,6 +84,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return conflicts
         if _has_set(equation.left) or _has_set(equation.right):
             return _set_equation(equation, anchors)
+        if has_matrix(equation.left) or has_matrix(equation.right):
+            return _matrix_equation(equation, anchors)
         if _has_sqrt(equation.left) or _has_sqrt(equation.right):
             return _real_equation(equation, anchors)
         proved = _prove_equation(equation, anchors)
@@ -98,6 +101,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return conflicts
     if _has_set(term):
         return _set_value(term, anchors)
+    if has_matrix(term):
+        return _matrix_value(term, anchors)
     if _has_sqrt(term):
         return _real_value(term, anchors)
     evaluated = _simplify(term, anchors) if kind == "simplify" else _evaluate(term, anchors)
@@ -116,9 +121,9 @@ def _has_top_le(text: str) -> bool:
     index = 0
     while index < len(text):
         char = text[index]
-        if char in "{(":
+        if char in "{([":
             depth += 1
-        elif char in "})":
+        elif char in "}])":
             depth -= 1
         elif depth == 0 and (text.startswith("<=", index) or text.startswith("≤", index)):
             return True
@@ -143,9 +148,9 @@ def _split_top_order(text: str) -> tuple[str, str, str] | None:
     index = 0
     while index < len(text):
         char = text[index]
-        if char in "{(":
+        if char in "{([":
             depth += 1
-        elif char in "})":
+        elif char in "}])":
             depth -= 1
         elif depth == 0:
             for symbol in (">=", "<=", ">", "<"):
@@ -179,11 +184,11 @@ def _split_relation(body: str, word: str) -> tuple[str, str] | None:
     index = 0
     while index < len(body):
         char = body[index]
-        if char in "{(":
+        if char in "{([":
             depth += 1
             index += 1
             continue
-        if char in "})":
+        if char in "}])":
             depth -= 1
             index += 1
             continue
@@ -392,6 +397,40 @@ def _real_order(body: str, anchors: dict[str, Theorem]) -> tuple[Rule, ...] | No
     except NotExact as exc:
         return (_note(str(exc)),)
     return (real_order_rule(left, right, left_real, right_real, (*left_closed[1], *right_closed[1])),)
+
+
+def _matrix_closed(term: Term, anchors: dict[str, Theorem]) -> tuple[Term, tuple[str, ...]] | None:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    if not closed(body):
+        return None
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    return body, prelude
+
+
+def _matrix_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    prepared = _matrix_closed(term, anchors)
+    if prepared is None:
+        return ()
+    body, prelude = prepared
+    try:
+        result = eval_lin_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (lin_value_rule(term, result, prelude),)
+
+
+def _matrix_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left = _matrix_closed(equation.left, anchors)
+    right = _matrix_closed(equation.right, anchors)
+    if left is None or right is None:
+        return (_note(f"{pretty_eq(equation)} is not a theorem"),)
+    try:
+        left_value = eval_lin_result(left[0])
+        right_value = eval_lin_result(right[0])
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return lin_equality_rules(equation.left, equation.right, left_value, right_value, (*left[1], *right[1]))
 
 
 def _finish_term(term: Term, anchors: dict[str, Theorem], evaluated: Theorem | str | None) -> tuple[Rule, ...]:
