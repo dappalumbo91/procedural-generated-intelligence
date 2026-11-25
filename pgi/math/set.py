@@ -559,7 +559,7 @@ def _real_gap(left: RealForm, right: RealForm) -> str:
 def _quantity(origin: Term, form: RealForm, lines: tuple[str, ...]) -> Rule:
     title_left = pretty(origin)
     shown = show_form(form)
-    if not form.terms and not form.towers and not form.nests and not form.pairs and not form.deeps and not form.highs and not form.peaks and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads:
+    if not form.terms and not form.towers and not form.nests and not form.pairs and not form.deeps and not form.highs and not form.peaks and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras:
         number = form.constant
         if number.den == 1:
             return Rule(
@@ -788,6 +788,9 @@ def _form_token(form: RealForm) -> str:
                 "-", "m"
             )
         )
+    for coeff, coeffs, index in form.algebras:
+        poly = ".".join(str(value).replace("-", "m") for value in coeffs)
+        parts.append(f"{coeff.num}.{coeff.den}.{poly}.{index}".replace("-", "m"))
     return "e" + "_".join(parts)
 
 

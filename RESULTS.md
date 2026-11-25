@@ -1,8 +1,8 @@
-# Results through pgi-0.41.0
+# Results through pgi-0.42.0
 
 Procedural Generated Intelligence (PGI) unfolds answers from compact rules, seeds, and constraints. The store is generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and the kernel saturates the active packs, retracts contradictions, and renders the settled claims at the requested level of detail.
 
-This note records what the folder holds at rule version `pgi-0.41.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
+This note records what the folder holds at rule version `pgi-0.42.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
 
 ## What the kernel holds
 
@@ -106,8 +106,11 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 | pgi-0.39.0 | Quadratic sign charts | 119 | about 37.89 s |
 | pgi-0.40.0 | Tower product cache | 119 | about 12.50 s |
 | pgi-0.41.0 | Greater-or-equal and greater-than rewrites | 120 | about 13.19 s |
+| pgi-0.42.0 | Polynomial sign charts and real algebraic numbers | 124 | about 13.38 s |
 
 `python -m unittest discover -s tests -v` at pgi-0.41.0 finished 120 tests, 0 failures, in 13.186 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 13.19 seconds in the table. One test calls GNU Octave through the portable lookup.
+
+`python -m unittest discover -s tests -v` at pgi-0.42.0 finished 124 tests, 0 failures, in 13.378 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 13.38 seconds in the table. One test calls GNU Octave through the portable lookup.
 
 ### Why the two open radicals stayed open, and what closed them
 
@@ -179,4 +182,10 @@ Tower multiplication still follows `(a + b√d)(c + e√d) = (ac + bed) + (ae + 
 
 `>=` and `>` are accepted in a predicate and rewritten to `<=` and `<` by flipping the sides. The rewrite is Lean `ge_iff_le` and `gt_iff_lt`, and Isabelle Orderings.thy defines `x ≥ y` as `y ≤ x` and `x > y` as `y < x`. `{x. x >= 2}` is `atLeast(2)`. `{x. x > 2}` is `greaterThan(2)`. `{x. x * x >= 2}` is `atMost(-sqrt(2)) union atLeast(sqrt(2))`. `{x. x * x > 2}` is `lessThan(-sqrt(2)) union greaterThan(sqrt(2))`. `{x in {1, 2, 3}. x >= 2}` is `{2, 3}`. `{x. not x >= 2}` is `lessThan(2)`. `prove 5 >= 2` is `le(2,5)`.
 
-A polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, stays outside the bisection, as does a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. A negative radicand stays open. Division by zero stays open.
+### Polynomial sign charts and real algebraic numbers
+
+A comparison that is a polynomial in the binder, with rational coefficients, is settled by a checked sign chart rather than a degree-by-degree rule. Yun square-free factorization and a Sturm sequence isolate the real roots. A root expressible as a nested square root is kept in that form. Otherwise the root is stored as a checked real algebraic number: a primitive irreducible integer polynomial together with the index of that real root among the real roots, ordered increasingly. A Sturm sequence isolates the root in a rational interval that contains exactly one real root, and the number is kept only when that count, the irreducibility of the polynomial, and the index all check. The sign chart is kept only when it is checked at rational test points and at every constructed root. The original leading sign of the polynomial is preserved, so an inequality is not flipped when the primitive representative is taken.
+
+`{x. x * x * x <= 2}` is `atMost(root(x^3 - 2, 1))`. `{x. x * x * x < 2}` is `lessThan(root(x^3 - 2, 1))`. `{x. x * x * x >= 2}` is `atLeast(root(x^3 - 2, 1))`. `{x. x * x * x = 2}` is `set({root(x^3 - 2, 1)})`. `sup {x. x * x * x <= 2}` is `cauchy(root(x^3 - 2, 1))`. `{x. x * x * x * x <= 2}` is `atLeastAtMost(-sqrt(sqrt(2)), sqrt(sqrt(2)))`. `{x. (x * x * x) - x <= 0}` is `atMost(-1) union atLeastAtMost(0, 1)`. `{x. (x * x - 2) * (x - 3) <= 0}` is `atMost(-sqrt(2)) union atLeastAtMost(sqrt(2), 3)`. `{x. x * x * x + x + 1 = 0}` is `set({root(x^3 + x + 1, 1)})`. A polynomial with no real roots and a positive leading coefficient, such as `{x. x * x * x * x + 1 <= 0}`, is empty. Membership follows the admitted ray, interval, or cover.
+
+A quadratic whose coefficients are not all rational still uses the quadratic formula when the discriminant can be formed as a nonnegative radicand. A quadratic whose discriminant the kernel cannot form as a nonnegative radicand, such as `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}`, stays outside. A polynomial whose coefficients are not all rational and whose degree is greater than two, such as `{x. x * x * x <= sqrt(2)}`, stays outside the bisection. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. A negative radicand stays open. Division by zero stays open.

@@ -73,11 +73,18 @@ cancelling a shared summand and a nonzero coefficient, by `add_le_cancel_left`,
 An identically true comparison is UNIV. An identically false comparison is
 empty, except `x < x`, which stays the `less_irrefl` refusal. An affine
 equality with a nonzero coefficient is the singleton of the cancelled bound.
-A quadratic comparison in the binder is settled by the sign chart of that
-polynomial at the roots the kernel can construct and check. `{x. x * x <= 2}`
-is `atLeastAtMost(-sqrt(2), sqrt(2))`. A polynomial of degree greater than
-two, or a discriminant whose square root the kernel cannot form, stays
-outside that rule, and its upper-bound predicate stays outside the
+A comparison that is a polynomial in the binder, with rational coefficients,
+is settled by a checked sign chart. Square-free factoring and a Sturm
+sequence isolate the real roots. A root that is a nested square root is
+kept in that form. Otherwise the root is a real algebraic number: a
+primitive irreducible integer polynomial together with the index of that
+real root. `{x. x * x * x <= 2}` is `atMost(root(x^3 - 2, 1))`. `{x. x * x * x * x <= 2}`
+is `atLeastAtMost(-sqrt(sqrt(2)), sqrt(sqrt(2)))`. A quadratic whose
+coefficients are not all rational still uses the quadratic formula when
+the discriminant can be formed as a nonnegative radicand. A discriminant
+whose square root the kernel cannot form, and a polynomial whose
+coefficients are not all rational and whose degree is greater than two,
+stay outside that rule, and their upper-bound predicates stay outside the
 bisection.
 
 Core Lean 4.36.0, with no imports, does not resolve `Set.Iic`, `Set.Ici`,
@@ -99,13 +106,17 @@ from pgi.math.real import (
     _canonical,
     _div_form,
     _enclose,
+    _is_rational,
     _mul_forms,
     _neg_form,
+    _ratio,
     _sqrt_of_form,
     _qadd,
     _qcmp,
     _qdiv,
     _qsub,
+    form_of_algebraic,
+    try_radical_form,
     _scale,
     _sub_forms,
     compare_reals,
@@ -1701,10 +1712,164 @@ def _polynomial_set(
     coeffs = _poly_trim(_poly_add(left_poly, _poly_neg(right_poly)))
     if len(coeffs) <= 2:
         raise NotExact(_NOT_FINITE)
-    if len(coeffs) > 3:
-        raise NotExact(_NOT_FINITE)
-    value, roots, detail = _quadratic_set(coeffs, relation)
+    rat_coeffs = _as_rat_coeffs(coeffs)
+    if rat_coeffs is not None:
+        return _rational_poly_set(rat_coeffs, relation)
+    if len(coeffs) == 3:
+        return _quadratic_set(coeffs, relation)
+    raise NotExact(_NOT_FINITE)
+
+
+
+def _as_rat_coeffs(coeffs: tuple[RealForm, ...]) -> tuple[Ratio, ...] | None:
+    if any(not _is_rational(coeff) for coeff in coeffs):
+        return None
+    return tuple(coeff.constant for coeff in coeffs)
+
+
+def _rational_poly_set(
+    coeffs: tuple[Ratio, ...],
+    relation: str,
+) -> tuple[object, tuple[RealForm, ...], tuple[str, ...]]:
+    from pgi.math.algebraic import (
+        from_ratio_coeffs,
+        integer_poly,
+        leading_sign,
+        roots_of_rational_polynomial,
+        sign_at,
+        AlgebraicReal,
+    )
+
+    # Roots are unchanged by a unit. The sign chart must use the original leading sign.
+    signed = integer_poly(coeffs)
+    poly = from_ratio_coeffs(coeffs)
+    found = roots_of_rational_polynomial(poly)
+    converted: list[tuple[RealForm, int]] = []
+    for root, multiplicity in found:
+        if isinstance(root, Ratio):
+            form = real_of_rat(root).form
+        elif isinstance(root, AlgebraicReal):
+            form = try_radical_form(root.coeffs, root.index)
+            if form is None:
+                form = form_of_algebraic(root.coeffs, root.index)
+        else:
+            raise KernelError("an unexpected root kind")
+        converted.append((form, multiplicity))
+    roots = tuple(form for form, _mult in converted)
+    for form in roots:
+        _check_root_rational(poly, form)
+    value = _chart_set(relation, converted, signed)
+    shown_roots = ", ".join(show_form(form) for form in roots) if roots else "none"
+    detail = (
+        "The comparison is a polynomial in the binder.",
+        "Yun square-free factorization and a Sturm sequence isolate the real roots.",
+        "Each irrational root is a checked real algebraic number: a primitive irreducible integer polynomial together with the index of that real root.",
+        "When that root is an admitted radical, the radical form is kept after it is checked against the minimal polynomial.",
+        "The sign chart is checked at a rational point in each complementary interval.",
+        f"The real roots are {shown_roots}.",
+        f"The set is {_value_atom(value)}.",
+    )
     return value, roots, detail
+
+
+def _check_root_rational(poly: tuple[int, ...], form: RealForm) -> None:
+    from pgi.math.algebraic import _divides_int, eval_int
+    from pgi.math.real import _algebra_poly_eval
+
+    if _is_rational(form):
+        if eval_int(poly, form.constant).num != 0:
+            raise KernelError("a constructed root did not vanish in the polynomial")
+        return
+    if form.algebras:
+        _coeff, minpoly, _index = form.algebras[0]
+        if not _divides_int(minpoly, poly):
+            raise KernelError("a constructed root did not vanish in the polynomial")
+        return
+    total = _algebra_poly_eval(poly, form)
+    if not _is_rational(total) or total.constant.num != 0:
+        raise KernelError("a constructed root did not vanish in the polynomial")
+
+
+def _chart_set(
+    relation: str,
+    roots: list[tuple[RealForm, int]],
+    poly: tuple[int, ...],
+) -> object:
+    from pgi.math.algebraic import sign_at
+
+    if relation not in {"eq", "lt", "le"}:
+        raise NotExact(_NOT_FINITE)
+    forms = [form for form, _mult in roots]
+    if relation == "eq":
+        return _finite_set(tuple(forms)) if forms else set_empty()
+    points = _sign_test_points(forms)
+    signs = [sign_at(poly, point) for point in points]
+    if any(sign == 0 for sign in signs):
+        raise KernelError("a sign-chart test point was a root")
+    if forms and len(signs) != len(forms) + 1:
+        raise KernelError("the sign chart was missing an interval")
+    if not forms:
+        positive = signs[0] > 0
+        return _constant_sign(relation, positive)
+    value: object | None = None
+    # Open intervals around the roots.
+    for index, sign in enumerate(signs):
+        if sign > 0:
+            continue
+        lower = None if index == 0 else forms[index - 1]
+        upper = None if index == len(forms) else forms[index]
+        closed = relation == "le"
+        piece = _chart_piece(lower, upper, closed)
+        value = piece if value is None else _join(value, piece)[0]
+    if relation == "le":
+        # Isolated even-multiplicity roots in a positive region.
+        for index, (form, multiplicity) in enumerate(roots):
+            left_sign = signs[index]
+            right_sign = signs[index + 1]
+            if left_sign > 0 and right_sign > 0:
+                if multiplicity % 2 != 0:
+                    raise KernelError("an odd-multiplicity root did not change sign")
+                piece = _finite_set((form,))
+                value = piece if value is None else _join(value, piece)[0]
+            elif left_sign == right_sign and multiplicity % 2 != 0:
+                raise KernelError("an odd-multiplicity root did not change sign")
+            elif left_sign != right_sign and multiplicity % 2 == 0:
+                raise KernelError("an even-multiplicity root changed sign")
+    return value if value is not None else set_empty()
+
+
+def _chart_piece(lower: RealForm | None, upper: RealForm | None, closed: bool) -> object:
+    if lower is None and upper is None:
+        return _synthetic("univ", None)
+    if lower is None:
+        return _synthetic("atMost" if closed else "lessThan", upper)
+    if upper is None:
+        return _synthetic("atLeast" if closed else "greaterThan", lower)
+    kind = "atLeastAtMost" if closed else "greaterThanLessThan"
+    return Interval(kind, lower, upper)
+
+
+def _sign_test_points(forms: list[RealForm]) -> list[Ratio]:
+    if not forms:
+        return [_ratio(0, 1)]
+    points: list[Ratio] = []
+    first_low, _ = _form_interval(forms[0])
+    points.append(_qsub(first_low, _ratio(1, 1)))
+    for left, right in zip(forms, forms[1:]):
+        _, left_high = _form_interval(left)
+        right_low, _ = _form_interval(right)
+        if _qcmp(left_high, right_low) >= 0:
+            raise KernelError("neighbouring real roots had overlapping isolating intervals")
+        points.append(_qdiv(_qadd(left_high, right_low), _ratio(2, 1)))
+    _, last_high = _form_interval(forms[-1])
+    points.append(_qadd(last_high, _ratio(1, 1)))
+    return points
+
+
+def _form_interval(form: RealForm) -> tuple[Ratio, Ratio]:
+    if _is_rational(form):
+        return form.constant, form.constant
+    return _enclose(form, 8)
 
 
 def _quadratic_set(

@@ -91,6 +91,21 @@ def pretty(term: Term, parent: int = 0, right: bool = False) -> str:
         return body
     if term.op == "sqrt":
         return f"sqrt({pretty(term.args[0])})"
+    if term.op == "root":
+        if len(term.args) >= 4 and all(isinstance(arg, IntLit) for arg in term.args):
+            from pgi.math.algebraic import show_poly
+
+            values = tuple(arg.n for arg in term.args)
+            shown = f"root({show_poly(values[2:-1])}, {values[-1]})"
+            coeff_num, coeff_den = values[0], values[1]
+            if coeff_num == 1 and coeff_den == 1:
+                return shown
+            if coeff_num == -1 and coeff_den == 1:
+                return f"-{shown}"
+            if coeff_den == 1:
+                return f"{coeff_num} * {shown}"
+            return f"({coeff_num}/{coeff_den}) * {shown}"
+        return "root(" + ", ".join(pretty(arg) for arg in term.args) + ")"
     if term.op == "set":
         inner = ", ".join(pretty(arg) for arg in term.args)
         return "{" + inner + "}"

@@ -1003,8 +1003,8 @@ class ArbitrarySetTests(unittest.TestCase):
     def test_quadratic_sign_charts(self) -> None:
         closed = run(Request(ask="what is {x. x * x <= 2}", seed=1))
         self.assertEqual(closed.claims[0].atom, "atLeastAtMost(-sqrt(2), sqrt(2))")
-        self.assertIn("quadratic formula", closed.text(lod=2))
-        self.assertIn("real_sqrt_pow2", closed.text(lod=2))
+        self.assertIn("Sturm", closed.text(lod=2))
+        self.assertIn("admitted radical", closed.text(lod=2))
         self.assertEqual(closed.open_gaps, ())
 
         opened = run(Request(ask="what is {x. x * x < 2}", seed=1))
@@ -1040,10 +1040,65 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(missed.open_gaps, ())
 
         cubic = run(Request(ask="what is {x. x * x * x <= 2}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", cubic.text(lod=1))
-        self.assertEqual(_atoms(cubic, "value("), ())
+        self.assertEqual(cubic.claims[0].atom, "atMost(root(x^3 - 2, 1))")
+        self.assertEqual(cubic.open_gaps, ())
+
+    def test_polynomial_sign_charts(self) -> None:
+        cubic = run(Request(ask="what is {x. x * x * x <= 2}", seed=1))
+        self.assertEqual(cubic.claims[0].atom, "atMost(root(x^3 - 2, 1))")
+        self.assertIn("Sturm", cubic.text(lod=2))
+        self.assertEqual(cubic.open_gaps, ())
+
+        opened = run(Request(ask="what is {x. x * x * x < 2}", seed=1))
+        self.assertEqual(opened.claims[0].atom, "lessThan(root(x^3 - 2, 1))")
+        self.assertEqual(opened.open_gaps, ())
+
+        above = run(Request(ask="what is {x. x * x * x >= 2}", seed=1))
+        self.assertEqual(above.claims[0].atom, "atLeast(root(x^3 - 2, 1))")
+        self.assertEqual(above.open_gaps, ())
+
+        roots = run(Request(ask="what is {x. x * x * x = 2}", seed=1))
+        self.assertEqual(roots.claims[0].atom, "set({root(x^3 - 2, 1)})")
+        self.assertEqual(roots.open_gaps, ())
+
+        bound = run(Request(ask="what is sup {x. x * x * x <= 2}", seed=1))
+        self.assertEqual(bound.claims[0].atom, "cauchy(root(x^3 - 2, 1))")
+        self.assertEqual(bound.open_gaps, ())
+
+        inside = run(Request(ask="prove 1 in {x. x * x * x <= 2}", seed=1))
+        self.assertEqual(inside.claims[0].atom, "member(1,{x. x * x * x <= 2})")
+        self.assertEqual(inside.open_gaps, ())
+
+        missed = run(Request(ask="prove 2 in {x. x * x * x <= 2}", seed=1))
+        self.assertEqual(missed.claims[0].atom, "not_member(2,{x. x * x * x <= 2})")
+        self.assertEqual(missed.open_gaps, ())
+
+        factored = run(Request(ask="what is {x. (x * x * x) - x <= 0}", seed=1))
+        self.assertEqual(factored.claims[0].atom, "atMost(-1) union atLeastAtMost(0, 1)")
+        self.assertEqual(factored.open_gaps, ())
+
+        nested = run(Request(ask="what is {x. x * x * x * x <= 2}", seed=1))
+        self.assertEqual(nested.claims[0].atom, "atLeastAtMost(-sqrt(sqrt(2)), sqrt(sqrt(2)))")
+        self.assertEqual(nested.open_gaps, ())
+
+        mixed = run(Request(ask="what is {x. (x * x - 2) * (x - 3) <= 0}", seed=1))
+        self.assertEqual(mixed.claims[0].atom, "atMost(-sqrt(2)) union atLeastAtMost(sqrt(2), 3)")
+        self.assertEqual(mixed.open_gaps, ())
+
+        vacant = run(Request(ask="what is {x. x * x * x * x + 1 <= 0}", seed=1))
+        self.assertEqual(vacant.claims[0].atom, "set({})")
+        self.assertEqual(vacant.open_gaps, ())
+
+        irreducible = run(Request(ask="what is {x. x * x * x + x + 1 = 0}", seed=1))
+        self.assertEqual(irreducible.claims[0].atom, "set({root(x^3 + x + 1, 1)})")
+        self.assertEqual(irreducible.open_gaps, ())
+
+        unformable = run(Request(ask="what is {x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}", seed=1))
+        self.assertIn("this comprehension is not a finite enumeration", unformable.text(lod=1))
+        self.assertTrue(unformable.open_gaps)
 
     def test_ge_and_gt_rewrite_to_le_and_lt(self) -> None:
+
         from pgi.math.syntax import GE_IFF, GT_IFF, parse_term, pretty, rewrite_ge_gt
 
         parsed = parse_term("{x. x >= 2}")

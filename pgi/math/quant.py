@@ -527,6 +527,13 @@ def _form_of(term: Term, env: dict[str, RealForm]) -> RealForm:
         raise NotExact("a set does not enter this quantifier")
     if term.op == "sqrt":
         return _sqrt_of_form(_form_of(term.args[0], env))
+    if term.op == "root":
+        from pgi.math.real import form_of_algebraic
+
+        if len(term.args) < 4 or not all(isinstance(arg, IntLit) for arg in term.args):
+            raise NotExact("this algebraic number stays outside")
+        values = tuple(arg.n for arg in term.args)
+        return form_of_algebraic(values[2:-1], values[-1], Ratio(values[0], values[1]))
     if term.op == "neg":
         return _neg_form(_form_of(term.args[0], env))
     if len(term.args) != 2:

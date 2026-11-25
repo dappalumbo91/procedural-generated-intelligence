@@ -157,6 +157,8 @@ class RealForm:
     # extra is nonempty and outermost first. Each multiplier is positive and square-free.
     folds: tuple[tuple[Ratio, tuple[int, ...], int, int, int, int], ...] = ()
     quads: tuple[tuple[Ratio, Ratio, Ratio, int, Ratio, int, Ratio], ...] = ()
+    # coeff * the index-th real root of a primitive irreducible integer polynomial.
+    algebras: tuple[tuple[Ratio, tuple[int, ...], int], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -178,6 +180,8 @@ def eval_real(term: Term) -> RealTheorem:
         raise KernelError("a free variable is not a real numeral")
     if term.op == "sqrt":
         return real_sqrt(eval_real(term.args[0]))
+    if term.op == "root":
+        return real_of_algebraic(term)
     if term.op == "neg":
         return real_neg(eval_real(term.args[0]))
     left = eval_real(term.args[0])
@@ -407,7 +411,7 @@ def show_form(form: RealForm) -> str:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
     ):
         pieces.append(_ratio_piece(form.constant))
     for coeff, rad in form.terms:
@@ -448,6 +452,8 @@ def show_form(form: RealForm) -> str:
         pieces.append(
             _quad_piece(coeff, constant, first_coeff, first, second_coeff, second, product_coeff)
         )
+    for coeff, coeffs, index in form.algebras:
+        pieces.append(_algebra_piece(coeff, coeffs, index))
     parts: list[str] = []
     for index, (text, negative) in enumerate(pieces):
         if index == 0:
@@ -473,6 +479,8 @@ def _sqrt_form(radicand: Ratio) -> RealForm:
 
 
 def _add_forms(left: RealForm, right: RealForm) -> RealForm:
+    if left.algebras or right.algebras:
+        raise NotExact("this algebraic sum stays outside")
     coeffs: dict[int, Ratio] = {}
     for coeff, rad in (*left.terms, *right.terms):
         current = coeffs.get(rad, _ratio(0, 1))
@@ -719,6 +727,7 @@ def _neg_form(form: RealForm) -> RealForm:
             (_qneg(coeff), constant, first_coeff, first, second_coeff, second, product_coeff)
             for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads
         ),
+        tuple((_qneg(coeff), coeffs, index) for coeff, coeffs, index in form.algebras),
     )
 
 
@@ -1031,6 +1040,7 @@ def _scale(form: RealForm, factor: Ratio) -> RealForm:
             (_qmul(coeff, factor), constant, first_coeff, first, second_coeff, second, product_coeff)
             for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads
         ),
+        tuple((_qmul(coeff, factor), coeffs, index) for coeff, coeffs, index in form.algebras if _qmul(coeff, factor).num != 0),
     )
 
 
@@ -1041,6 +1051,8 @@ def _term_form(coeff: Ratio, rad: int) -> RealForm:
 
 
 def _sqrt_of_form(form: RealForm) -> RealForm:
+    if form.algebras:
+        raise NotExact("a radicand the kernel cannot see as nonnegative stays open")
     if _is_rational(form):
         if form.constant.num < 0:
             raise NotExact("square root of a negative stays open")
@@ -1062,7 +1074,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and len(form.terms) == 1
         and form.constant.num != 0
     ):
@@ -1078,7 +1090,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.terms) == 2
     ):
@@ -1091,7 +1103,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.nests) == 1
     ):
@@ -1104,7 +1116,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.pairs) == 1
     ):
@@ -1117,7 +1129,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.pairs
         and not form.deeps
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.highs) == 1
     ):
@@ -1130,7 +1142,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.pairs
         and not form.deeps
         and not form.highs
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.peaks) == 1
     ):
@@ -1144,7 +1156,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.crests) == 1
     ):
@@ -1159,7 +1171,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.highs
         and not form.peaks
         and not form.crests
-        and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.summits) == 1
     ):
@@ -1175,7 +1187,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.peaks
         and not form.crests
         and not form.summits
-        and not form.shells and not form.folds and not form.quads
+        and not form.shells and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.apexes) == 1
     ):
@@ -1224,7 +1236,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.summits
         and not form.apexes
         and not form.shells
-        and not form.folds and not form.quads
+        and not form.folds and not form.quads and not form.algebras
         and form.constant.num == 0
         and len(form.deeps) == 1
     ):
@@ -1369,7 +1381,7 @@ def _sqrt_lines(operand: RealForm, result: RealForm) -> tuple[str, ...]:
 
 
 def _as_monomial(form: RealForm) -> tuple[Ratio, int, int, int] | None:
-    if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.constant.num != 0 or (form.terms and form.towers):
+    if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras or form.constant.num != 0 or (form.terms and form.towers):
         return None
     if len(form.terms) == 1 and not form.towers:
         coeff, rad = form.terms[0]
@@ -1395,7 +1407,7 @@ def _sqrt_monomial(coeff: Ratio, base: int, numer: int, log_den: int) -> RealFor
 
 
 def _denest(form: RealForm) -> RealForm | None:
-    if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or len(form.terms) != 1 or form.constant.num == 0:
+    if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras or len(form.terms) != 1 or form.constant.num == 0:
         return None
     coeff, rad = form.terms[0]
     if coeff.num == 0:
@@ -1594,7 +1606,7 @@ def _square_nest(form: RealForm) -> RealForm:
         or form.towers
         or form.pairs
         or form.deeps
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.nests) != 1
     ):
         raise KernelError("binomial square left the nest")
@@ -1617,7 +1629,7 @@ def _denest_two_radicals(form: RealForm) -> RealForm | None:
         or form.nests
         or form.pairs
         or form.deeps
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.terms) != 2
     ):
         return None
@@ -1856,7 +1868,7 @@ def _square_deep(form: RealForm) -> RealForm:
         or form.towers
         or form.nests
         or form.pairs
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.deeps) != 1
     ):
         raise KernelError("deep square left the radical")
@@ -2040,7 +2052,7 @@ def _square_high(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.highs) != 1
     ):
         raise KernelError("high square left the radical")
@@ -2233,7 +2245,7 @@ def _square_peak(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.highs
-        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.peaks) != 1
     ):
         raise KernelError("peak square left the radical")
@@ -2476,7 +2488,7 @@ def _square_crest(form: RealForm) -> RealForm:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.crests) != 1
     ):
         raise KernelError("crest square left the radical")
@@ -2769,7 +2781,7 @@ def _square_summit(form: RealForm) -> RealForm:
         or form.highs
         or form.peaks
         or form.crests
-        or form.apexes or form.shells or form.folds or form.quads
+        or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.summits) != 1
     ):
         raise KernelError("summit square left the radical")
@@ -2989,7 +3001,7 @@ def _square_apex(form: RealForm) -> RealForm:
         or form.peaks
         or form.crests
         or form.summits
-        or form.shells or form.folds or form.quads
+        or form.shells or form.folds or form.quads or form.algebras
         or len(form.apexes) != 1
     ):
         raise KernelError("apex square left the radical")
@@ -3192,7 +3204,7 @@ def _square_shell(form: RealForm) -> RealForm:
         or form.crests
         or form.summits
         or form.apexes
-        or form.folds or form.quads
+        or form.folds or form.quads or form.algebras
         or len(form.shells) != 1
     ):
         raise KernelError("shell square left the radical")
@@ -3461,7 +3473,7 @@ def _invert_shell(form: RealForm) -> RealForm:
         or form.crests
         or form.summits
         or form.apexes
-        or form.folds or form.quads
+        or form.folds or form.quads or form.algebras
         or len(form.shells) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -4524,7 +4536,7 @@ def _invert_two_nests(form: RealForm) -> RealForm:
         or form.summits
         or form.apexes
         or form.shells
-        or form.folds or form.quads
+        or form.folds or form.quads or form.algebras
         or len(form.nests) != 2
     ):
         raise NotExact("this quotient stays outside")
@@ -6955,6 +6967,9 @@ def _enclose(form: RealForm, depth: int) -> tuple[Ratio, Ratio]:
             constant, first_coeff, first, second_coeff, second, product_coeff, depth
         )
         lower, upper = _absorb(lower, upper, coeff, left, right)
+    for coeff, coeffs, index in form.algebras:
+        left, right = _algebra_bounds(coeffs, index)
+        lower, upper = _absorb(lower, upper, coeff, left, right)
     if _qcmp(lower, upper) > 0:
         raise KernelError("enclosure crossed itself")
     return lower, upper
@@ -6994,6 +7009,8 @@ def compare_reals(left: RealForm, right: RealForm) -> str:
 
     if left == right:
         return "eq"
+    if left.algebras or right.algebras:
+        return _compare_algebras(left, right)
     direction = _classify(_sub_forms(left, right))
     if direction == "eq":
         raise KernelError("two normal forms were equal and distinct")
@@ -7085,7 +7102,7 @@ def _is_rational(form: RealForm) -> bool:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads and not form.algebras
     )
 
 
@@ -7144,6 +7161,9 @@ def _form_id(form: RealForm) -> str:
             f"b{second_coeff.num}.{second_coeff.den}.q{second}."
             f"d{product_coeff.num}.{product_coeff.den}"
         )
+    for coeff, coeffs, index in form.algebras:
+        body = ".".join(str(value) for value in coeffs)
+        parts.append(f"r{coeff.num}.{coeff.den}.p{body}.i{index}")
     return "math.cauchy." + ".".join(parts)
 
 
@@ -7308,6 +7328,198 @@ def _apex_piece(
     )
 
 
+
+def _algebra_piece(coeff: Ratio, coeffs: tuple[int, ...], index: int) -> tuple[str, bool]:
+    from pgi.math.algebraic import AlgebraicReal, show_algebraic
+
+    return _scaled_piece(show_algebraic(AlgebraicReal(coeffs, index)), coeff)
+
+
+def _algebra_bounds(coeffs: tuple[int, ...], index: int) -> tuple[Ratio, Ratio]:
+    from pgi.math.algebraic import AlgebraicReal
+
+    return AlgebraicReal(coeffs, index).interval
+
+
+def _compare_algebras(left: RealForm, right: RealForm) -> str:
+    from pgi.math.algebraic import (
+        AlgebraicReal,
+        compare_algebraic,
+        compare_algebraic_to_ratio,
+    )
+
+    if left == right:
+        return "eq"
+    left_alg = _as_unit_algebra(left)
+    right_alg = _as_unit_algebra(right)
+    if left_alg is not None and right_alg is not None:
+        return compare_algebraic(left_alg, right_alg)
+    if left_alg is not None and _is_rational(right):
+        return compare_algebraic_to_ratio(left_alg, right.constant)
+    if right_alg is not None and _is_rational(left):
+        flipped = compare_algebraic_to_ratio(right_alg, left.constant)
+        return {"lt": "gt", "gt": "lt", "eq": "eq"}[flipped]
+    # Enclose both and refine the algebraic side until the intervals separate,
+    # or prove equality if a radical form satisfies the minimal polynomial and
+    # lies in the isolating interval.
+    if left_alg is not None and _algebra_holds(left_alg, right):
+        return "eq"
+    if right_alg is not None and _algebra_holds(right_alg, left):
+        return "eq"
+    left_low, left_high = _enclose(left, 8)
+    right_low, right_high = _enclose(right, 8)
+    if _qcmp(left_high, right_low) <= 0:
+        return "lt"
+    if _qcmp(right_high, left_low) <= 0:
+        return "gt"
+    for depth in range(9, 24):
+        left_low, left_high = _enclose(left, depth)
+        right_low, right_high = _enclose(right, depth)
+        if _qcmp(left_high, right_low) <= 0:
+            return "lt"
+        if _qcmp(right_high, left_low) <= 0:
+            return "gt"
+    raise NotExact("these algebraic numbers could not be compared")
+
+
+def _as_unit_algebra(form: RealForm) -> object | None:
+    from pgi.math.algebraic import AlgebraicReal
+
+    if not form.algebras or not _algebra_only(form):
+        return None
+    if len(form.algebras) != 1:
+        return None
+    coeff, coeffs, index = form.algebras[0]
+    if coeff != _ratio(1, 1):
+        return None
+    return AlgebraicReal(coeffs, index)
+
+
+def _algebra_only(form: RealForm) -> bool:
+    return (
+        form.constant.num == 0
+        and not form.terms
+        and not form.towers
+        and not form.nests
+        and not form.pairs
+        and not form.deeps
+        and not form.highs
+        and not form.peaks
+        and not form.crests
+        and not form.summits
+        and not form.apexes
+        and not form.shells
+        and not form.folds
+        and not form.quads
+        and form.algebras
+    )
+
+
+def _algebra_holds(number: object, form: RealForm) -> bool:
+    from pgi.math.algebraic import AlgebraicReal, eval_int
+
+    if not isinstance(number, AlgebraicReal):
+        return False
+    total = _algebra_poly_eval(number.coeffs, form)
+    if not _is_rational(total) or total.constant.num != 0:
+        return False
+    low, high = number.interval
+    enclosed_low, enclosed_high = _enclose(form, 12)
+    return _qcmp(low, enclosed_high) < 0 and _qcmp(enclosed_low, high) < 0
+
+
+def _algebra_poly_eval(coeffs: tuple[int, ...], value: RealForm) -> RealForm:
+    total = RealForm(_ratio(0, 1), ())
+    power = RealForm(_ratio(1, 1), ())
+    for coeff in coeffs:
+        total = _add_forms(total, _scale(power, _ratio(coeff, 1)))
+        power = _mul_forms(power, value)
+    return total
+
+
+def real_of_algebraic(term: Term) -> RealTheorem:
+    if not isinstance(term, App) or term.op != "root" or len(term.args) < 4:
+        raise NotExact("this algebraic number stays outside")
+    if not all(isinstance(arg, IntLit) for arg in term.args):
+        raise NotExact("this algebraic number stays outside")
+    values = tuple(arg.n for arg in term.args)
+    coeff = _ratio(values[0], values[1])
+    index = values[-1]
+    coeffs = values[2:-1]
+    form = form_of_algebraic(coeffs, index, coeff)
+    return RealTheorem(
+        form,
+        "Real.algebraic",
+        detail=(
+            "This real is the indicated real root of a primitive irreducible integer polynomial.",
+            "A Sturm sequence isolates that unique root in a rational interval, and the index is the place of the root among the real roots, ordered increasingly.",
+        ),
+    )
+
+
+def form_of_algebraic(coeffs: tuple[int, ...], index: int, coeff: Ratio | None = None) -> RealForm:
+    """A checked real algebraic number as a normal form."""
+
+    from pgi.math.algebraic import AlgebraicReal
+
+    AlgebraicReal(coeffs, index)
+    scale = coeff if coeff is not None else _ratio(1, 1)
+    if scale.num == 0:
+        return RealForm(_ratio(0, 1), ())
+    return RealForm(_ratio(0, 1), (), algebras=((scale, coeffs, index),))
+
+
+def try_radical_form(coeffs: tuple[int, ...], index: int) -> RealForm | None:
+    """Return an admitted radical form of this algebraic root, when there is one."""
+
+    from pgi.math.algebraic import AlgebraicReal, degree, leading
+
+    number = AlgebraicReal(coeffs, index)
+    poly = number.coeffs
+    n = degree(poly)
+    # x^n - k for n a power of two and k a positive integer is a nested square root.
+    if (
+        n >= 2
+        and n.bit_count() == 1
+        and leading(poly) == 1
+        and all(value == 0 for value in poly[1:-1])
+        and poly[0] < 0
+    ):
+        form = _sqrt_form(_ratio(-poly[0], 1))
+        steps = n.bit_length() - 2
+        for _ in range(steps):
+            form = _sqrt_of_form(form)
+        if n % 2 == 0:
+            if index == 1:
+                form = _neg_form(form)
+            elif index != 2:
+                return None
+        elif index != 1:
+            return None
+        if not _algebra_holds(number, form):
+            raise KernelError("a constructed radical did not match this algebraic root")
+        return form
+    if n == 2:
+        constant, linear, lead = (poly[0], poly[1], poly[2])
+        # (-b ± sqrt(b^2 - 4ac)) / (2a)
+        disc = linear * linear - 4 * lead * constant
+        if disc <= 0:
+            return None
+        try:
+            sqrt_disc = _sqrt_form(_ratio(disc, 1))
+            two_a = _ratio(2 * lead, 1)
+            minus_b = _ratio(-linear, 1)
+            plus = _div_form(_add_forms(RealForm(minus_b, ()), sqrt_disc), RealForm(two_a, ()))
+            minus = _div_form(_sub_forms(RealForm(minus_b, ()), sqrt_disc), RealForm(two_a, ()))
+        except (NotExact, KernelError):
+            return None
+        # Choose the root that lies in the isolating interval.
+        for candidate in (minus, plus):
+            if _algebra_holds(number, candidate):
+                return candidate
+        return None
+    return None
+
 def _scaled_piece(body: str, coeff: Ratio) -> tuple[str, bool]:
     magnitude, _negative = _ratio_piece(_ratio(abs(coeff.num), coeff.den))
     text = body if magnitude == "1" else f"{magnitude} * {body}"
@@ -7339,6 +7551,8 @@ def _justified(theorem: RealTheorem) -> bool:
     try:
         if rule == "Real.of_rat":
             return not premises and _is_rational(form)
+        if rule == "Real.algebraic":
+            return not premises and bool(form.algebras) and _canonical(form)
         if rule == "Real.sqrt":
             if len(premises) != 1:
                 return False
@@ -7473,6 +7687,8 @@ def _div_lines(divisor: RealForm) -> tuple[str, ...]:
 
 
 def _div_form(left: RealForm, right: RealForm) -> RealForm:
+    if left.algebras or right.algebras:
+        raise NotExact("this algebraic quotient stays outside")
     if _is_zero(right):
         raise NotExact("division by zero")
     if not _apart(right):
@@ -7600,7 +7816,7 @@ def _invert_high(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.highs) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -7634,7 +7850,7 @@ def _invert_apex(form: RealForm) -> RealForm:
         or form.peaks
         or form.crests
         or form.summits
-        or form.shells or form.folds or form.quads
+        or form.shells or form.folds or form.quads or form.algebras
         or len(form.apexes) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -7683,7 +7899,7 @@ def _invert_summit(form: RealForm) -> RealForm:
         or form.highs
         or form.peaks
         or form.crests
-        or form.apexes or form.shells or form.folds or form.quads
+        or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.summits) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -7729,7 +7945,7 @@ def _invert_crest(form: RealForm) -> RealForm:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.crests) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -7772,7 +7988,7 @@ def _invert_peak(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.highs
-        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.peaks) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -7813,7 +8029,7 @@ def _invert_deep(form: RealForm) -> RealForm:
         or form.towers
         or form.nests
         or form.pairs
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or len(form.deeps) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -7824,7 +8040,7 @@ def _invert_deep(form: RealForm) -> RealForm:
 
 
 def _invert_pair(form: RealForm) -> RealForm:
-    if form.constant.num != 0 or form.terms or form.towers or form.nests or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or len(form.pairs) != 1:
+    if form.constant.num != 0 or form.terms or form.towers or form.nests or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras or len(form.pairs) != 1:
         raise NotExact("this quotient stays outside")
     outer, left_c, left_r, right_c, right_r = form.pairs[0]
     gap = left_c * left_c * left_r - right_c * right_c * right_r
@@ -7850,7 +8066,7 @@ def _monomial_power(form: RealForm) -> tuple[Ratio, int, int, int] | None:
         form.pairs
         or form.nests
         or form.deeps
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
         or form.constant.num != 0
         or len(form.terms) + len(form.towers) != 1
     ):
@@ -7896,7 +8112,7 @@ def _dyadic_reader(base: int, level: int):
     half = 1 << (level - 1)
 
     def read(form: RealForm) -> list[Ratio]:
-        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads:
+        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras:
             raise KernelError("a power product left the one-base span")
         coords = [_ratio(0, 1) for _ in range(width)]
         coords[0] = form.constant
@@ -7991,7 +8207,7 @@ def _prime_reader(primes: tuple[int, ...], level: int):
         return found
 
     def read(form: RealForm) -> list[Ratio]:
-        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads:
+        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras:
             raise KernelError("a radical left the span")
         coords = [_ratio(0, 1) for _ in range(degree)]
         coords[0] = form.constant
@@ -8034,7 +8250,7 @@ def _quadratic_reader(primes: tuple[int, ...]):
     width = 1 << len(primes)
 
     def read(form: RealForm) -> list[Ratio]:
-        if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads:
+        if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras:
             raise KernelError("a square-root product left the basis")
         coords = [_ratio(0, 1) for _ in range(width)]
         coords[0] = form.constant
@@ -8499,6 +8715,35 @@ def _canonical(form: RealForm) -> bool:
         if seen_quad is not None and key <= seen_quad:
             return False
         seen_quad = key
+    if form.algebras:
+        if (
+            form.constant.num != 0
+            or form.terms
+            or form.towers
+            or form.nests
+            or form.pairs
+            or form.deeps
+            or form.highs
+            or form.peaks
+            or form.crests
+            or form.summits
+            or form.apexes
+            or form.shells
+            or form.folds
+            or form.quads
+        ):
+            return False
+        if len(form.algebras) != 1:
+            return False
+        coeff, coeffs, index = form.algebras[0]
+        if coeff.num == 0 or not _canonical_ratio(coeff):
+            return False
+        try:
+            from pgi.math.algebraic import AlgebraicReal
+
+            AlgebraicReal(coeffs, index)
+        except (KernelError, NotExact, TypeError, ValueError):
+            return False
     return True
 
 

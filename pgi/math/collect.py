@@ -659,7 +659,7 @@ def _term_of_form(form: RealForm) -> Term:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.algebras
     ):
         node = _term_of_ratio(form.constant)
     for coeff, rad in form.terms:
@@ -709,7 +709,14 @@ def _term_of_form(form: RealForm) -> Term:
             node,
             _term_of_quad(coeff, constant, first_coeff, first, second_coeff, second, product_coeff),
         )
+    for coeff, coeffs, index in form.algebras:
+        node = _add_piece(node, _term_of_algebra(coeff, coeffs, index))
     return node if node is not None else IntLit(0)
+
+
+def _term_of_algebra(coeff: Ratio, coeffs: tuple[int, ...], index: int) -> Term:
+    args = (IntLit(coeff.num), IntLit(coeff.den), *(IntLit(value) for value in coeffs), IntLit(index))
+    return App("root", args)
 
 
 def _add_piece(node: Term | None, piece: Term) -> Term:
