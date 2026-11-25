@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from pgi.corpus.measured import QUANTITIES, Quantity
+from pgi.corpus.measured import BOUNDS, QUANTITIES, Bound, Quantity
 
 KINDS = frozenset(
     {
@@ -335,11 +335,36 @@ def _quantity_record(item: Quantity) -> Record:
         statement=_quantity_statement(item),
         source=f"{item.source} Edition: {item.edition}.",
         url=item.url,
-        forbids=(f"derived({item.id})",) if item.exact else (),
+        forbids=((f"derived({item.id})",) if item.exact else ()) + item.forbids,
     )
 
 
-RECORDS = RECORDS + tuple(_quantity_record(item) for item in QUANTITIES if item.record)
+def _bound_record(item: Bound) -> Record:
+    unit = f" {item.unit}" if item.unit else ""
+    return Record(
+        id=item.id,
+        kind="experimental_bound",
+        standing="bound",
+        title=f"{item.edition}: {item.lower_text} <= {item.symbol} <= {item.upper_text}",
+        keys=item.keys,
+        phrases=item.phrases,
+        statement=(
+            f"{item.edition}: the {item.name}, {item.symbol}, lies between {item.lower_text} and {item.upper_text}{unit}.",
+            *item.conditions,
+            "A model that sits outside this interval under the same assumptions is blocked. No central value is stored.",
+            f"Retrieved {item.retrieved} from {item.retrieved_from}.",
+        ),
+        source=f"{item.source} Edition: {item.edition}.",
+        url=item.url,
+        forbids=item.forbids,
+    )
+
+
+RECORDS = (
+    RECORDS
+    + tuple(_quantity_record(item) for item in QUANTITIES if item.record)
+    + tuple(_bound_record(item) for item in BOUNDS)
+)
 
 
 def audit_records(records: tuple[Record, ...] = RECORDS) -> None:

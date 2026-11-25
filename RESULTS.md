@@ -232,9 +232,17 @@ The Particle Data Group numbers are from the 2026 edition, F. Takahashi et al. (
 
 The concise forms `0.1180(9)`, `1.166 378 5(6) e-5`, and `0.231 22(6)` are parsed and checked against the stored value and uncertainty. `m_W/m_Z` from the two masses agrees with the measured ratio. The PDG electron mass equals the CODATA MeV equivalent. PDG `G_F` and CODATA `G_F` differ in the last digit and agree inside the uncertainty. Every row and column of the CKM magnitudes squares to 1 inside the propagated uncertainty, and `λ` equals `|V_us|`.
 
+### Mercury's perihelion residual and the gravitational-wave events
+
+The Mercury residual is G. M. Clemence, The Relativity Effect in Planetary Motions, Rev. Mod. Phys. 19, 361 (1947), Table II, read from a scan of the journal pages. The observed motion of Mercury's perihelion at 1850, referred to the moving equinox, is `5599.74 ± 0.41` arcseconds per Julian century. The sum of general precession and every Newtonian planetary and oblateness contribution is `5557.18 ± 0.85`. The difference is `42.56 ± 0.94`. Clemence's errors are probable errors: a half-probability range widened by his judgment of the largest systematic error. They are stored under that name and are not converted. The relativity effect Clemence prints beside the residual is a theory value and is not stored. The test checks that observed minus computed is exactly the residual, and that 0.41 and 0.85 in quadrature give 0.94 at his printed places. Asserting `law(newtonian_perturbations_explain_mercury_perihelion)` contests the residual.
+
+GW150914 is from GWTC-1, B. P. Abbott et al., Phys. Rev. X 9, 031040 (2019), Table III, read through the GWOSC event API and checked against the paper. Source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, and final mass `63.1 +3.4 −3.0` solar masses; final spin `0.69 +0.05 −0.04`; radiated energy `3.1 ± 0.4` solar masses times c²; `χ_eff = −0.01 +0.12 −0.13`; `d_L = 440 +150 −170` Mpc; `z = 0.09 ± 0.03`. These are medians with 90% credible intervals. The chirp mass from the two median masses falls inside the chirp-mass interval, and the medians close the energy budget exactly: `35.6 + 30.6 − 63.1 = 3.1`.
+
+The speed-of-gravity bound is B. P. Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`. The record keeps its conditions: the observed 1.74 ± 0.05 s delay, D = 26 Mpc, an emission lag from 0 to 10 s, and the paper's note that exotic models widen the window. No central value is stored. That is 12 new quantities, one bound, and 13 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.49.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.50.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -243,4 +251,4 @@ This list is the current state as of `pgi-0.49.0`. Earlier sections above are hi
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
 - Characteristic polynomials and eigenvalues of exact rational matrices, then manifolds, differential geometry, Hilbert space, and gauge theory, are still ahead of any physical law.
-- Gravitational-wave catalogs, the Mercury residual in arcseconds, and a stored Rayleigh–Jeans formula are still not ingested. CODATA 2022 and PDG 2026 are on the board.
+- A stored Rayleigh–Jeans formula is still not ingested. CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, and the GW170817 bound are on the board. The rest of the gravitational-wave catalogs and a modern Mercury reduction are not.

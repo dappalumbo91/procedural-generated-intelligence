@@ -662,3 +662,15 @@ The concise forms are parsed and matched to the stored numbers. `m_W/m_Z` from t
 The next slice is the Mercury perihelion residual and the gravitational-wave events.
 
 `python -m unittest discover -s tests -v` finished 156 tests, 0 failures, about 47.54 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Mercury's perihelion residual and the gravitational-wave events pgi-0.50.0
+
+Clemence's 1947 reduction of Mercury's perihelion is on the board, from Rev. Mod. Phys. 19, 361 (1947), Table II, doi:10.1103/RevModPhys.19.361. The APS page needs a login, so the numbers were read from a scan of the journal pages. Observed `5599.74 ± 0.41`, computed without relativity `5557.18 ± 0.85`, residual `42.56 ± 0.94`, all in arcseconds per Julian century. The errors are Clemence's probable errors, a half-probability range widened for systematics, and the uncertainty kind says so. No conversion to a standard uncertainty is stored. The relativity effect he prints is a theory value and is left out. The residual blocks `law(newtonian_perturbations_explain_mercury_perihelion)`.
+
+GW150914 is on the board from GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, through the GWOSC event API: the source-frame masses, chirp mass, final mass, final spin, radiated energy, `χ_eff`, luminosity distance, and redshift, each a median with a 90% credible interval. The GW170817 speed-of-gravity bound is on the board from ApJL 848, L13 (2017), Eq. (2), `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, with its distance and emission-lag assumptions written on the record. The uncertainty kinds gain `probable error` and `90% credible interval`. A bound is its own object with no central value. That is 12 new quantities, one bound, and 13 new records.
+
+Observed minus computed is exactly the residual. The probable errors combine in quadrature to 0.94 at the printed places. The GW150914 chirp mass from the median component masses sits inside its interval, and the medians close the energy budget exactly.
+
+The next slice stores the Planck and Rayleigh–Jeans spectral formulas, with Rayleigh–Jeans marked failed at high frequency.
+
+`python -m unittest discover -s tests -v` finished 164 tests, 0 failures, about 46.19 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

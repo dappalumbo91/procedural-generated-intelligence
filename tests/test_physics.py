@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from fractions import Fraction
 
-from pgi.corpus.measured import QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, quantity
+from pgi.corpus.measured import BOUNDS, QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, quantity
 from pgi.corpus.records import RECORDS, audit_records
 from pgi.engine import unfold
 from pgi.model import Request
@@ -224,6 +224,66 @@ class Pdg2026Tests(unittest.TestCase):
         self.assertEqual(lam.value, v_us.value)
 
 
+class MercuryTests(unittest.TestCase):
+    def test_residual_is_observed_minus_computed(self) -> None:
+        observed = quantity("mercury.clemence1947.observed")
+        computed = quantity("mercury.clemence1947.computed")
+        residual = quantity("mercury.clemence1947.residual")
+        self.assertEqual(observed.value - computed.value, residual.value)
+        self.assertEqual(residual.value, Fraction(4256, 100))
+        for item in (observed, computed, residual):
+            self.assertEqual(item.uncertainty_kind, "probable error")
+            self.assertEqual(item.unit, "arcsec per Julian century")
+        # Clemence combines independent probable errors in quadrature: 0.41 and 0.85 give 0.94 to his printed places.
+        combined2 = observed.uncertainty**2 + computed.uncertainty**2
+        self.assertLessEqual((residual.uncertainty - Fraction(5, 1000)) ** 2, combined2)
+        self.assertLessEqual(combined2, (residual.uncertainty + Fraction(5, 1000)) ** 2)
+
+    def test_residual_is_far_outside_its_probable_error(self) -> None:
+        residual = quantity("mercury.clemence1947.residual")
+        self.assertGreater(residual.value, 40 * residual.uncertainty)
+        self.assertIn("law(newtonian_perturbations_explain_mercury_perihelion)", residual.forbids)
+        text = " ".join(residual.notes)
+        self.assertIn("not stored", text)
+        self.assertNotIn("43.03", text)
+
+
+class Gw150914Tests(unittest.TestCase):
+    def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
+        for item in QUANTITIES:
+            if item.id.startswith("gw150914."):
+                self.assertEqual(item.uncertainty_kind, "90% credible interval", item.id)
+                self.assertGreater(item.uncertainty, 0)
+                self.assertGreater(item.lower_uncertainty, 0)
+
+    def test_chirp_mass_and_energy_budget_from_the_medians(self) -> None:
+        m1 = quantity("gw150914.m1_source")
+        m2 = quantity("gw150914.m2_source")
+        chirp = quantity("gw150914.chirp_mass_source")
+        a, b = float(m1.value), float(m2.value)
+        derived = (a * b) ** 0.6 / (a + b) ** 0.2
+        self.assertLessEqual(float(chirp.value - chirp.lower_uncertainty), derived)
+        self.assertLessEqual(derived, float(chirp.value + chirp.uncertainty))
+        final = quantity("gw150914.final_mass_source")
+        radiated = quantity("gw150914.radiated_energy")
+        self.assertEqual(m1.value + m2.value - final.value, radiated.value)
+        self.assertLess(final.value, m1.value + m2.value)
+
+
+class Gw170817BoundTests(unittest.TestCase):
+    def test_speed_of_gravity_bound(self) -> None:
+        (bound,) = [item for item in BOUNDS if item.id == "bound.gw170817_speed_of_gravity"]
+        self.assertEqual(bound.lower, Fraction(-3, 10**15))
+        self.assertEqual(bound.upper, Fraction(7, 10**16))
+        self.assertLess(bound.lower, 0)
+        self.assertLess(0, bound.upper)
+        board = {record.id: record for record in RECORDS}
+        record = board[bound.id]
+        self.assertEqual(record.kind, "experimental_bound")
+        self.assertIn("26 Mpc", " ".join(record.statement))
+        self.assertIn("10 s", " ".join(record.statement))
+
+
 class PhysicsBoardTests(unittest.TestCase):
     def test_a_constant_is_linked_not_settled(self) -> None:
         session = unfold(Request(ask="what is the fine-structure constant", seed=1))
@@ -258,6 +318,33 @@ class PhysicsBoardTests(unittest.TestCase):
         atoms = [claim.atom for claim in session.claims]
         self.assertIn("record(pdg2026.ckm.v_ub)", atoms)
         self.assertIn("+0.000088 -0.000083", session.text(lod=2))
+
+    def test_a_newtonian_account_of_mercury_is_contested(self) -> None:
+        session = unfold(
+            Request(
+                ask="what is the mercury perihelion residual",
+                facts=("law(newtonian_perturbations_explain_mercury_perihelion)",),
+                seed=1,
+            )
+        )
+        self.assertIn("law(newtonian_perturbations_explain_mercury_perihelion)", session.retracted)
+        self.assertIn("record(mercury.clemence1947.residual)", [claim.atom for claim in session.claims])
+        self.assertIn("42.56", session.text(lod=2))
+
+    def test_speed_of_gravity_links_the_bound(self) -> None:
+        session = unfold(Request(ask="what is the speed of gravity", seed=1))
+        text = session.text(lod=2)
+        self.assertIn("record(bound.gw170817_speed_of_gravity)", text)
+        self.assertIn("-3 e-15", text)
+        self.assertIn("+7 e-16", text)
+        self.assertNotIn("value(", text)
+
+    def test_gw150914_links_its_masses(self) -> None:
+        session = unfold(Request(ask="what were the gw150914 masses", seed=1))
+        text = session.text(lod=2)
+        self.assertIn("record(gw150914.m1_source)", text)
+        self.assertIn("+4.7 -3.1", text)
+        self.assertIn("90% credible interval", text)
 
     def test_gravitation_is_measured(self) -> None:
         session = unfold(Request(ask="what is the gravitational constant", seed=1))

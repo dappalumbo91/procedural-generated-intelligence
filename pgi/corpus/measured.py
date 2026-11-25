@@ -22,8 +22,11 @@ UNCERTAINTY_KINDS = frozenset(
         "standard uncertainty",
         "asymmetric standard uncertainty",
         "uncertainty at CL = 90%",
+        "probable error",
+        "90% credible interval",
     }
 )
+_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval"})
 
 
 @dataclass(frozen=True)
@@ -46,6 +49,7 @@ class Quantity:
     lower_text: str = ""
     record: bool = True
     printed: str = ""
+    forbids: tuple[str, ...] = ()
 
     @property
     def exact(self) -> bool:
@@ -253,7 +257,175 @@ PDG_2026: tuple[Quantity, ...] = (
     _pdg("pdg2026.ckm.jarlskog", "Jarlskog invariant", "J", "3.16 e-5", "0.13 e-5", "", url=PDG_2026_CKM, retrieved_from=PDG_2026_CKM, kind="asymmetric standard uncertainty", lower_text="0.11 e-5", keys=("ckm", "jarlskog"), notes=("PDG review 12, CKM Quark-Mixing Matrix, revised March 2026, from the same global fit.",)),
 )
 
-QUANTITIES: tuple[Quantity, ...] = CODATA_2022 + PDG_2026
+CLEMENCE_1947_SOURCE = (
+    "G. M. Clemence, The Relativity Effect in Planetary Motions, Rev. Mod. Phys. 19, 361-364 (1947), "
+    "doi:10.1103/RevModPhys.19.361, Table II."
+)
+CLEMENCE_1947_EDITION = "Rev. Mod. Phys. 19 (1947), October issue"
+CLEMENCE_1947_URL = "https://doi.org/10.1103/RevModPhys.19.361"
+CLEMENCE_1947_SCAN = "https://alternativephysics.org/book/documents/Clemence-RevModPhys.19.361.pdf"
+
+_CLEMENCE_PE = (
+    "Clemence's uncertainties are probable errors in his own sense: a range that contains the true value with probability one half, "
+    "widened by his judgment of the largest systematic error. They are not standard uncertainties, and no conversion is stored.",
+    "Clemence notes that de Sitter in 1938 estimated the probable error attached to Mercury fifty percent larger.",
+    "The page text was read from a scan of the journal pages, because the APS page is behind a login.",
+)
+
+
+def _clemence(id: str, name: str, value_text: str, pe_text: str, notes: tuple[str, ...], **extra) -> Quantity:
+    return Quantity(
+        id=id,
+        name=name,
+        symbol="dot(omega) Mercury",
+        value_text=value_text,
+        uncertainty_text=pe_text,
+        unit="arcsec per Julian century",
+        uncertainty_kind="probable error",
+        source=CLEMENCE_1947_SOURCE,
+        edition=CLEMENCE_1947_EDITION,
+        url=CLEMENCE_1947_URL,
+        retrieved_from=CLEMENCE_1947_SCAN,
+        retrieved=RETRIEVED,
+        keys=("mercury", "perihelion", "clemence"),
+        phrases=("perihelion of mercury", "mercury perihelion"),
+        notes=notes + _CLEMENCE_PE,
+        **extra,
+    )
+
+
+MERCURY: tuple[Quantity, ...] = (
+    _clemence(
+        "mercury.clemence1947.observed",
+        "observed motion of Mercury's perihelion at 1850, referred to the moving equinox",
+        "5599.74",
+        "0.41",
+        ("From meridian observations 1765 to 1937 and 17 transits 1799 to 1940. A Julian century is 36,525 mean solar days.",),
+    ),
+    _clemence(
+        "mercury.clemence1947.computed",
+        "sum of general precession and the Newtonian planetary and solar-oblateness contributions, without relativity",
+        "5557.18",
+        "0.85",
+        ("General precession is 5025.645 +- 0.50 of that sum, after Oort. The planetary terms use Doolittle's calculation with Clemence's masses.",),
+    ),
+    _clemence(
+        "mercury.clemence1947.residual",
+        "observed minus computed motion of Mercury's perihelion, the residual that Newtonian theory leaves",
+        "42.56",
+        "0.94",
+        (
+            "This is Clemence's line Difference: observed motion minus the sum of every non-relativistic contribution.",
+            "Clemence prints a relativity effect beside it. That theory value is not stored here; only the observed residual is admitted.",
+        ),
+        forbids=("law(newtonian_perturbations_explain_mercury_perihelion)",),
+    ),
+)
+
+GWTC1_SOURCE = (
+    "B. P. Abbott et al. (LIGO Scientific Collaboration and Virgo Collaboration), GWTC-1: A Gravitational-Wave Transient Catalog "
+    "of Compact Binary Mergers Observed by LIGO and Virgo during the First and Second Observing Runs, Phys. Rev. X 9, 031040 (2019), "
+    "arXiv:1811.12907, Table III."
+)
+GWTC1_EDITION = "GWTC-1-confident, GW150914 version 3"
+GWTC1_EVENT = "https://gwosc.org/eventapi/json/GWTC-1-confident/GW150914/v3/"
+_GWTC1_NOTE = (
+    "GWTC-1 Table III reports the median with a 90% credible interval that includes statistical errors and the systematic error from averaging two waveform models.",
+    "The same numbers were read from the GWOSC event API and checked against Table III of arXiv:1811.12907.",
+)
+
+
+def _gw150914(id: str, name: str, symbol: str, value_text: str, upper: str, lower: str, unit: str, notes: tuple[str, ...] = ()) -> Quantity:
+    return Quantity(
+        id=id,
+        name=name,
+        symbol=symbol,
+        value_text=value_text,
+        uncertainty_text=upper,
+        lower_text=lower,
+        unit=unit,
+        uncertainty_kind="90% credible interval",
+        source=GWTC1_SOURCE,
+        edition=GWTC1_EDITION,
+        url="https://doi.org/10.1103/PhysRevX.9.031040",
+        retrieved_from=GWTC1_EVENT,
+        retrieved=RETRIEVED,
+        keys=("gw150914",),
+        phrases=("first gravitational wave", "first gravitational-wave"),
+        notes=notes + _GWTC1_NOTE,
+    )
+
+
+GW150914: tuple[Quantity, ...] = (
+    _gw150914("gw150914.m1_source", "GW150914 primary source-frame mass", "m_1", "35.6", "4.7", "3.1", "M_sun"),
+    _gw150914("gw150914.m2_source", "GW150914 secondary source-frame mass", "m_2", "30.6", "3.0", "4.4", "M_sun"),
+    _gw150914("gw150914.chirp_mass_source", "GW150914 source-frame chirp mass", "M_chirp", "28.6", "1.7", "1.5", "M_sun"),
+    _gw150914("gw150914.final_mass_source", "GW150914 final source-frame mass", "M_f", "63.1", "3.4", "3.0", "M_sun"),
+    _gw150914("gw150914.final_spin", "GW150914 final dimensionless spin", "a_f", "0.69", "0.05", "0.04", ""),
+    _gw150914("gw150914.radiated_energy", "GW150914 radiated energy", "E_rad", "3.1", "0.4", "0.4", "M_sun c^2", notes=("Read from Table III; the GWOSC event API does not list it.",)),
+    _gw150914("gw150914.chi_eff", "GW150914 effective aligned spin", "chi_eff", "-0.01", "0.12", "0.13", ""),
+    _gw150914("gw150914.luminosity_distance", "GW150914 luminosity distance", "d_L", "440", "150", "170", "Mpc"),
+    _gw150914("gw150914.redshift", "GW150914 redshift", "z", "0.09", "0.03", "0.03", "", notes=("GWTC-1 computes this redshift from the luminosity distance under its assumed cosmology.",)),
+)
+
+QUANTITIES: tuple[Quantity, ...] = CODATA_2022 + PDG_2026 + MERCURY + GW150914
+
+
+@dataclass(frozen=True)
+class Bound:
+    id: str
+    name: str
+    symbol: str
+    lower_text: str
+    upper_text: str
+    unit: str
+    source: str
+    edition: str
+    url: str
+    retrieved_from: str
+    retrieved: str
+    keys: tuple[str, ...]
+    phrases: tuple[str, ...]
+    conditions: tuple[str, ...]
+    forbids: tuple[str, ...]
+
+    @property
+    def lower(self) -> Fraction:
+        return parse_decimal(self.lower_text)
+
+    @property
+    def upper(self) -> Fraction:
+        return parse_decimal(self.upper_text)
+
+
+BOUNDS: tuple[Bound, ...] = (
+    Bound(
+        id="bound.gw170817_speed_of_gravity",
+        name="fractional difference between the speed of gravity and the speed of light",
+        symbol="(v_GW - v_EM)/v_EM",
+        lower_text="-3 e-15",
+        upper_text="+7 e-16",
+        unit="",
+        source=(
+            "B. P. Abbott et al. (LIGO Scientific Collaboration, Virgo Collaboration, Fermi Gamma-ray Burst Monitor, and INTEGRAL), "
+            "Gravitational Waves and Gamma-Rays from a Binary Neutron Star Merger: GW170817 and GRB 170817A, "
+            "Astrophys. J. Lett. 848, L13 (2017), doi:10.3847/2041-8213/aa920c, arXiv:1710.05834, Section 4.1, Eq. (2)."
+        ),
+        edition="ApJL 848 L13 (2017)",
+        url="https://doi.org/10.3847/2041-8213/aa920c",
+        retrieved_from="https://arxiv.org/abs/1710.05834",
+        retrieved=RETRIEVED,
+        keys=("gw170817",),
+        phrases=("speed of gravity", "speed of gravitational waves", "grb 170817a"),
+        conditions=(
+            "The observed delay of GRB 170817A after GW170817 is (+1.74 +- 0.05) s.",
+            "The distance is taken conservatively as D = 26 Mpc, the lower end of the 90% credible interval on the gravitational-wave luminosity distance.",
+            "The upper end assumes both signals left together. The lower end assumes the gamma rays left 10 s after the gravitational-wave peak.",
+            "The paper notes that exotic emission models can widen the delay window to (-100 s, 1000 s), which loosens the bound.",
+        ),
+        forbids=("law(gravity_outruns_light_beyond_gw170817_bound)", "law(light_outruns_gravity_beyond_gw170817_bound)"),
+    ),
+)
 
 
 def quantity(id: str) -> Quantity:
@@ -286,7 +458,7 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
                 raise ValueError(f"{item.id} needs a positive uncertainty")
         elif item.lower_text:
             raise ValueError(f"{item.id} is exact and cannot carry an interval")
-        if item.lower_text and item.uncertainty_kind != "asymmetric standard uncertainty":
+        if item.lower_text and item.uncertainty_kind not in _ASYMMETRIC_KINDS:
             raise ValueError(f"{item.id} has a lower bound but a symmetric kind")
         if item.printed:
             value, sigma = parse_concise(item.printed)
@@ -294,4 +466,15 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
                 raise ValueError(f"{item.id} does not match its printed form {item.printed}")
 
 
+def audit_bounds(items: tuple[Bound, ...] = BOUNDS) -> None:
+    for item in items:
+        if not item.source.strip() or not item.edition.strip() or not item.conditions:
+            raise ValueError(f"{item.id} needs a source, an edition, and its conditions")
+        if not item.url.startswith("https://") or not item.retrieved_from.startswith("https://"):
+            raise ValueError(f"{item.id} needs https urls")
+        if not item.lower < item.upper:
+            raise ValueError(f"{item.id} has an empty interval")
+
+
 audit_quantities()
+audit_bounds()
