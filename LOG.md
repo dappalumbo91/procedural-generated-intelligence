@@ -728,3 +728,15 @@ A multivariate polynomial over the rationals is a finite sum of reduced coeffici
 The next mathematics is charts and transition maps that compose to the identity, then Jacobians, tangent vectors, and the metric tensor. Precision particle measurements are being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 181 tests, 0 failures, about 45.94 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — precision particle measurements: neutron lifetime, g_A, muon and electron g − 2, proton radius pgi-0.56.0
+
+The precision particle anchors are on the board. Neutron lifetime: UCNτ 2021, Phys. Rev. Lett. 127, 162501, arXiv:2106.10375; UCNτ 2025, Phys. Rev. C 111, 045501, arXiv:2409.05560, which averages all UCNτ data; the NIST beam result, Phys. Rev. Lett. 111, 222501 (2013), arXiv:1309.2623; and the PDG 2026 average, `878.3 ± 0.4 s` with S = 1.8. PDG 2026 `λ = g_A/g_V = −1.2753 ± 0.0013`, S = 2.7. Final muon `g − 2`, Phys. Rev. Lett. 135, 101802 (2025), arXiv:2506.03069: Fermilab combined and the experimental world average, both as printed, `116 592 0705(148)` and `116 592 0715(145)` × 10^−12. PDG 2026 `a_μ`. Electron, Fan et al., Phys. Rev. Lett. 130, 071801 (2023), arXiv:2209.13084: `g/2 = 1.001 159 652 180 59(13)`. PDG 2026 `a_e`. CODATA 2022 `a_e`, `a_μ`, and `r_p`, and PDG `r_p`.
+
+The UCNτ and beam papers print statistical and systematic uncertainties separately. A new kind, `statistical and systematic, printed separately`, carries both. The record states both, and the audit refuses the kind without its systematic part. Nothing combines them on the board. The tests add them in quadrature, larger side, only to compare.
+
+PDG's lifetime agrees with UCNτ 2025. Beam and bottle differ by more than four combined uncertainties, and every lifetime record stays on the board with none retracted. The Fermilab, PDG, and CODATA muon anomalies agree with the world average. Fan's `g/2 − 1` agrees with CODATA and PDG `a_e`. The proton radius agrees across CODATA metres and PDG femtometres. The PDG measurement flags say which entries feed each average, and the records say so. No theory prediction for `a_μ`, `a_e`, or `τ_n` is stored. That is 14 new records.
+
+The next slice is the NIST ASD first ionization energies, H to Ne.
+
+`python -m unittest discover -s tests -v` finished 187 tests, 0 failures, about 49.01 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -276,9 +276,19 @@ The tests check that Planck's printed `Ω_m + Ω_Λ` is exactly 1, that `Ω_m h^
 
 A multivariate polynomial over the rationals is a finite sum of reduced coefficients times monomials. A rational function is a reduced quotient: the numerator and denominator are divided by their primitive GCD, and a zero denominator stays open. A partial derivative is termwise on a polynomial, or the quotient rule on a rational function, kept only when that identity multiplies back. Mixed partials of a polynomial commute, checked exactly. `d(x^2, x)` is `2 * x`. `d(x^2 * y + 3 * x, x)` is `2 * x * y + 3`. `d(x^2 + 2 * x * y + y^2, x)` is `2 * x + 2 * y`. `d(d(x^3 * y^2, x), y)` is `6 * x^2 * y`. `(x^2 - 1) / (x - 1)` is `x + 1`. `(x^2 - y^2) / (x - y)` is `x + y`. `d((x^2 + 1) / (x + 1), x)` is `(x^2 + 2 * x - 1) / (x^2 + 2 * x + 1)`. `d(1 / x, x)` is `-1 / x^2`. `x / x` is `1`. `2^3` is `8`. `(1/2)^2` is `1/4`. A zero denominator and `0^0` stay open.
 
+### Precision particle measurements: neutron lifetime, g_A, g − 2, and the proton radius
+
+The precision particle numbers are on the board as measured anchors, each copied as its source prints it.
+
+Neutron lifetime. UCNτ, Gonzalez et al., Phys. Rev. Lett. 127, 162501 (2021): `877.75 ± 0.28 stat +0.22/−0.16 syst s`. UCNτ, Musedinovic et al., Phys. Rev. C 111, 045501 (2025), all UCNτ data averaged: `877.82 ± 0.22 stat +0.20/−0.17 syst s`. NIST beam method, Yue et al., Phys. Rev. Lett. 111, 222501 (2013): `887.7 ± 1.2 stat ± 1.9 syst s`. PDG 2026 average (S017T): `878.3 ± 0.4 s` with scale factor 1.8. It uses eight stored-neutron results and lists the beam results without using them. A new uncertainty kind, `statistical and systematic, printed separately`, keeps the two parts apart. The board never combines them. The tests combine them only to compare numbers.
+
+Axial coupling. PDG 2026 (S017AV): `λ = g_A/g_V = −1.2753 ± 0.0013` with scale factor 2.7. Muon `g − 2`. The final Fermilab result, Aguillard et al., Phys. Rev. Lett. 135, 101802 (2025), Runs 1–6 combined: `a_μ = 116 592 0705(148) × 10^−12` (127 ppb). The experimental world average from the same paper: `116 592 0715(145) × 10^−12` (124 ppb). PDG 2026 prints `0.00116592072 ± 0.00000000015`, and CODATA 2022 gives `1.165 920 62(41) × 10^−3`. Electron. Fan, Myers, Sukra, and Gabrielse, Phys. Rev. Lett. 130, 071801 (2023): `g/2 = 1.001 159 652 180 59(13)` (0.13 ppt). PDG 2026 prints `a_e = 0.00115965218062 ± 0.00000000000012`, and CODATA 2022 gives `1.159 652 180 46(18) × 10^−3`. Proton charge radius. CODATA 2022: `8.4075(64) × 10^−16 m`. PDG 2026: `0.8407 ± 0.0006 fm`, whose only input is the CODATA value.
+
+The tests check the following. PDG's lifetime agrees with UCNτ 2025. The beam and UCNτ 2025 lifetimes differ by more than four combined uncertainties, and all four lifetime records stay linked with none retracted. The Fermilab, PDG, and CODATA muon anomalies agree with the world average. Fan's `g/2 − 1` agrees with the CODATA and PDG `a_e`. The CODATA radius in metres matches PDG's in femtometres. No Standard Model prediction is stored. That is 11 new particle quantities and 3 new CODATA constants, 14 new records in all.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.55.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.56.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

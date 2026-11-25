@@ -320,6 +320,74 @@ class CosmologyTests(unittest.TestCase):
         self.assertEqual(t0.unit, "K")
 
 
+def _split_sigma2(item: Quantity) -> Fraction:
+    """Statistical and systematic parts in quadrature, taking the larger systematic side."""
+    systematic = max(item.systematic or 0, item.systematic_lower or 0)
+    return item.uncertainty**2 + systematic**2
+
+
+class ParticlePrecisionTests(unittest.TestCase):
+    def test_split_uncertainties_load_as_printed(self) -> None:
+        ucn = quantity("ucntau2021.neutron_lifetime")
+        self.assertEqual(ucn.uncertainty_kind, "statistical and systematic, printed separately")
+        self.assertEqual((ucn.uncertainty, ucn.systematic, ucn.systematic_lower), (Fraction(28, 100), Fraction(22, 100), Fraction(16, 100)))
+        beam = quantity("nist_beam2013.neutron_lifetime")
+        self.assertEqual(beam.systematic, beam.systematic_lower)
+        board = {record.id: record for record in RECORDS}
+        self.assertIn("+0.20 -0.17 s, printed separately", " ".join(board["ucntau2025.neutron_lifetime"].statement))
+        planted = Quantity(**{**ucn.__dict__, "id": "planted.split", "systematic_text": ""})
+        with self.assertRaises(ValueError):
+            audit_quantities((planted,))
+
+    def test_neutron_lifetime_bottle_and_beam(self) -> None:
+        pdg_tau = quantity("pdg2026.neutron_lifetime")
+        ucn = quantity("ucntau2025.neutron_lifetime")
+        beam = quantity("nist_beam2013.neutron_lifetime")
+        self.assertLessEqual((pdg_tau.value - ucn.value) ** 2, pdg_tau.uncertainty**2 + _split_sigma2(ucn))
+        gap2 = (beam.value - ucn.value) ** 2
+        self.assertGreater(gap2, 16 * (_split_sigma2(beam) + _split_sigma2(ucn)))
+        session = unfold(Request(ask="what is the neutron lifetime", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        for id in ("pdg2026.neutron_lifetime", "ucntau2021.neutron_lifetime", "ucntau2025.neutron_lifetime", "nist_beam2013.neutron_lifetime"):
+            self.assertIn(f"record({id})", atoms)
+        self.assertEqual(session.retracted, ())
+
+    def test_axial_coupling_ratio(self) -> None:
+        lam = quantity("pdg2026.lambda_ga_gv")
+        self.assertEqual(lam.value, Fraction(-12753, 10000))
+        self.assertIn("scale factor of 2.7", " ".join(lam.notes))
+
+    def test_muon_anomaly_sources_agree(self) -> None:
+        fnal = quantity("fnal2025.a_mu")
+        world = quantity("fnal2025.a_mu_world_average")
+        self.assertEqual(parse_concise(world.printed), (Fraction(1165920715, 10**12), Fraction(145, 10**12)))
+        self.assertTrue(_agrees(world, fnal.value, _rel2(fnal)))
+        self.assertTrue(_agrees(world, quantity("pdg2026.a_mu").value, _rel2(quantity("pdg2026.a_mu"))))
+        self.assertTrue(_agrees(world, quantity("codata2022.a_mu").value, _rel2(quantity("codata2022.a_mu"))))
+        session = unfold(Request(ask="what is the muon g-2", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        self.assertIn("record(fnal2025.a_mu)", atoms)
+        self.assertIn("record(fnal2025.a_mu_world_average)", atoms)
+
+    def test_electron_moment_matches_the_anomaly(self) -> None:
+        fan = quantity("fan2023.electron_g_over_2")
+        anomaly = fan.value - 1
+        sigma2 = fan.uncertainty**2
+        for id in ("codata2022.a_e", "pdg2026.a_e"):
+            other = quantity(id)
+            self.assertLessEqual((other.value - anomaly) ** 2, other.uncertainty**2 + sigma2, id)
+
+    def test_proton_radius_in_two_units(self) -> None:
+        codata = quantity("codata2022.r_p")
+        pdg_r = quantity("pdg2026.proton_radius")
+        in_metres = pdg_r.value * Fraction(1, 10**15)
+        self.assertLessEqual(abs(codata.value - in_metres), pdg_r.uncertainty * Fraction(1, 10**15))
+        session = unfold(Request(ask="what is the proton charge radius", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        self.assertIn("record(codata2022.r_p)", atoms)
+        self.assertIn("record(pdg2026.proton_radius)", atoms)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

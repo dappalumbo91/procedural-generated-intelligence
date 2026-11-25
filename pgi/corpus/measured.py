@@ -27,9 +27,11 @@ UNCERTAINTY_KINDS = frozenset(
         "uncertainty as printed, level not stated",
         "3 sigma",
         "68% interval",
+        "statistical and systematic, printed separately",
     }
 )
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval"})
+_SPLIT_KIND = "statistical and systematic, printed separately"
 
 
 @dataclass(frozen=True)
@@ -53,6 +55,8 @@ class Quantity:
     record: bool = True
     printed: str = ""
     forbids: tuple[str, ...] = ()
+    systematic_text: str = ""
+    systematic_lower_text: str = ""
 
     @property
     def exact(self) -> bool:
@@ -75,6 +79,16 @@ class Quantity:
         if self.lower_text:
             return parse_decimal(self.lower_text)
         return self.uncertainty
+
+    @property
+    def systematic(self) -> Fraction | None:
+        return parse_decimal(self.systematic_text) if self.systematic_text else None
+
+    @property
+    def systematic_lower(self) -> Fraction | None:
+        if not self.systematic_text:
+            return None
+        return parse_decimal(self.systematic_lower_text or self.systematic_text)
 
 
 def parse_decimal(text: str) -> Fraction:
@@ -167,6 +181,9 @@ CODATA_2022: tuple[Quantity, ...] = (
     _codata('codata2022.m_p_over_m_e', 'proton-electron mass ratio', 'm_p/m_e', '1836.152 673 426', '0.000 000 032', '', 'mpsme', keys=(), phrases=('proton-electron mass ratio',)),
     _codata('codata2022.r_inf', 'Rydberg constant', 'R_inf', '10 973 731.568 157', '0.000 012', 'm^-1', 'ryd', keys=('rydberg',), phrases=('rydberg constant',)),
     _codata('codata2022.a_0', 'Bohr radius', 'a_0', '5.291 772 105 44 e-11', '0.000 000 000 82 e-11', 'm', 'bohrrada0', keys=(), phrases=('bohr radius',)),
+    _codata('codata2022.a_e', 'electron magnetic moment anomaly', 'a_e', '1.159 652 180 46 e-3', '0.000 000 000 18 e-3', '', 'ae', keys=(), phrases=('electron magnetic moment anomaly', 'electron anomaly')),
+    _codata('codata2022.a_mu', 'muon magnetic moment anomaly', 'a_mu', '1.165 920 62 e-3', '0.000 000 41 e-3', '', 'amu', keys=(), phrases=('muon magnetic moment anomaly', 'muon anomaly'), notes=("CODATA 2022 has a cutoff of 31 December 2022. It predates the 2023 and 2025 Fermilab results.",)),
+    _codata('codata2022.r_p', 'proton rms charge radius', 'r_p', '8.4075 e-16', '0.0064 e-16', 'm', 'rp', keys=(), phrases=('proton charge radius', 'proton radius', 'proton rms charge radius')),
     _codata('codata2022.mu_0', 'vacuum magnetic permeability', 'mu_0', '1.256 637 061 27 e-6', '0.000 000 000 20 e-6', 'N A^-2', 'mu0', keys=('permeability',), phrases=('vacuum magnetic permeability', 'magnetic constant'), notes=("Since the 2019 SI, mu_0 is measured. It is no longer fixed at 4 pi x 10^-7 N A^-2.",)),
     _codata('codata2022.epsilon_0', 'vacuum electric permittivity', 'epsilon_0', '8.854 187 8188 e-12', '0.000 000 0014 e-12', 'F m^-1', 'ep0', keys=('permittivity',), phrases=('vacuum electric permittivity', 'electric constant'), notes=("Since the 2019 SI, epsilon_0 is measured. It is no longer exact.",)),
     _codata('codata2022.g_f', 'Fermi coupling constant', 'G_F/(hbar c)^3', '1.166 3787 e-5', '0.000 0006 e-5', 'GeV^-2', 'gf', keys=(), phrases=('fermi coupling constant', 'fermi constant')),
@@ -390,6 +407,8 @@ def _q(
     lower_text: str = "",
     printed: str = "",
     forbids: tuple[str, ...] = (),
+    systematic_text: str = "",
+    systematic_lower_text: str = "",
 ) -> Quantity:
     return Quantity(
         id=id,
@@ -410,6 +429,8 @@ def _q(
         lower_text=lower_text,
         printed=printed,
         forbids=forbids,
+        systematic_text=systematic_text,
+        systematic_lower_text=systematic_lower_text,
     )
 
 
@@ -696,8 +717,124 @@ FIXSEN_2009: tuple[Quantity, ...] = (
     ),
 )
 
+_SPLIT_NOTE = "The source prints the statistical and systematic parts separately. They are stored as printed and are not combined here."
+_PDG_SCALE = "PDG average. The error includes a scale factor of {0}, which PDG applies when the measurements disagree more than their errors allow."
+
+PARTICLE_PRECISION: tuple[Quantity, ...] = (
+    _q(
+        "ucntau2021.neutron_lifetime",
+        "free neutron lifetime, UCNtau 2017-2018 campaigns",
+        "tau_n",
+        "877.75",
+        "0.28",
+        "s",
+        kind=_SPLIT_KIND,
+        systematic_text="0.22",
+        systematic_lower_text="0.16",
+        source="F. M. Gonzalez et al. (UCNtau Collaboration), Improved Neutron Lifetime Measurement with UCNtau, Phys. Rev. Lett. 127, 162501 (2021), doi:10.1103/PhysRevLett.127.162501, arXiv:2106.10375.",
+        edition="Phys. Rev. Lett. 127 (2021)",
+        url="https://doi.org/10.1103/PhysRevLett.127.162501",
+        retrieved_from="https://arxiv.org/abs/2106.10375",
+        keys=("ucntau",),
+        phrases=("neutron lifetime", "neutron mean life"),
+        notes=("Printed in the abstract as tau_n = 877.75 +- 0.28 stat +0.22/-0.16 syst s. Magneto-gravitational trap of ultracold neutrons; surviving neutrons were counted.", _SPLIT_NOTE),
+    ),
+    _q(
+        "ucntau2025.neutron_lifetime",
+        "free neutron lifetime, all UCNtau data averaged",
+        "tau_n",
+        "877.82",
+        "0.22",
+        "s",
+        kind=_SPLIT_KIND,
+        systematic_text="0.20",
+        systematic_lower_text="0.17",
+        source="R. Musedinovic et al. (UCNtau Collaboration), Measurement of the free neutron lifetime in a magneto-gravitational trap with in situ detection, Phys. Rev. C 111, 045501 (2025), doi:10.1103/PhysRevC.111.045501, arXiv:2409.05560.",
+        edition="Phys. Rev. C 111 (2025)",
+        url="https://doi.org/10.1103/PhysRevC.111.045501",
+        retrieved_from="https://arxiv.org/abs/2409.05560",
+        keys=("ucntau",),
+        phrases=("neutron lifetime", "neutron mean life"),
+        notes=("Printed in the abstract as 877.82+/-0.22 (statistical)+0.20-0.17 (systematic) s, when all the data from UCNtau are averaged. It includes the 2021 data, so it is not independent of ucntau2021.neutron_lifetime. The 2020-2022 runs alone gave 877.94+/-0.37 s.", _SPLIT_NOTE),
+    ),
+    _q(
+        "nist_beam2013.neutron_lifetime",
+        "free neutron lifetime, NIST beam method, updated",
+        "tau_n",
+        "887.7",
+        "1.2",
+        "s",
+        kind=_SPLIT_KIND,
+        systematic_text="1.9",
+        source="A. T. Yue et al., Improved Determination of the Neutron Lifetime, Phys. Rev. Lett. 111, 222501 (2013), doi:10.1103/PhysRevLett.111.222501, arXiv:1309.2623.",
+        edition="Phys. Rev. Lett. 111 (2013)",
+        url="https://doi.org/10.1103/PhysRevLett.111.222501",
+        retrieved_from="https://arxiv.org/abs/1309.2623",
+        keys=("beam",),
+        phrases=("neutron lifetime", "neutron mean life"),
+        notes=("Printed in the abstract as tau_n = (887.7 +- 1.2 [stat] +- 1.9 [syst]) s. It counts decay protons from a cold neutron beam, a different method from counting stored neutrons.", _SPLIT_NOTE),
+    ),
+    _pdg("pdg2026.neutron_lifetime", "neutron mean life", "tau_n", "878.3", "0.4", "s", node="S017T", phrases=("neutron lifetime", "neutron mean life"), notes=(_PDG_SCALE.format("1.8"), "PDG's average uses eight stored-neutron results, ucntau2025.neutron_lifetime among them. The 2021 UCNtau result and the beam results, nist_beam2013.neutron_lifetime among them, are listed but not used in the average.", _API_NOTE)),
+    _pdg("pdg2026.lambda_ga_gv", "ratio of axial to vector coupling in neutron decay", "lambda = g_A/g_V", "-1.2753", "0.0013", "", node="S017AV", keys=("g_a",), phrases=("axial coupling", "axial-vector coupling", "g_a/g_v", "ga/gv"), notes=(_PDG_SCALE.format("2.7"), "PDG labels this lambda == g_A / g_V for the neutron. The sign follows PDG's convention.", _API_NOTE)),
+    _q(
+        "fnal2025.a_mu",
+        "positive muon magnetic anomaly, Fermilab Runs 1-6 combined",
+        "a_mu",
+        "116 592 0705 e-12",
+        "148 e-12",
+        "",
+        kind="uncertainty as printed, level not stated",
+        printed="116 592 0705(148) e-12",
+        source="D. P. Aguillard et al. (Muon g-2 Collaboration), Measurement of the Positive Muon Anomalous Magnetic Moment to 127 ppb, Phys. Rev. Lett. 135, 101802 (2025), doi:10.1103/7clf-sm2v, arXiv:2506.03069.",
+        edition="Phys. Rev. Lett. 135 (2025)",
+        url="https://doi.org/10.1103/7clf-sm2v",
+        retrieved_from="https://arxiv.org/abs/2506.03069",
+        keys=("fermilab",),
+        phrases=("muon g-2", "muon g - 2", "muon anomalous magnetic moment", "muon magnetic anomaly"),
+        notes=("Printed in the abstract as a_mu = 116 592 0705(148) x 10^-12 (127 ppb) when combined with the earlier Fermilab results. The 2020-2023 data alone gave 116 592 0710(162) x 10^-12 (139 ppb).",),
+    ),
+    _q(
+        "fnal2025.a_mu_world_average",
+        "muon magnetic anomaly, experimental world average after the final Fermilab result",
+        "a_mu(exp)",
+        "116 592 0715 e-12",
+        "145 e-12",
+        "",
+        kind="uncertainty as printed, level not stated",
+        printed="116 592 0715(145) e-12",
+        source="D. P. Aguillard et al. (Muon g-2 Collaboration), Measurement of the Positive Muon Anomalous Magnetic Moment to 127 ppb, Phys. Rev. Lett. 135, 101802 (2025), doi:10.1103/7clf-sm2v, arXiv:2506.03069.",
+        edition="Phys. Rev. Lett. 135 (2025)",
+        url="https://doi.org/10.1103/7clf-sm2v",
+        retrieved_from="https://arxiv.org/abs/2506.03069",
+        keys=("fermilab",),
+        phrases=("muon g-2", "muon g - 2", "muon anomalous magnetic moment", "muon magnetic anomaly"),
+        notes=("Printed in the abstract as a_mu(exp) = 116 592 0715(145) x 10^-12 (124 ppb), dominated by the Fermilab measurements, with Brookhaven E821 included. No Standard Model prediction is stored here.",),
+    ),
+    _pdg("pdg2026.a_mu", "muon magnetic anomaly", "(g_mu - 2)/2", "0.00116592072", "0.00000000015", "", node="S004MM", phrases=("muon g-2", "muon anomalous magnetic moment"), notes=("PDG lists the combined Fermilab and Brookhaven value of Phys. Rev. Lett. 135, 101802 (2025), (11659207.15 +- 1.45) E-10, and prints its average to fewer digits.", _API_NOTE)),
+    _q(
+        "fan2023.electron_g_over_2",
+        "electron magnetic moment in Bohr magnetons",
+        "-mu/mu_B = g/2",
+        "1.001 159 652 180 59",
+        "0.000 000 000 000 13",
+        "",
+        kind="uncertainty as printed, level not stated",
+        printed="1.001 159 652 180 59(13)",
+        source="X. Fan, T. G. Myers, B. A. D. Sukra, and G. Gabrielse, Measurement of the Electron Magnetic Moment, Phys. Rev. Lett. 130, 071801 (2023), doi:10.1103/PhysRevLett.130.071801, arXiv:2209.13084.",
+        edition="Phys. Rev. Lett. 130 (2023)",
+        url="https://doi.org/10.1103/PhysRevLett.130.071801",
+        retrieved_from="https://arxiv.org/abs/2209.13084",
+        keys=("gabrielse",),
+        phrases=("electron g-2", "electron g - 2", "electron magnetic moment"),
+        notes=("Printed in the abstract as -mu/mu_B = g/2 = 1.001 159 652 180 59 (13) [0.13 ppt]. A single electron in a Penning trap. The abstract also gives an alpha inferred with Standard Model theory; that inferred value is not stored here.",),
+    ),
+    _pdg("pdg2026.a_e", "electron magnetic moment anomaly", "(g - 2)/2", "0.00115965218062", "0.00000000000012", "", node="S003MM", phrases=("electron g-2", "electron magnetic moment anomaly"), notes=("PDG average of the single-electron measurements.", _API_NOTE)),
+    _pdg("pdg2026.proton_radius", "proton charge radius", "r_p", "0.8407", "0.0006", "fm", node="S016CR", phrases=("proton charge radius", "proton radius"), notes=("The only entry PDG uses in this average is the CODATA 2022 value, 0.84075 +- 0.00064 fm. PDG prints the average as 0.8407 +- 0.0006 fm.", _API_NOTE)),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
+    + PARTICLE_PRECISION
 )
 
 
@@ -790,6 +927,12 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
             raise ValueError(f"{item.id} is exact and cannot carry an interval")
         if item.lower_text and item.uncertainty_kind not in _ASYMMETRIC_KINDS:
             raise ValueError(f"{item.id} has a lower bound but a symmetric kind")
+        if (item.uncertainty_kind == _SPLIT_KIND) != bool(item.systematic_text):
+            raise ValueError(f"{item.id} carries a systematic part only under the split kind")
+        if item.systematic_lower_text and not item.systematic_text:
+            raise ValueError(f"{item.id} has a lower systematic part without an upper one")
+        if item.systematic_text and (item.systematic <= 0 or item.systematic_lower <= 0):
+            raise ValueError(f"{item.id} needs a positive systematic part")
         if item.printed:
             value, sigma = parse_concise(item.printed)
             if value != item.value or sigma != item.uncertainty:

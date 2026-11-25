@@ -313,6 +313,14 @@ def _quantity_statement(item: Quantity) -> tuple[str, ...]:
     lines = [f"{item.edition}: {item.name}, {item.symbol} = {item.value_text}{unit}."]
     if item.exact:
         lines.append("The value is exact. It is a definitional anchor. It is not a number derived by this system.")
+    elif item.systematic_text:
+        lower = f" -{item.systematic_lower_text}" if item.systematic_lower_text else ""
+        plus = "+" if item.systematic_lower_text else "+-"
+        lines.append(
+            f"The statistical uncertainty is {item.uncertainty_text}{unit} and the systematic uncertainty is "
+            f"{plus}{item.systematic_text}{lower}{unit}, printed separately by the source."
+        )
+        lines.append("The value is a measured anchor. It is data, not a number derived by this system.")
     elif item.lower_text:
         lines.append(
             f"The {item.uncertainty_kind} is +{item.uncertainty_text} -{item.lower_text}{unit}, as the source quotes it."
