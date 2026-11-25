@@ -467,9 +467,21 @@ The photon mass is PDG 2026's summary, < `1 × 10⁻¹⁸` eV (Ryutov 2007, sola
 
 The tests are data-only. Each EDM central value lies inside its own bound. The proton bound has no upper end, and its record says "at least". The printed limits are stored exactly. \|η\| is below its statistical error. The asks link the bounds. This adds 3 values and 7 bounds.
 
+### Coverage audit; thermodynamics and fluids
+
+`COVERAGE.md` is new. It sorts every board record into one of 15 physics domains, plus two bookkeeping rows for the SI defining constants and the foundations records, and lists the most important observables each domain is missing. The sorting lives in `pgi/corpus/coverage.py`, and a test fails if a record has no domain or if the table in the file stops matching the board. At 0.79.0 the audit found mechanics, optics, and fluids empty, and electromagnetism (7), condensed matter (11), and thermodynamics (11) the next thinnest. The top gaps it lists are mechanics, optics, and fluids, then electromagnetism's missing geomagnetic and material data, nuclear half-lives and charge radii, the Z lineshape, and the gravitational redshift.
+
+The first fill is thermodynamics and fluids. CODATA 2022 adds R `8.314 462 618...` J mol⁻¹ K⁻¹, both molar volumes and both Loschmidt constants, c₁, c₂, and the standard atmosphere, all exact. The tests check that they follow from N_A, k, h, and c as CODATA defines them. That is a definitional check, the same as the silicon one. The ITS-90 adds its 14 defining fixed points from Table 1 of Preston-Thomas 1990, read from the page image of NIST's scanned copy: e-H₂ `13.8033`, Ne `24.5561`, O₂ `54.3584`, Ar `83.8058`, Hg `234.3156`, H₂O `273.16`, Ga `302.9146`, In `429.7485`, Sn `505.078`, Zn `692.677`, Al `933.473`, Ag `1234.93`, Au `1337.33`, and Cu `1357.77` K. They are exact on the scale, and the notes say the scale only approximates thermodynamic temperature. The ⁴He λ point, `2.1768 K`, comes from Sect. 3.1.
+
+Water at 0.101325 MPa comes from the NIST WebBook, which computes it from the IAPWS formulations. At 25 °C that gives ρ `997.05` kg/m³, c_p `4.1813` J/(g K), w `1496.7` m/s, η `0.00089002` Pa s, and λ `0.60652` W/(m K), and η at 20 °C is `0.0010016` Pa s. These are reference-formulation values, printed without an uncertainty, and the notes carry the WebBook's stated uncertainty percentages. The IAPWS R1-76(2014) surface tension gives the experimental column at 0.01, 20, 25, and 100 °C with its uncertainty column, for example `71.98 ± 0.36` mN/m at 25 °C.
+
+The speed of sound in standard dry air is disputed. Wong 1986 gives `331.29` m/s with a maximum uncertainty of about 200 ppm, and Greenspan's 1987 comment keeps the older `331.44` m/s. The gap between them is about 450 ppm, wider than Wong's own figure, and both records stay. Wong prints his uncertainty only as a ppm figure, so there is a new kind, *maximum relative uncertainty, ppm as printed*. That figure is never turned into m/s.
+
+This adds 35 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.79.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.80.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

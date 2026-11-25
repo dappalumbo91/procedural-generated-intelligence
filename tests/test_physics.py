@@ -1226,6 +1226,73 @@ class NullResultTests(unittest.TestCase):
         self.assertTrue({"bound.gwtc3.graviton_mass", "bound.pdg2026.graviton_mass"} <= linked)
 
 
+class ThermoFluidsTests(unittest.TestCase):
+    def _exact(self, id: str) -> Fraction:
+        item = quantity(id)
+        self.assertEqual(item.uncertainty_kind, "exact", id)
+        return item.value
+
+    def test_codata_gas_constants_match_their_definitions(self) -> None:
+        n_a, k = self._exact("codata2022.n_a"), self._exact("codata2022.k")
+        r = n_a * k
+        low, high = quantity("codata2022.r_gas").truncation_bounds
+        self.assertTrue(low <= r < high)
+        for id, pressure in (("codata2022.v_m_100kpa", 100000), ("codata2022.v_m_101kpa", 101325)):
+            low, high = quantity(id).truncation_bounds
+            self.assertTrue(low <= r * Fraction(27315, 100) / pressure < high, id)
+        for id, pressure in (("codata2022.n0_100kpa", 100000), ("codata2022.n0_101kpa", 101325)):
+            low, high = quantity(id).truncation_bounds
+            self.assertTrue(low <= pressure / (k * Fraction(27315, 100)) < high, id)
+        self.assertEqual(quantity("codata2022.std_atm").value, 101325)
+
+    def test_its90_columns_agree_and_rise(self) -> None:
+        points = [item for item in QUANTITIES if item.id.startswith("its90.fp.")]
+        self.assertEqual(len(points), 14)
+        values = [item.value for item in points]
+        self.assertEqual(values, sorted(values))
+        for item in points:
+            self.assertTrue(item.exact)
+            celsius = item.value - Fraction(27315, 100)
+            text = item.notes[0].split("t_90/degC = ")[1].split(" ")[0].rstrip(",").replace(",", ".")
+            self.assertEqual(Fraction(text), celsius, item.id)
+        self.assertEqual(quantity("its90.fp.h2o").value, quantity("iapws2011.h2o.t_t").value)
+
+    def test_water_tables(self) -> None:
+        self.assertGreater(quantity("webbook.h2o.viscosity_20c").value, quantity("webbook.h2o.viscosity_25c").value)
+        tensions = [quantity(f"iapws2014.h2o.surface_tension_{t}c").value for t in ("0_01", "20", "25", "100")]
+        self.assertEqual(tensions, sorted(tensions, reverse=True))
+        self.assertIsNone(quantity("webbook.h2o.density_25c").uncertainty)
+
+    def test_air_sound_speeds_disagree_beyond_wongs_ppm(self) -> None:
+        wong, greenspan = quantity("wong1986.air.sound_speed"), quantity("greenspan1987.air.sound_speed")
+        self.assertIsNone(wong.uncertainty)
+        self.assertEqual(wong.relative_uncertainty, Fraction(200, 10**6))
+        self.assertGreater((greenspan.value - wong.value) / wong.value, wong.relative_uncertainty)
+
+    def test_thermo_asks_link(self) -> None:
+        session = unfold(Request(ask="list the its-90 fixed points", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"its90.fp.ga", "its90.fp.cu", "its90.fp.h2o"} <= linked)
+        session = unfold(Request(ask="what is the speed of sound in air", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"wong1986.air.sound_speed", "greenspan1987.air.sound_speed"} <= linked)
+
+
+class CoverageTests(unittest.TestCase):
+    def test_every_record_has_a_domain_and_the_file_matches(self) -> None:
+        from pathlib import Path
+
+        from pgi.corpus.coverage import DOMAINS, counts, table
+        from pgi.corpus.records import RECORDS
+
+        tally = counts()
+        self.assertEqual(sum(tally.values()), len(RECORDS))
+        self.assertEqual(tuple(tally), DOMAINS)
+        text = (Path(__file__).resolve().parents[1] / "COVERAGE.md").read_text(encoding="utf-8")
+        block = text.split("<!-- counts:start -->\n", 1)[1].split("\n<!-- counts:end -->", 1)[0]
+        self.assertEqual(block, table())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

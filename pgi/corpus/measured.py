@@ -37,12 +37,14 @@ UNCERTAINTY_KINDS = frozenset(
         "2 sigma",
         "68.3% credible interval",
         "95% interval",
+        "maximum relative uncertainty, ppm as printed",
     }
 )
 _NONE_KIND = "no uncertainty printed"
 _TRUNCATED_KIND = "exact, printed truncated"
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval", "68.3% credible interval", "95% interval"})
 _SPLIT_KIND = "statistical and systematic, printed separately"
+_RELATIVE_PPM_KIND = "maximum relative uncertainty, ppm as printed"
 
 
 @dataclass(frozen=True)
@@ -94,17 +96,24 @@ class Quantity:
 
     @property
     def uncertainty(self) -> Fraction | None:
-        if self.exact or self.uncertainty_kind == _NONE_KIND:
+        if self.exact or self.uncertainty_kind in (_NONE_KIND, _RELATIVE_PPM_KIND):
             return None
         return parse_decimal(self.uncertainty_text)
 
     @property
     def lower_uncertainty(self) -> Fraction | None:
-        if self.exact or self.uncertainty_kind == _NONE_KIND:
+        if self.exact or self.uncertainty_kind in (_NONE_KIND, _RELATIVE_PPM_KIND):
             return None
         if self.lower_text:
             return parse_decimal(self.lower_text)
         return self.uncertainty
+
+    @property
+    def relative_uncertainty(self) -> Fraction | None:
+        """Only for a source that prints its uncertainty as parts per million of the value."""
+        if self.uncertainty_kind != _RELATIVE_PPM_KIND:
+            return None
+        return parse_decimal(self.uncertainty_text) / 10**6
 
     @property
     def systematic(self) -> Fraction | None:
@@ -2595,7 +2604,125 @@ NULL_BOUNDS: tuple[Bound, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS
+_CODATA_THERMO_NOTE = _EXACT_DERIVED[0].replace("h, c, and k", "N_A, k, h, and c")
+_ITS90_SOURCE = (
+    "H. Preston-Thomas, The International Temperature Scale of 1990 (ITS-90), Metrologia 27, 3-10 (1990), doi:10.1088/0026-1394/27/1/002, "
+    "with the textual corrections of Metrologia 27, 107 (1990); Table 1, Defining fixed points of the ITS-90."
+)
+_ITS90_COPY = "https://www.nist.gov/system/files/documents/pml/div685/grp01/ITS-90_metrologia.pdf"
+
+
+def _its90(key: str, name: str, substance: str, state: str, kelvin: str, celsius: str) -> Quantity:
+    return _q(f"its90.fp.{key}", f"ITS-90 {state} of {name}", f"T_90({substance})", kelvin, "", "K", kind="exact",
+              source=_ITS90_SOURCE, edition="ITS-90 (1990), Table 1", url="https://doi.org/10.1088/0026-1394/27/1/002", retrieved_from=_ITS90_COPY,
+              keys=("its-90", "temperature scale", "fixed point"), phrases=("its-90 fixed points", "temperature fixed points", f"{name} {state}", "defining fixed points"),
+              notes=(f"Table 1 prints T_90/K = {kelvin.replace('.', ',')} and t_90/degC = {celsius.replace('.', ',')}, with the decimal comma; substance {substance}, state {state}.",
+                     "The value is assigned by the scale's definition, so it is exact on ITS-90. It is not a statement about thermodynamic temperature, which the scale only approximates.",
+                     "Melting and freezing points are at a pressure of 101 325 Pa; the ITS-90 is a scanned copy and the table was read from the page image."))
+
+
+_WEBBOOK_WATER = (
+    "NIST Chemistry WebBook, SRD 69, Thermophysical Properties of Fluid Systems, water, isobaric data at 0.101325 MPa, "
+    "computed from the IAPWS-95 equation of state (W. Wagner and A. Pruss, J. Phys. Chem. Ref. Data 31, 387 (2002), doi:10.1063/1.1461829), "
+    "the IAPWS 2008 viscosity formulation (M. L. Huber et al., J. Phys. Chem. Ref. Data 38, 101 (2009), doi:10.1063/1.3088050), "
+    "and the IAPWS 2011 thermal-conductivity formulation (M. L. Huber et al., J. Phys. Chem. Ref. Data 41, 033102 (2012), doi:10.1063/1.4738955)."
+)
+_WEBBOOK_WATER_URL = (
+    "https://webbook.nist.gov/cgi/fluid.cgi?Action=Load&ID=C7732185&Type=IsoBar&Digits=5&P=0.101325&THigh=25&TLow=20&TInc=5&RefState=DEF"
+    "&TUnit=C&PUnit=MPa&DUnit=kg%2Fm3&HUnit=kJ%2Fkg&WUnit=m%2Fs&VisUnit=Pa*s&STUnit=N%2Fm"
+)
+_WEBBOOK_WATER_NOTE = (
+    "This is a reference-formulation value, computed by the WebBook from IAPWS formulations fitted to measurements; the WebBook prints it to its default five digits and prints no uncertainty beside it."
+)
+
+
+def _water(key: str, name: str, symbol: str, celsius: str, value: str, unit: str, extra: str) -> Quantity:
+    return _q(f"webbook.h2o.{key}_{celsius}c", f"{name} of liquid water at {celsius} degC and 0.101325 MPa", symbol, value, "", unit,
+              kind="no uncertainty printed", source=_WEBBOOK_WATER, edition="NIST WebBook SRD 69 fluid data", url=_WEBBOOK_WATER_URL, retrieved_from=_WEBBOOK_WATER_URL,
+              keys=("fluid properties", "iapws"), phrases=(f"{name} of water", f"water {name}", "water properties", "fluid properties"),
+              notes=(_WEBBOOK_WATER_NOTE, extra))
+
+
+_IAPWS_SURF_URL = "https://iapws.org/documents/release/Surf-H2O.download"
+
+
+def _surf(celsius: str, value: str, unc: str) -> Quantity:
+    key = celsius.replace(".", "_")
+    return _q(f"iapws2014.h2o.surface_tension_{key}c", f"surface tension of water at {celsius} degC", "sigma(H2O)", value, unc, "mN/m",
+              kind="uncertainty as printed, level not stated",
+              source="IAPWS R1-76(2014), Revised Release on Surface Tension of Ordinary Water Substance, Moscow (2014), Table 1, column 2 (experimental) and column 3 (uncertainty).",
+              edition="IAPWS R1-76(2014)", url=_IAPWS_SURF_URL, retrieved_from=_IAPWS_SURF_URL,
+              keys=("surface tension", "iapws"), phrases=("surface tension of water", "water surface tension", "water properties", "fluid properties"),
+              notes=(f"Table 1 prints {value} mN/m (column 2, recommended experimental value) with uncertainty {unc} mN/m (column 3) at t = {celsius} degC; the release does not state a coverage level.",
+                     "Column 4 of the table gives the release's interpolating-equation value; that calculated column is not stored."))
+
+
+THERMO_FLUIDS: tuple[Quantity, ...] = (
+    _codata("codata2022.r_gas", "molar gas constant", "R", "8.314 462 618...", "(exact)", "J mol^-1 K^-1", "r",
+            keys=("gas constant",), phrases=("molar gas constant", "gas constant", "ideal gas"), notes=(_CODATA_THERMO_NOTE,)),
+    _codata("codata2022.v_m_100kpa", "molar volume of ideal gas (273.15 K, 100 kPa)", "V_m", "22.710 954 64... e-3", "(exact)", "m^3 mol^-1", "mvol",
+            keys=("ideal gas",), phrases=("molar volume of ideal gas", "ideal gas"), notes=(_CODATA_THERMO_NOTE,)),
+    _codata("codata2022.v_m_101kpa", "molar volume of ideal gas (273.15 K, 101.325 kPa)", "V_m", "22.413 969 54... e-3", "(exact)", "m^3 mol^-1", "mvolstd",
+            keys=("ideal gas",), phrases=("molar volume of ideal gas", "ideal gas"), notes=(_CODATA_THERMO_NOTE,)),
+    _codata("codata2022.n0_100kpa", "Loschmidt constant (273.15 K, 100 kPa)", "n_0", "2.651 645 804... e25", "(exact)", "m^-3", "n0",
+            keys=("ideal gas",), phrases=("loschmidt constant", "ideal gas"), notes=(_CODATA_THERMO_NOTE,)),
+    _codata("codata2022.n0_101kpa", "Loschmidt constant (273.15 K, 101.325 kPa)", "n_0", "2.686 780 111... e25", "(exact)", "m^-3", "n0std",
+            keys=("ideal gas",), phrases=("loschmidt constant", "ideal gas"), notes=(_CODATA_THERMO_NOTE,)),
+    _codata("codata2022.c1", "first radiation constant", "c_1", "3.741 771 852... e-16", "(exact)", "W m^2", "c11strc",
+            keys=("radiation constant",), phrases=("first radiation constant", "radiation constant"), notes=_EXACT_DERIVED),
+    _codata("codata2022.c2", "second radiation constant", "c_2", "1.438 776 877... e-2", "(exact)", "m K", "c22ndrc",
+            keys=("radiation constant",), phrases=("second radiation constant", "radiation constant"), notes=_EXACT_DERIVED),
+    _codata("codata2022.std_atm", "standard atmosphere", "atm", "101 325", "(exact)", "Pa", "stdatm",
+            keys=("pressure",), phrases=("standard atmosphere", "standard pressure"),
+            notes=("CODATA lists this adopted value as exact. It is a conventional unit, defined by the 10th CGPM (1954), not a measured pressure.",)),
+    _its90("h2", "equilibrium hydrogen", "e-H2", "triple point", "13.8033", "-259.3467"),
+    _its90("ne", "neon", "Ne", "triple point", "24.5561", "-248.5939"),
+    _its90("o2", "oxygen", "O2", "triple point", "54.3584", "-218.7916"),
+    _its90("ar", "argon", "Ar", "triple point", "83.8058", "-189.3442"),
+    _its90("hg", "mercury", "Hg", "triple point", "234.3156", "-38.8344"),
+    _its90("h2o", "water", "H2O", "triple point", "273.16", "0.01"),
+    _its90("ga", "gallium", "Ga", "melting point", "302.9146", "29.7646"),
+    _its90("in", "indium", "In", "freezing point", "429.7485", "156.5985"),
+    _its90("sn", "tin", "Sn", "freezing point", "505.078", "231.928"),
+    _its90("zn", "zinc", "Zn", "freezing point", "692.677", "419.527"),
+    _its90("al", "aluminium", "Al", "freezing point", "933.473", "660.323"),
+    _its90("ag", "silver", "Ag", "freezing point", "1234.93", "961.78"),
+    _its90("au", "gold", "Au", "freezing point", "1337.33", "1064.18"),
+    _its90("cu", "copper", "Cu", "freezing point", "1357.77", "1084.62"),
+    _q("its90.he4_lambda_point", "lambda point of helium-4 as used by ITS-90", "T_lambda(4He)", "2.1768", "", "K", kind="no uncertainty printed",
+       source=_ITS90_SOURCE.replace("Table 1, Defining fixed points of the ITS-90.", "Sect. 3.1."), edition="ITS-90 (1990), Sect. 3.1",
+       url="https://doi.org/10.1088/0026-1394/27/1/002", retrieved_from=_ITS90_COPY,
+       keys=("its-90", "helium", "superfluid"), phrases=("lambda point", "helium lambda point", "superfluid transition"),
+       notes=("Sect. 3.1 prints the 4He vapour-pressure ranges as 1,25 K to 2,1768 K and 2,1768 K to 5,0 K, naming 2,1768 K 'the lambda point'.",
+              "It bounds two equations of the scale; it is not one of the defining fixed points of Table 1.")),
+    _water("density", "density", "rho", "25", "997.05", "kg/m^3", "The WebBook gives the equation of state's density uncertainty as 0.0001% at 1 atm in the liquid phase."),
+    _water("cp", "isobaric heat capacity", "c_p", "25", "4.1813", "J/(g K)", "The WebBook gives the isobaric heat capacity uncertainty as 0.1% in the liquid."),
+    _water("sound_speed", "speed of sound", "w", "25", "1496.7", "m/s", "The WebBook gives the speed-of-sound uncertainty as 0.1% or less in the liquid."),
+    _water("viscosity", "viscosity", "eta", "25", "0.00089002", "Pa s", "For the viscosity uncertainty the WebBook points to IAPWS R12-08, which states its uncertainties as expanded with coverage factor two."),
+    _water("viscosity", "viscosity", "eta", "20", "0.0010016", "Pa s", "IAPWS R12-08 says the formulation reproduces the ISO recommended viscosity at 20 degC and standard atmospheric pressure within the digits of that reference."),
+    _water("thermal_conductivity", "thermal conductivity", "lambda", "25", "0.60652", "W/(m K)", "For the thermal-conductivity uncertainty the WebBook points to the IAPWS 2011 release."),
+    _surf("0.01", "75.64", "0.38"),
+    _surf("20", "72.74", "0.36"),
+    _surf("25", "71.98", "0.36"),
+    _surf("100", "58.92", "0.29"),
+    _q("wong1986.air.sound_speed", "speed of sound in standard dry air at 0 degC and 101.325 kPa", "c_0", "331.29", "200", "m/s",
+       kind="maximum relative uncertainty, ppm as printed",
+       source="G. S. K. Wong, Speed of sound in standard air, J. Acoust. Soc. Am. 79, 1359-1366 (1986), doi:10.1121/1.393664.",
+       edition="J. Acoust. Soc. Am. 79 (1986)", url="https://doi.org/10.1121/1.393664", retrieved_from="https://api.crossref.org/works/10.1121/1.393664",
+       keys=("air", "speed of sound", "acoustics"), phrases=("speed of sound in air", "sound speed in air", "speed of sound"),
+       notes=("The abstract prints c0 = 331.29 m s^-1 for standard dry air at 0 degC and 101.325 kPa, with a maximum uncertainty estimated to be approximately 200 ppm.",
+              "The abstract calls it a calculation from the equation of state and published thermodynamic data on the constituents of air, not a direct acoustic measurement.",
+              "Greenspan's 1987 comment disputes it and keeps 331.44 m/s; that value is greenspan1987.air.sound_speed. Wong's 1995 comment on Cramer 1993 (J. Acoust. Soc. Am. 97, 3177, doi:10.1121/1.411818) says 331.29 m/s is within the re-assessed uncertainties.")),
+    _q("greenspan1987.air.sound_speed", "speed of sound in standard dry air at STP (the older value)", "c_0", "331.44", "", "m/s", kind="no uncertainty printed",
+       source="M. Greenspan, Comments on 'Speed of sound in standard air' [J. Acoust. Soc. Am. 79, 1359-1366 (1986)], J. Acoust. Soc. Am. 82, 370-372 (1987), doi:10.1121/1.395521.",
+       edition="J. Acoust. Soc. Am. 82 (1987)", url="https://doi.org/10.1121/1.395521", retrieved_from="https://api.crossref.org/works/10.1121/1.395521",
+       keys=("air", "speed of sound", "acoustics"), phrases=("speed of sound in air", "sound speed in air", "speed of sound"),
+       notes=("The abstract says Wong's allowance for gas imperfection is incorrect and that the old value, c0 = 331.44 m/s, is correct. It prints no uncertainty.",
+              "Kept beside wong1986.air.sound_speed; the board does not decide between them.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS
 
 
@@ -2628,6 +2755,9 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
         if item.uncertainty_kind == _NONE_KIND:
             if item.uncertainty_text or item.lower_text or item.printed:
                 raise ValueError(f"{item.id} prints no uncertainty, so it cannot carry one")
+        elif item.uncertainty_kind == _RELATIVE_PPM_KIND:
+            if item.lower_text or item.printed or not item.relative_uncertainty or item.relative_uncertainty <= 0:
+                raise ValueError(f"{item.id} needs one positive ppm figure and nothing else")
         elif not item.exact:
             upper = item.uncertainty
             lower = item.lower_uncertainty

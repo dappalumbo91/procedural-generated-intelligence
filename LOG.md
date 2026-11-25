@@ -952,3 +952,11 @@ Added the eEDM from JILA 2023, the nEDM from Abel 2020, Super-K p → e⁺π⁰ 
 That is 3 values and 7 bounds, and batch 7 is done.
 
 `python -m unittest discover -s tests -v` finished 295 tests, 0 failures, about 137.54 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — coverage audit; thermodynamics and fluids pgi-0.80.0
+
+COVERAGE.md counts the board by domain, and a test keeps it honest. Mechanics, optics, and fluids were empty. The first fill adds the CODATA gas-constant family, the 14 ITS-90 fixed points plus the λ point, WebBook/IAPWS water at 20 and 25 °C, IAPWS surface tensions, and the Wong/Greenspan dispute over the speed of sound in air. There is a new ppm uncertainty kind.
+
+That is 35 records.
+
+`python -m unittest discover -s tests -v` finished 301 tests, 0 failures, about 139.29 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
