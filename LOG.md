@@ -1032,3 +1032,11 @@ Added the Chou 2010 optical-clock height test, the Bothwell 2022 millimetre reds
 That is 9 records.
 
 `python -m unittest discover -s tests -v` finished 338 tests, 0 failures, about 111.62 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — particle pgi-0.90.0
+
+Added SLD A_l and the LEP/SLD heavy-flavour fit from the 2006 LEP report, PDG 2026 R_l, R_b, A_FB⁰ᵇ, A_FB⁰ᶜ, A(e), and the top width, PDG Higgs signal strengths by final state, and the ATLAS and CMS 2022 global signal strengths. The Z A(e) record is `pdg2026.z.a_e`, so it doesn't collide with the electron g−2 record `pdg2026.a_e`. COVERAGE.md's particle row and top gaps are updated.
+
+That is 22 records.
+
+`python -m unittest discover -s tests -v` finished 341 tests, 0 failures, about 125.51 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

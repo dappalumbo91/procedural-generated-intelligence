@@ -567,9 +567,17 @@ Lunar laser ranging adds the Nordtvedt parameter and Ġ/G from two analyses. Wil
 
 This adds 9 records.
 
+### Particle: heavy flavour, SLD, the top width, and Higgs signal strengths
+
+The Z-pole set from batch 9 now has its other half. SLD's combined leptonic asymmetry is `A_l = 0.1513 ± 0.0021`, and that total includes a `±0.0011` systematic. The LEP/SLD 14-parameter heavy-flavour fit gives R_b⁰ = `0.21629 ± 0.00066`, R_c⁰ = `0.1721 ± 0.0030`, A_FB⁰ᵇ = `0.0992 ± 0.0016`, A_FB⁰ᶜ = `0.0707 ± 0.0035`, A_b = `0.923 ± 0.020`, and A_c = `0.670 ± 0.027`. PDG 2026 quotes those fits directly, adding R_l = `20.767 ± 0.025` and A(e) = `0.1515 ± 0.0019`. PDG prints the heavy-flavour asymmetries in percent, and that's how they're kept. A test checks that PDG's values equal the LEP table's after the percent conversion.
+
+The top quark's width is now stored as PDG prints it, `1.42 +0.19 −0.15` GeV, with the asymmetric uncertainty intact. The Higgs boson gets signal strengths: PDG's combined average of `1.03 ± 0.04`, and its per-final-state averages for WW, ZZ, γγ, bb, ττ, and μμ. The ten-year ATLAS and CMS global values are `1.05 ± 0.06` and `1.002 ± 0.057`. ATLAS's four-way breakdown of uncertainty and CMS's three-way breakdown are kept in notes.
+
+This adds 22 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.89.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.90.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

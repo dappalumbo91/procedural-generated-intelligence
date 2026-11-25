@@ -3360,7 +3360,64 @@ CLOCKS_FRAME_LLR: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR
+_T510 = "Table 5.10, 14-parameter fit to the LEP/SLD heavy flavour data"
+_T510_NOTE = "Table 5.10's fit has chi2/dof = 53/(105 - 14); correlations are in Table 5.11 and are not stored."
+_HF = ("heavy flavour", "heavy-flavour asymmetries", "z heavy flavour")
+_HIGGS_MU = ("higgs signal strength", "signal strength", "higgs couplings")
+
+
+def _higgs_pdg(key: str, final: str, node: str, value: str, error: str, phrases: tuple[str, ...]) -> Quantity:
+    return _pdg(f"pdg2026.higgs_mu.{key}", f"Higgs signal strength, {final} final state (PDG average)", f"mu({final})", value, error, "", node=node,
+                keys=("higgs boson",), phrases=phrases + _HIGGS_MU,
+                notes=(_API_NOTE, f"PDG node {node} prints '{value}+-{error}' (OUR AVERAGE). A signal strength is the observed yield over the Standard Model expectation for that final state."))
+
+
+PARTICLE_EXTRAS: tuple[Quantity, ...] = (
+    _q("lep2005.a_l_sld", "leptonic asymmetry parameter A_l from SLD (left-right and polarised forward-backward asymmetries, lepton universality)", "A_l(SLD)", "0.1513", "0.0021", "",
+       kind="uncertainty as printed, level not stated", source=f"{_LEP_SOURCE}, Eq. (3.15).", edition="Phys. Rept. 427 (2006); arXiv v3", url=_LEP_URL, retrieved_from=_LEP_COPY,
+       keys=("z boson", "sld"), phrases=("sld a_l", "a_l sld", "left-right asymmetry", "sld leptonic asymmetry", "leptonic asymmetry parameter") + _Z_PHRASES,
+       notes=("Eq. (3.15) prints 'A_l = 0.1513 +- 0.0021, where the total error includes the systematic error of +-0.0011'.",)),
+    _lep("r_b0", "Z partial-width ratio Gamma(b bbar)/Gamma(had)", "R_b^0", "0.21629", "0.00066", "", _T510, ("r_b", "rb0") + _HF, (_T510_NOTE,)),
+    _lep("r_c0", "Z partial-width ratio Gamma(c cbar)/Gamma(had)", "R_c^0", "0.1721", "0.0030", "", _T510, ("r_c", "rc0") + _HF, (_T510_NOTE,)),
+    _lep("a_fb0_b", "b-quark pole forward-backward asymmetry", "A_FB^0,b", "0.0992", "0.0016", "", _T510, ("forward-backward asymmetry", "b quark asymmetry") + _HF, (_T510_NOTE,)),
+    _lep("a_fb0_c", "c-quark pole forward-backward asymmetry", "A_FB^0,c", "0.0707", "0.0035", "", _T510, ("forward-backward asymmetry", "c quark asymmetry") + _HF, (_T510_NOTE,)),
+    _lep("a_b", "b-quark asymmetry parameter (SLD polarised measurements enter)", "A_b", "0.923", "0.020", "", _T510, ("a_b",) + _HF, (_T510_NOTE,)),
+    _lep("a_c", "c-quark asymmetry parameter (SLD polarised measurements enter)", "A_c", "0.670", "0.027", "", _T510, ("a_c",) + _HF, (_T510_NOTE,)),
+    _pdg("pdg2026.r_l0", "Z partial-width ratio Gamma(hadrons)/Gamma(lepton+ lepton-)", "R_l", "20.767", "0.025", "", node="S044R20", keys=("z boson",),
+         phrases=("r_l", "hadronic to leptonic width ratio") + _Z_PHRASES, notes=(_API_NOTE, "PDG node S044R20 prints 20.767+-0.025 (OUR FIT).")),
+    _pdg("pdg2026.r_b0", "Z partial-width ratio R(b) = Gamma(b bbar)/Gamma(hadrons)", "R_b", "0.21629", "0.00066", "", node="S044R18", keys=("z boson",),
+         phrases=("r_b",) + _HF, notes=(_API_NOTE, "PDG node S044R18 prints 0.21629+-0.00066 (OUR FIT).")),
+    _pdg("pdg2026.a_fb0_b", "Z b-quark pole forward-backward charge asymmetry", "A_FB^0,b", "9.92", "0.16", "%", node="S044Z0B", keys=("z boson",),
+         phrases=("forward-backward asymmetry", "b quark asymmetry") + _HF, notes=(_API_NOTE, "PDG node S044Z0B prints 9.92+-0.16 in percent (OUR FIT).")),
+    _pdg("pdg2026.a_fb0_c", "Z c-quark pole forward-backward charge asymmetry", "A_FB^0,c", "7.07", "0.35", "%", node="S044Z0C", keys=("z boson",),
+         phrases=("forward-backward asymmetry", "c quark asymmetry") + _HF, notes=(_API_NOTE, "PDG node S044Z0C prints 7.07+-0.35 in percent (OUR FIT).")),
+    _pdg("pdg2026.z.a_e", "electron asymmetry parameter A(e) from Z data", "A_e", "0.1515", "0.0019", "", node="S044AE", keys=("z boson",),
+         phrases=("z electron asymmetry", "leptonic asymmetry parameter", "left-right asymmetry") + _Z_PHRASES, notes=(_API_NOTE, "PDG node S044AE prints 0.1515+-0.0019 (OUR AVERAGE).")),
+    _pdg("pdg2026.gamma_t", "top-quark decay width", "Gamma_t", "1.42", "0.19", "GeV", node="Q007W", kind="asymmetric standard uncertainty", lower_text="0.15",
+         keys=("top quark",), phrases=("top width", "top quark width", "top-quark decay width", "width of the top quark"),
+         notes=(_API_NOTE, "PDG node Q007W prints 1.42+0.19-0.15 GeV (OUR AVERAGE).")),
+    _higgs_pdg("combined", "combined", "S126SA", "1.03", "0.04", ("combined higgs signal strength",)),
+    _higgs_pdg("ww", "W W*", "S126SWW", "1.00", "0.08", ("higgs to ww", "h to ww")),
+    _higgs_pdg("zz", "Z Z*", "S126SZZ", "1.02", "0.08", ("higgs to zz", "h to zz")),
+    _higgs_pdg("gamma_gamma", "gamma gamma", "S126SGG", "1.10", "0.06", ("higgs to two photons", "h to gamma gamma", "diphoton")),
+    _higgs_pdg("bb", "b bbar", "S126SBB", "0.94", "0.11", ("higgs to bb", "h to b bbar")),
+    _higgs_pdg("tau_tau", "tau+ tau-", "S126STT", "0.91", "0.09", ("higgs to tau tau", "h to tau tau")),
+    _higgs_pdg("mu_mu", "mu+ mu-", "S126SMU", "1.31", "0.29", ("higgs to muons", "h to mu mu")),
+    _q("atlas2022.higgs_mu", "ATLAS global Higgs signal strength, full Run 2", "mu", "1.05", "0.06", "", kind="uncertainty as printed, level not stated",
+       source="ATLAS Collaboration, A detailed map of Higgs boson interactions by the ATLAS experiment ten years after the discovery, Nature 607, 52-59 (2022), doi:10.1038/s41586-022-04893-w",
+       edition="Nature 607 (2022); arXiv:2207.00092", url="https://doi.org/10.1038/s41586-022-04893-w", retrieved_from="https://arxiv.org/pdf/2207.00092",
+       keys=("higgs boson", "atlas"), phrases=("atlas higgs signal strength", "global signal strength") + _HIGGS_MU,
+       notes=("The text prints 'mu = 1.05 +- 0.06 = 1.05 +- 0.03 (stat.) +- 0.03 (exp.) +- 0.04 (sig. th.) +- 0.02 (bkg. th.)'. The total is stored; the components are not.",)),
+    _q("cms2022.higgs_mu", "CMS common Higgs signal strength, all Run 2 data", "mu", "1.002", "0.057", "", kind="uncertainty as printed, level not stated",
+       source="CMS Collaboration, A portrait of the Higgs boson by the CMS experiment ten years after the discovery, Nature 607, 60-68 (2022), doi:10.1038/s41586-022-04892-x",
+       edition="Nature 607 (2022); arXiv:2207.00043", url="https://doi.org/10.1038/s41586-022-04892-x", retrieved_from="https://arxiv.org/pdf/2207.00043",
+       keys=("higgs boson", "cms"), phrases=("cms higgs signal strength", "global signal strength") + _HIGGS_MU,
+       notes=("The text prints 'The new combination of all Run 2 data yields mu = 1.002 +- 0.057'; theory, statistical and systematic parts 'are 0.036, 0.029, and 0.033, respectively'.",
+              "At discovery the common mu 'was found to be 0.87 +- 0.23'; that value is not stored.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

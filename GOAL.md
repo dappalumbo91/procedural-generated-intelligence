@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.89.0`.
+Rule version `pgi-0.90.0`.
 
 In the kernel now:
 
@@ -155,6 +155,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `knowles2017.*`, `migliori2008.*`, `kamm1964.*`, `vallin1964.*`, `nagamatsu2001.*`, `drozdov2015.*`, `nair2008.*`, `ribeiropalau2015.*` | Measured and compiled anchors | c₁₁, c₁₂, c₄₄ (GPa): Si `165.7, 63.9, 79.6`; Cu `168.4, 121.4, 75.4`; diamond `1078.6, 126.6, 577.6`. Al: `11.430, 6.192, 3.162` × 10¹¹ dyn cm⁻² (0 K), `11.63, 6.48, 3.09` × 10¹⁰ N m⁻² (4 K). θ_D: Al `430.3` K and `425` K, diamond `2244` K. T_c: MgB₂ `39` K, H₃S `203` K (155 GPa). Graphene T `97.7 ± 0.1`%, G/G₀ `1.01` (±4%). QHE graphene − GaAs: `(−0.9 ± 8.2) × 10⁻¹¹`, with Janssen `(−2.7 ± 6.0) × 10⁻¹¹`. |
 | `lemmon2004.*`, `db1998.he4.*` | Correlation and recommended anchors | 300 K dilute gas: η(air) `18.5230`, η(N₂) `17.8771`, η(O₂) `20.6307` µPa s; λ(air) `26.3529` mW m⁻¹ K⁻¹; at 5.0 mol/dm³ air η `21.3241`, λ `32.6062`. He-4 at SVP: ρ(0 K) `0.1451397`, ρ(1.5 K) `0.1451646`, ρ_λ `0.1461087` g cm⁻³; ρ_s(1.5 K) `0.12900`, ρ_n(1.5 K) `0.01617` g cm⁻³; u₁(1.5 K) `235.5` m/s; u₂ `18.93` (1.0 K), `20.03` (1.5 K), `16.78` (2.0 K) m/s. |
 | `chou2010.*`, `bothwell2022.*`, `ciufolini2016.*`, `williams2004.*`, `hofmann2018.*` | Clock and orbit tests of gravity | Chou: df/f₀ `(4.1 ± 1.6)×10⁻¹⁷` for a 33 cm rise, inferred height `37 ± 15` cm. Bothwell (arXiv v1): `−9.8(2.3)×10⁻²⁰`/mm, synchronous `−1.28(27)×10⁻¹⁹`/mm. Ciufolini 2016: μ = `0.994 ± 0.002` (formal) `± 0.05` (systematic). LLR: η `(4.4 ± 4.5)×10⁻⁴` and Ġ/G `(4 ± 9)×10⁻¹³` yr⁻¹ (Williams 2004); η `(−0.2 ± 1.1)×10⁻⁴` and Ġ/G₀ `(7.1 ± 7.6)×10⁻¹⁴` yr⁻¹ (Hofmann–Müller 2018). |
+| `lep2005.{a_l_sld, r_b0, r_c0, a_fb0_b, a_fb0_c, a_b, a_c}`, `pdg2026.{r_l0, r_b0, a_fb0_b, a_fb0_c, z.a_e, gamma_t, higgs_mu.*}`, `atlas2022.*`, `cms2022.*` | Electroweak and Higgs anchors | A_l(SLD) `0.1513 ± 0.0021`; R_b⁰ `0.21629 ± 0.00066`, R_c⁰ `0.1721 ± 0.0030`, A_FB⁰ᵇ `0.0992 ± 0.0016`, A_FB⁰ᶜ `0.0707 ± 0.0035`, A_b `0.923 ± 0.020`, A_c `0.670 ± 0.027`; PDG R_l `20.767 ± 0.025`, A(e) `0.1515 ± 0.0019`; Γ_t `1.42 +0.19 −0.15` GeV; μ: PDG combined `1.03 ± 0.04`, WW `1.00`, ZZ `1.02`, γγ `1.10`, bb `0.94`, ττ `0.91`, μμ `1.31`; ATLAS `1.05 ± 0.06`, CMS `1.002 ± 0.057`. |
 | `gw150914.*` | Measured anchors | GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, via the GWOSC event API: source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, final mass `63.1 +3.4 −3.0` solar masses, final spin, radiated energy `3.1 ± 0.4` solar-mass c², `χ_eff`, `d_L = 440 +150 −170` Mpc, and `z`. Medians with 90% credible intervals. |
 | `bound.gw170817_speed_of_gravity` | Experimental bound | Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, from the 1.74 s delay of GRB 170817A, D = 26 Mpc, and an emission lag between 0 and 10 s. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |

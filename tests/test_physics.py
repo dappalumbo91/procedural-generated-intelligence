@@ -1617,6 +1617,30 @@ class ClocksFrameLlrTests(unittest.TestCase):
         self.assertIn("chou2010.height_shift", self._linked("what did the optical clock height test measure"))
 
 
+class ParticleExtrasTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_lep_and_pdg_agree_where_pdg_quotes_the_fit(self) -> None:
+        self.assertEqual(quantity("lep2005.r_b0").value, quantity("pdg2026.r_b0").value)
+        self.assertEqual(quantity("lep2005.r_l0").value, quantity("pdg2026.r_l0").value)
+        # PDG prints the heavy-flavour pole asymmetries in percent.
+        self.assertEqual(quantity("lep2005.a_fb0_b").value * 100, quantity("pdg2026.a_fb0_b").value)
+        self.assertEqual(quantity("lep2005.a_fb0_c").value * 100, quantity("pdg2026.a_fb0_c").value)
+
+    def test_asymmetric_and_split_values(self) -> None:
+        width = quantity("pdg2026.gamma_t")
+        self.assertEqual((width.value, width.uncertainty, width.lower_uncertainty), (Fraction(142, 100), Fraction(19, 100), Fraction(15, 100)))
+        self.assertEqual(quantity("cms2022.higgs_mu").value, Fraction(1002, 1000))
+
+    def test_asks_link(self) -> None:
+        self.assertTrue({"atlas2022.higgs_mu", "cms2022.higgs_mu", "pdg2026.higgs_mu.combined"} <= self._linked("what is the higgs signal strength"))
+        self.assertIn("pdg2026.gamma_t", self._linked("what is the top quark width"))
+        self.assertIn("lep2005.a_l_sld", self._linked("what is the sld a_l"))
+        self.assertTrue({"lep2005.a_fb0_b", "lep2005.r_b0"} <= self._linked("list the z heavy flavour asymmetries"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
