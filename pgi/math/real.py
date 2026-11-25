@@ -216,15 +216,20 @@ def real_sqrt(operand: RealTheorem) -> RealTheorem:
 
 
 def real_add(left: RealTheorem, right: RealTheorem) -> RealTheorem:
-    return RealTheorem(
-        _add_forms(left.form, right.form),
-        "Real.add",
-        (left, right),
-        (
-            "Isabelle plus_real and add_Real: addition is pointwise on Cauchy sequences.",
-            "Isabelle cauchy_add.",
-        ),
-    )
+    raw = _add_forms_raw(left.form, right.form)
+    form = _rewrite_conjugate_nest_sums(raw)
+    lines = [
+        "Isabelle plus_real and add_Real: addition is pointwise on Cauchy sequences.",
+        "Isabelle cauchy_add.",
+    ]
+    if form != raw:
+        lines.extend(
+            (
+                "A sum of conjugate nested binomials is rewritten by squaring the sum in the tower.",
+                "Isabelle real_sqrt_unique: a nonnegative y whose square is the radicand is the root.",
+            )
+        )
+    return RealTheorem(form, "Real.add", (left, right), tuple(lines))
 
 
 def real_neg(premise: RealTheorem) -> RealTheorem:
@@ -478,7 +483,109 @@ def _sqrt_form(radicand: Ratio) -> RealForm:
     return RealForm(_ratio(0, 1), ((coeff, free),))
 
 
+
+def _form_weight(form: RealForm) -> int:
+    return (
+        (0 if form.constant.num == 0 else 1)
+        + len(form.terms)
+        + len(form.towers)
+        + len(form.nests)
+        + len(form.pairs)
+        + len(form.deeps)
+        + len(form.highs)
+        + len(form.peaks)
+        + len(form.crests)
+        + len(form.summits)
+        + len(form.apexes)
+        + len(form.shells)
+        + len(form.folds)
+        + len(form.quads)
+        + len(form.algebras)
+    )
+
+
+def _squared_nest_sum(left: RealForm, right: RealForm) -> RealForm | None:
+    """Rewrite a sum of nested binomials by squaring, when the square root is simpler.
+
+    Isabelle real_sqrt_unique: a nonnegative y whose square is the radicand is
+    the root. The square is formed in the tower, and the identity is checked
+    both by multiplying back and, when the numbers are algebraic, by an exact
+    algebraic comparison.
+    """
+
+    if len(left.nests) != 1 or len(right.nests) != 1:
+        return None
+    _coeff1, const1, mid1, rad1 = left.nests[0]
+    _coeff2, const2, mid2, rad2 = right.nests[0]
+    # Conjugates on the same square-free integer: sqrt(a + b sqrt(n)) and sqrt(a - b sqrt(n)).
+    if rad1 != rad2 or const1 != const2 or mid1 != _qneg(mid2) or mid1.num == 0:
+        return None
+    total = _add_forms_raw(left, right)
+    try:
+        square = _mul_forms(total, total)
+        candidate = _sqrt_of_form(square)
+    except (NotExact, KernelError):
+        return None
+    if candidate == total or _form_weight(candidate) >= _form_weight(total):
+        return None
+    if _mul_forms(candidate, candidate) != square:
+        raise KernelError("a nested binomial sum did not square to the constructed root")
+    if _classify(total) not in {"gt", "eq"} or _classify(candidate) not in {"gt", "eq"}:
+        return None
+    try:
+        from pgi.math.algfield import algebraic_equal
+
+        if not algebraic_equal(algebraic_of_form(total), algebraic_of_form(candidate)):
+            raise KernelError("a nested binomial sum did not match its square root")
+    except NotExact:
+        pass
+    return candidate
+
+
+def _rewrite_conjugate_nest_sums(form: RealForm) -> RealForm:
+    if len(form.nests) < 2:
+        return form
+    nests = list(form.nests)
+    index = 0
+    while index < len(nests):
+        found = False
+        for other in range(index + 1, len(nests)):
+            candidate = _squared_nest_sum(_nest_form(*nests[index]), _nest_form(*nests[other]))
+            if candidate is None:
+                continue
+            rest = RealForm(
+                form.constant,
+                form.terms,
+                form.towers,
+                tuple(item for pos, item in enumerate(nests) if pos not in {index, other}),
+                form.pairs,
+                form.deeps,
+                form.highs,
+                form.peaks,
+                form.crests,
+                form.summits,
+                form.apexes,
+                form.shells,
+                form.folds,
+                form.quads,
+                form.algebras,
+            )
+            form = _add_forms_raw(rest, candidate)
+            nests = list(form.nests)
+            found = True
+            break
+        if found:
+            index = 0
+            continue
+        index += 1
+    return form
+
+
 def _add_forms(left: RealForm, right: RealForm) -> RealForm:
+    return _rewrite_conjugate_nest_sums(_add_forms_raw(left, right))
+
+
+def _add_forms_raw(left: RealForm, right: RealForm) -> RealForm:
     if left.algebras or right.algebras:
         raise NotExact("this algebraic sum stays outside")
     coeffs: dict[int, Ratio] = {}

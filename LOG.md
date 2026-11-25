@@ -596,3 +596,15 @@ A polynomial whose resultant would exceed the kernel's degree limit stays outsid
 The next gap is a sum of two nested binomials of the same square-free integer, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero. A polynomial whose resultant would exceed the kernel's degree limit stays outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 128 tests, 0 failures, about 32.44 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — sums of conjugate nested binomials pgi-0.44.0
+
+A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring. The square is formed in the tower, the nonnegative square root is taken, and the identity is kept only when the candidate multiplies back to that square and `real_sqrt_unique` applies. When the numbers are algebraic, an exact algebraic comparison is required as well. `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is `sqrt(4 + 2 * sqrt(2))`. `sqrt(2 + sqrt(2)) - sqrt(2 - sqrt(2))` is `sqrt(4 - 2 * sqrt(2))`. `sqrt(3 + 2 * sqrt(2)) + sqrt(3 - 2 * sqrt(2))` is `2 * sqrt(2)`.
+
+A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. A boolean connective whose sides the kernel can now settle individually stays outside the connective rule until those sides are composed. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is nonnegativity and nonzero visibility by the exact sign machinery, and boolean sides that are now settleable. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 129 tests, 0 failures, about 32.06 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

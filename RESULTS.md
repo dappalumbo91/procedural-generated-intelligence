@@ -198,3 +198,21 @@ A comparison that is a polynomial in the binder, whose coefficients are rational
 `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}` is `atLeastAtMost(root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 1), root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 4))`. `{x. x * x * x <= sqrt(2)}` is `atMost(root(x^6 - 2, 2))`. `{x. x * x * x < sqrt(2)}` is `lessThan(root(x^6 - 2, 2))`. `{x. x * x * x >= sqrt(2)}` is `atLeast(root(x^6 - 2, 2))`. `sup {x. x * x * x <= sqrt(2)}` is `cauchy(root(x^6 - 2, 2))`. `{x. (x * x - 2) * (x - sqrt(2)) <= 0}` is `atMost(-sqrt(2)) union set({sqrt(2)})`.
 
 A polynomial whose resultant would exceed the kernel's degree limit stays outside. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open.
+
+
+### Sums of conjugate nested binomials
+
+A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring. The square is formed in the tower, the nonnegative square root is taken, and the identity is kept only when the candidate multiplies back to that square and `real_sqrt_unique` applies. When the numbers are algebraic, an exact algebraic comparison is required as well. `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is `sqrt(4 + 2 * sqrt(2))`. `sqrt(2 + sqrt(2)) - sqrt(2 - sqrt(2))` is `sqrt(4 - 2 * sqrt(2))`. `sqrt(3 + 2 * sqrt(2)) + sqrt(3 - 2 * sqrt(2))` is `2 * sqrt(2)`.
+
+### Current open math gaps
+
+This list is the current state as of `pgi-0.44.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+
+- A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside.
+- A boolean connective whose sides the kernel can now settle individually, such as `{x. x * x <= 2 and 0 <= x}`, stays outside the connective rule until those sides are composed.
+- A polynomial whose resultant would exceed the kernel's degree limit stays outside.
+- A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
+- `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
+- An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
+- Linear algebra, manifolds, differential geometry, Hilbert space, and gauge theory are still ahead of any physical law.
+- CODATA, the Particle Data Group, gravitational-wave catalogs, the Mercury residual in arcseconds, and a stored Rayleigh–Jeans formula are still not ingested.

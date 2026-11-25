@@ -413,6 +413,43 @@ class ContinuumTests(unittest.TestCase):
         self.assertEqual(other.claims[0].atom, "cauchy(sqrt(3 + sqrt(2)))")
         self.assertEqual(other.open_gaps, ())
 
+    def test_sum_of_conjugate_nested_binomials(self) -> None:
+        summed = run(Request(ask="what is sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))", seed=1))
+        self.assertEqual(summed.claims[0].atom, "cauchy(sqrt(4 + 2 * sqrt(2)))")
+        self.assertIn("real_sqrt_unique", summed.text(lod=2))
+        self.assertEqual(summed.open_gaps, ())
+
+        identity = run(
+            Request(
+                ask="prove sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2)) = sqrt(4 + 2 * sqrt(2))",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            identity.claims[0].atom,
+            "identity(sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2)) = sqrt(4 + 2 * sqrt(2)))",
+        )
+        self.assertEqual(identity.open_gaps, ())
+
+        difference = run(Request(ask="what is sqrt(2 + sqrt(2)) - sqrt(2 - sqrt(2))", seed=1))
+        self.assertEqual(difference.claims[0].atom, "cauchy(sqrt(4 - 2 * sqrt(2)))")
+        self.assertEqual(difference.open_gaps, ())
+
+        reduced = run(Request(ask="what is sqrt(3 + 2 * sqrt(2)) + sqrt(3 - 2 * sqrt(2))", seed=1))
+        self.assertEqual(reduced.claims[0].atom, "cauchy(2 * sqrt(2))")
+        self.assertEqual(reduced.open_gaps, ())
+        proved = run(
+            Request(
+                ask="prove sqrt(3 + 2 * sqrt(2)) + sqrt(3 - 2 * sqrt(2)) = 2 * sqrt(2)",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            proved.claims[0].atom,
+            "identity(sqrt(3 + 2 * sqrt(2)) + sqrt(3 - 2 * sqrt(2)) = 2 * sqrt(2))",
+        )
+        self.assertEqual(proved.open_gaps, ())
+
     def test_denesting_sqrt_of_sqrt_two_plus_sqrt_three(self) -> None:
         nested = run(Request(ask="what is sqrt(sqrt(2) + sqrt(3))", seed=1))
         shown = "1/2 * sqrt(-2 + 2 * sqrt(3)) + 1/2 * sqrt(2 + 2 * sqrt(3))"
