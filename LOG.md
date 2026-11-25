@@ -904,3 +904,11 @@ The unit 2-sphere in angular coordinates is now in the atlas. `metric(s2, angula
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 267 tests, 0 failures, about 154.87 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — astrophysics: IAU nominal values, au, GM, lunar recession, Sirius B, J0740+6620 pgi-0.74.0
+
+IAU 2015 B3 went in: eleven exact nominal constants and the best estimates behind them, plus the exact au. GM_sun and GM_earth come from the IAU 2026 table, since the IERS PDF failed TLS. LLR gives 38.30 ± 0.08 mm/year, and NSSDC gives 0.3844 × 10^6 km and 3.8 cm/yr. Sirius B from Bond 2017 and Joyce 2018. J0740+6620 at 2.08 M_sun, with four NICER radii. Two kinds are new: 2 sigma and 68.3% credible interval.
+
+The tests check B3's own rounding rules and that the independent measurements agree. That is 33 records, with no theory.
+
+`python -m unittest discover -s tests -v` finished 271 tests, 0 failures, about 156.02 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

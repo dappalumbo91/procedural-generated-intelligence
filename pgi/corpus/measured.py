@@ -34,11 +34,13 @@ UNCERTAINTY_KINDS = frozenset(
         "exact, printed truncated",
         "no uncertainty printed",
         "IUPAC standard atomic weight uncertainty",
+        "2 sigma",
+        "68.3% credible interval",
     }
 )
 _NONE_KIND = "no uncertainty printed"
 _TRUNCATED_KIND = "exact, printed truncated"
-_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval"})
+_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval", "68.3% credible interval"})
 _SPLIT_KIND = "statistical and systematic, printed separately"
 
 
@@ -2080,7 +2082,163 @@ HIGGS_WIDTH_BOUNDS: tuple[Bound, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5
+IAU2015_B3_SOURCE = (
+    "IAU 2015 Resolution B3 on Recommended Nominal Conversion Constants for Selected Solar and Planetary Properties, "
+    "XXIXth IAU General Assembly, Honolulu (2015), arXiv:1510.07674; rationale in A. Prsa et al., AJ 152, 41 (2016), doi:10.3847/0004-6256/152/2/41."
+)
+_B3_URL = "https://arxiv.org/abs/1510.07674"
+_B3_PDF = "https://arxiv.org/pdf/1510.07674"
+_B3_NOMINAL = "The resolution adopts this nominal value as an exact SI conversion constant. It is a conversion factor, not the current best estimate."
+
+
+def _b3(id: str, name: str, symbol: str, value: str, unit: str, printed_line: str, *, phrases: tuple[str, ...], notes: tuple[str, ...] = ()) -> Quantity:
+    return _q(id, name, symbol, value, "exact", unit, kind="exact", source=IAU2015_B3_SOURCE, edition="IAU 2015 Resolution B3",
+              url=_B3_URL, retrieved_from=_B3_PDF, keys=("iau", "nominal"), phrases=phrases,
+              notes=(f"Printed in the resolution as {printed_line}.", _B3_NOMINAL, *notes))
+
+
+def _b3_cbe(id: str, name: str, symbol: str, value: str, unc: str, unit: str, kind: str, printed_line: str, *, phrases: tuple[str, ...], notes: tuple[str, ...] = ()) -> Quantity:
+    return _q(id, name, symbol, value, unc, unit, kind=kind, source=IAU2015_B3_SOURCE, edition="IAU 2015 Resolution B3, explanatory notes",
+              url=_B3_URL, retrieved_from=_B3_PDF, keys=("iau", "current best estimate"), phrases=phrases,
+              notes=(f"Printed in the resolution's notes as {printed_line}.", "This is the 2015 current best estimate behind the nominal value. It is not the nominal value.", *notes))
+
+
+IAU2026_SOURCE = "IAU Commission A3, IAU 2026 System of Astronomical Constants, Numerical Standards for Fundamental Astronomy (page last updated 2026-11-20)."
+_IAU2026_URL = "https://iau-a3.gitlab.io/NSFA/IAU2026_consts.html"
+_IAU2026_UNC = "The table gives an uncertainty in the same units as the value and does not state its level."
+
+
+def _iau26(id: str, name: str, symbol: str, value: str, unc: str, scale: str, printed: str, ref: str, *, phrases: tuple[str, ...]) -> Quantity:
+    return _q(id, name, symbol, value, unc, "m^3 s^-2", kind="uncertainty as printed, level not stated", source=IAU2026_SOURCE,
+              edition="IAU 2026 System of Astronomical Constants", url=_IAU2026_URL, retrieved_from=_IAU2026_URL,
+              keys=("iau", "mass parameter"), phrases=phrases,
+              notes=(f"Printed as {printed}, uncertainty {scale}.", f"The table's reference for this value: {ref}.", _IAU2026_UNC))
+
+
+_SIRIUS_BOND = (
+    "H. E. Bond, G. H. Schaefer, R. L. Gilliland, J. B. Holberg, B. D. Mason, I. W. Lindenblad, M. Seitz-McLeese, W. D. Arnett, "
+    "P. Demarque, F. Spada, P. A. Young, M. A. Barstow, M. R. Burleigh, and D. Gudehus, The Sirius System and Its Astrophysical Puzzles: "
+    "Hubble Space Telescope and Ground-based Astrometry, ApJ 840, 70 (2017), doi:10.3847/1538-4357/aa6af8, arXiv:1703.10625."
+)
+_SIRIUS_JOYCE = (
+    "S. R. G. Joyce, M. A. Barstow, J. B. Holberg, H. E. Bond, S. L. Casewell, and M. R. Burleigh, The gravitational redshift of Sirius B, "
+    "MNRAS 481, 2361 (2018), doi:10.1093/mnras/sty2404, arXiv:1809.01240."
+)
+_J0740_KEYS = ("psr j0740+6620", "j0740", "neutron star")
+_J0740_PHRASES = ("psr j0740+6620", "neutron star maximum mass", "neutron star radius", "heaviest neutron star")
+
+
+def _j0740(id: str, name: str, symbol: str, value: str, up: str, low: str, unit: str, kind: str, source: str, edition: str, doi: str, arxiv: str, notes: tuple[str, ...]) -> Quantity:
+    return _q(id, name, symbol, value, up, unit, kind=kind, lower_text=low, source=source, edition=edition,
+              url=f"https://doi.org/{doi}" if doi else f"https://arxiv.org/abs/{arxiv}", retrieved_from=f"https://export.arxiv.org/api/query?id_list={arxiv}",
+              keys=_J0740_KEYS, phrases=_J0740_PHRASES, notes=notes)
+
+
+ASTROPHYSICS: tuple[Quantity, ...] = (
+    _b3("iau2015.nominal.r_sun", "nominal solar radius", "R_sun^N", "6.957 e8", "m", "1 R_sun^N = 6.957 x 10^8 m", phrases=("solar radius", "radius of the sun"),
+        notes=("Note 2: it corresponds to the solar photospheric radius of Haberreiter et al. (2008).",)),
+    _b3("iau2015.nominal.s_sun", "nominal total solar irradiance", "S_sun^N", "1361", "W m^-2", "1 S_sun^N = 1361 W m^-2", phrases=("solar constant", "total solar irradiance")),
+    _b3("iau2015.nominal.l_sun", "nominal solar luminosity", "L_sun^N", "3.828 e26", "W", "1 L_sun^N = 3.828 x 10^26 W", phrases=("solar luminosity", "luminosity of the sun")),
+    _b3("iau2015.nominal.teff_sun", "nominal solar effective temperature", "T_eff,sun^N", "5772", "K", "1 T_eff,sun^N = 5772 K", phrases=("solar effective temperature", "temperature of the sun")),
+    _b3("iau2015.nominal.gm_sun", "nominal solar mass parameter", "(GM)_sun^N", "1.327 124 4 e20", "m^3 s^-2", "1 (GM)_sun^N = 1.327 124 4 x 10^20 m^3 s^-2",
+        phrases=("solar mass parameter", "gm of the sun", "gm sun"),
+        notes=("Explanation 1: adopted as an exact number, given with a precision within which its TCB and TDB values agree.",)),
+    _b3("iau2015.nominal.r_earth_eq", "nominal terrestrial equatorial radius", "R_eE^N", "6.3781 e6", "m", "1 R_eE^N = 6.3781 x 10^6 m", phrases=("earth radius", "equatorial radius of the earth"),
+        notes=("Explanation 6: the Earth's 'zero tide' equatorial radius.",)),
+    _b3("iau2015.nominal.r_earth_pol", "nominal terrestrial polar radius", "R_pE^N", "6.3568 e6", "m", "1 R_pE^N = 6.3568 x 10^6 m", phrases=("earth radius", "polar radius of the earth")),
+    _b3("iau2015.nominal.r_jup_eq", "nominal jovian equatorial radius", "R_eJ^N", "7.1492 e7", "m", "1 R_eJ^N = 7.1492 x 10^7 m", phrases=("jupiter radius", "equatorial radius of jupiter"),
+        notes=("Explanation 7: the one-bar equatorial radius of Jupiter.",)),
+    _b3("iau2015.nominal.r_jup_pol", "nominal jovian polar radius", "R_pJ^N", "6.6854 e7", "m", "1 R_pJ^N = 6.6854 x 10^7 m", phrases=("jupiter radius", "polar radius of jupiter")),
+    _b3("iau2015.nominal.gm_earth", "nominal terrestrial mass parameter", "(GM)_E^N", "3.986 004 e14", "m^3 s^-2", "1 (GM)_E^N = 3.986 004 x 10^14 m^3 s^-2",
+        phrases=("earth mass parameter", "gm of the earth", "gm earth"),
+        notes=("Explanation 8: from the IAU 2009 system, rounded to the precision within which its TCB and TDB values agree.",)),
+    _b3("iau2015.nominal.gm_jup", "nominal jovian mass parameter", "(GM)_J^N", "1.266 865 3 e17", "m^3 s^-2", "1 (GM)_J^N = 1.266 865 3 x 10^17 m^3 s^-2",
+        phrases=("jupiter mass parameter", "gm of jupiter")),
+    _b3_cbe("iau2015.cbe.s_sun", "cycle 23 mean total solar irradiance", "S_sun", "1361", "1", "W m^-2", "2 sigma", "S_sun = 1361 W m^-2 (+- 1 W m^-2; 2 sigma)",
+            phrases=("solar constant", "total solar irradiance"), notes=("Note 3 names Kopp et al. (in prep.) and the TIM/SORCE scale.",)),
+    _b3_cbe("iau2015.cbe.l_sun", "mean solar radiative luminosity", "L_sun", "3.8275 e26", "0.0014 e26", "W", "uncertainty as printed, level not stated",
+            "L_sun = 4 pi (1 au)^2 S_sun = 3.8275 (+- 0.0014) x 10^26 W", phrases=("solar luminosity", "luminosity of the sun"),
+            notes=("The resolution computes it from the TSI and the au; it is stored as printed and not recomputed here.",)),
+    _b3_cbe("iau2015.cbe.teff_sun", "solar effective temperature", "T_eff,sun", "5772.0", "0.8", "K", "uncertainty as printed, level not stated",
+            "T_eff,sun = 5772.0 (+- 0.8) K", phrases=("solar effective temperature", "temperature of the sun"),
+            notes=("The resolution calculates it from the luminosity, the photospheric radius and the CODATA 2014 Stefan-Boltzmann constant; it is stored as printed.",)),
+    _b3_cbe("haberreiter2008.r_sun", "solar photospheric radius (tau_Ross = 2/3)", "R_sun", "695 658", "140", "km", "uncertainty as printed, level not stated",
+            "695 658 (+- 140) km", phrases=("solar radius", "radius of the sun"),
+            notes=("Note 2 quotes M. Haberreiter et al. (2008); the original paper was not read here.",)),
+    _q("iau2012.au", "astronomical unit", "au", "149 597 870 700", "exact", "m", kind="exact",
+       source="IAU 2012 Resolution B2, XXVIIIth IAU General Assembly, Beijing (2012), as quoted in note 4 of IAU 2015 Resolution B3 (arXiv:1510.07674) and in the IAU 2026 System of Astronomical Constants.",
+       edition="IAU 2012 Resolution B2", url=_IAU2026_URL, retrieved_from=_B3_PDF,
+       keys=("iau",), phrases=("astronomical unit", "earth-sun distance", "au in meters"),
+       notes=("Printed as 'a conventional unit of length equal to 149 597 870 700 m exactly'.", "The IAU 2026 table lists it as 1.495 978 707 00 x 10^11 m, 'defined', citing the IAU 2012 Transactions.", "The IAU copy of the 2012 resolution text did not resolve from the box, so the wording is the one quoted in IAU 2015 B3.")),
+    _iau26("iau2026.gm_sun_tcb", "solar mass parameter, TCB-compatible", "GM_S", "1.327 124 420 995 e20", "1.0 e8", "1.0 x 10^8",
+           "1.327 124 420 995 x 10^20 m^3 s^-2 [TCB]", "Fienga et al., INPOP21a Planetary Ephemerides (2021)", phrases=("solar mass parameter", "gm of the sun", "gm sun")),
+    _iau26("iau2026.gm_sun_tdb", "solar mass parameter, TDB-compatible", "GM_S", "1.327 124 400 418 e20", "1.0 e8", "1.0 x 10^8",
+           "1.327 124 400 418 x 10^20 m^3 s^-2 [TDB]", "Fienga et al., INPOP21a Planetary Ephemerides (2021)", phrases=("solar mass parameter", "gm of the sun", "gm sun")),
+    _iau26("iau2026.gm_earth_tcb", "geocentric gravitational constant, TCB-compatible", "GM_E", "3.986 004 417 e14", "3 e5", "3 x 10^5",
+           "3.986 004 417 x 10^14 m^3 s^-2 [TCB]", "Park et al., The JPL Planetary and Lunar Ephemerides DE440 and DE441, AJ 161, 105 (2021)", phrases=("earth mass parameter", "gm of the earth", "gm earth")),
+    _iau26("iau2026.gm_earth_tt", "geocentric gravitational constant, TT-compatible", "GM_E", "3.986 004 414 e14", "3 e5", "3 x 10^5",
+           "3.986 004 414 x 10^14 m^3 s^-2 [TT]", "Park et al., The JPL Planetary and Lunar Ephemerides DE440 and DE441, AJ 161, 105 (2021)", phrases=("earth mass parameter", "gm of the earth", "gm earth")),
+    _iau26("iau2026.gm_earth_tdb", "geocentric gravitational constant, TDB-compatible", "GM_E", "3.986 004 355 e14", "3 e5", "3 x 10^5",
+           "3.986 004 355 x 10^14 m^3 s^-2 [TDB]", "Park et al., The JPL Planetary and Lunar Ephemerides DE440 and DE441, AJ 161, 105 (2021)", phrases=("earth mass parameter", "gm of the earth", "gm earth")),
+    _q("williams2016.lunar_da_dt", "secular rate of the lunar semimajor axis from lunar laser ranging", "da/dt", "38.30", "0.08", "mm/year",
+       kind="uncertainty as printed, level not stated",
+       source="J. G. Williams and D. H. Boggs, Secular tidal changes in lunar orbit and Earth rotation, Celest. Mech. Dyn. Astron. 126, 89-129 (2016), doi:10.1007/s10569-016-9702-3.",
+       edition="Celest. Mech. Dyn. Astron. 126 (2016)", url="https://doi.org/10.1007/s10569-016-9702-3",
+       retrieved_from="https://discovery.researcher.life/article/secular-tidal-changes-in-lunar-orbit-and-earth-rotation/7d0bf781b53f32dcaa68c4bde99bc325",
+       keys=("lunar laser ranging", "llr"), phrases=("lunar recession", "moon recession", "moon moving away", "earth-moon distance"),
+       notes=("Printed in the abstract as da/dt = 38.30 +- 0.08 mm/year, from LLR dissipation parameters converted to secular rates.", "The abstract was read from a mirror of the publisher's abstract, because Springer and ADS did not serve it to the box.")),
+    _q("nssdc.moon.semimajor_axis", "semimajor axis of the Moon's orbit about the Earth", "a_Moon", "0.3844 e6", "", "km", kind="no uncertainty printed",
+       source="D. R. Williams, Moon Fact Sheet, NASA Space Science Data Coordinated Archive (last updated 11 January 2024).",
+       edition="NSSDCA Moon Fact Sheet (2024-01-11)", url="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+       retrieved_from="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+       keys=("moon",), phrases=("earth-moon distance", "distance to the moon", "lunar distance"),
+       notes=("Printed as 'Semimajor axis (10^6 km) 0.3844'. The same sheet gives mean perigee 0.3633 and mean apogee 0.4055 (10^6 km).",)),
+    _q("nssdc.moon.recession", "recession rate of the Moon from Earth", "da/dt", "3.8", "", "cm/yr", kind="no uncertainty printed",
+       source="D. R. Williams, Moon Fact Sheet, NASA Space Science Data Coordinated Archive (last updated 11 January 2024).",
+       edition="NSSDCA Moon Fact Sheet (2024-01-11)", url="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+       retrieved_from="https://nssdc.gsfc.nasa.gov/planetary/factsheet/moonfact.html",
+       keys=("moon",), phrases=("lunar recession", "moon recession", "moon moving away"),
+       notes=("Printed as 'Recession rate from Earth (cm/yr) 3.8'.",)),
+    _q("bond2017.sirius_b.mass", "dynamical mass of Sirius B", "M_B", "1.018", "0.011", "M_sun", kind="uncertainty as printed, level not stated",
+       source=_SIRIUS_BOND, edition="ApJ 840, 70 (2017)", url="https://doi.org/10.3847/1538-4357/aa6af8", retrieved_from="https://arxiv.org/pdf/1703.10625",
+       keys=("sirius b", "white dwarf"), phrases=("sirius b", "white dwarf mass", "mass of sirius b"),
+       notes=("Printed in the abstract and Table 6 as 1.018 +- 0.011 M_sun, from the visual-binary orbit and parallax.",)),
+    _q("bond2017.sirius_b.radius", "radius of Sirius B from its absolute flux", "R_B", "0.008098", "0.000046", "R_sun", kind="uncertainty as printed, level not stated",
+       source=_SIRIUS_BOND, edition="ApJ 840, 70 (2017)", url="https://doi.org/10.3847/1538-4357/aa6af8", retrieved_from="https://arxiv.org/pdf/1703.10625",
+       keys=("sirius b", "white dwarf"), phrases=("sirius b", "white dwarf radius", "radius of sirius b"),
+       notes=("Printed as 'the implied radius of Sirius B is 0.008098 +- 0.000046 R_sun'.", "The paper says the quoted uncertainties are internal errors of the model fits and do not include the modestly larger systematic uncertainties.")),
+    _q("joyce2018.sirius_b.mass", "gravitational-redshift mass of Sirius B", "M_B", "1.017", "0.025", "M_sun", kind="uncertainty as printed, level not stated",
+       source=_SIRIUS_JOYCE, edition="MNRAS 481, 2361 (2018)", url="https://doi.org/10.1093/mnras/sty2404", retrieved_from="https://arxiv.org/pdf/1809.01240",
+       keys=("sirius b", "white dwarf"), phrases=("sirius b", "white dwarf mass", "mass of sirius b"),
+       notes=("Printed in the abstract as 1.017 +- 0.025 M_sun, from a measured gravitational redshift of 80.65 +- 0.77 km s^-1 and the radius below.",)),
+    _q("joyce2018.sirius_b.radius", "radius of Sirius B used for the redshift mass", "R_B", "0.803", "0.011", "R_sun/100", kind="uncertainty as printed, level not stated",
+       source=_SIRIUS_JOYCE, edition="MNRAS 481, 2361 (2018)", url="https://doi.org/10.1093/mnras/sty2404", retrieved_from="https://arxiv.org/pdf/1809.01240",
+       keys=("sirius b", "white dwarf"), phrases=("sirius b", "white dwarf radius", "radius of sirius b"),
+       notes=("Printed as 'The radius of 0.803 +- 0.011 R_sun/100', from the G430L flux and the Bond et al. (2017) parallax. The unit is kept as printed.",)),
+    _j0740("fonseca2021.j0740.mass", "mass of PSR J0740+6620 from Shapiro delay", "m_p", "2.08", "0.07", "0.07", "M_sun", "68.3% credible interval",
+           "E. Fonseca et al., Refined Mass and Geometric Measurements of the High-mass PSR J0740+6620, ApJL 915, L12 (2021), doi:10.3847/2041-8213/ac03b8, arXiv:2104.00880.",
+           "ApJL 915, L12 (2021)", "10.3847/2041-8213/ac03b8", "2104.00880",
+           ("Printed in the abstract as m_p = 2.08^{+0.07}_{-0.07} M_sun (68.3% credibility), from the relativistic Shapiro time delay.",)),
+    _j0740("riley2021.j0740.radius", "equatorial radius of PSR J0740+6620, NICER and XMM (Riley et al.)", "R_eq", "12.39", "1.30", "0.98", "km", "68% interval",
+           "T. E. Riley et al., A NICER View of the Massive Pulsar PSR J0740+6620 Informed by Radio Timing and XMM-Newton Spectroscopy, ApJL 918, L27 (2021), doi:10.3847/2041-8213/ac0a81, arXiv:2105.06980.",
+           "ApJL 918 (2021)", "10.3847/2041-8213/ac0a81", "2105.06980",
+           ("Printed in the abstract as 12.39_{-0.98}^{+1.30} km, the posterior credible interval bounded by the 16% and 84% quantiles.", "The radius prior is truncated at 16 km.")),
+    _j0740("miller2021.j0740.radius", "equatorial radius of PSR J0740+6620, NICER and XMM (Miller et al.)", "R_eq", "13.7", "2.6", "1.5", "km", "68% interval",
+           "M. C. Miller et al., The Radius of PSR J0740+6620 from NICER and XMM-Newton Data, ApJL 918, L28 (2021), doi:10.3847/2041-8213/ac089b, arXiv:2105.06979.",
+           "ApJL 918 (2021)", "10.3847/2041-8213/ac089b", "2105.06979",
+           ("Printed in the abstract as 13.7^{+2.6}_{-1.5} km (68%).",)),
+    _j0740("salmi2024.j0740.radius", "equatorial radius of PSR J0740+6620, 3.6 yr of NICER data (Salmi et al.)", "R_eq", "12.49", "1.28", "0.88", "km", "68% interval",
+           "T. Salmi et al., The Radius of the High-mass Pulsar PSR J0740+6620 with 3.6 yr of NICER Data, ApJ 974, 294 (2024), doi:10.3847/1538-4357/ad5f1f, arXiv:2406.14466.",
+           "ApJ 974, 294 (2024)", "10.3847/1538-4357/ad5f1f", "2406.14466",
+           ("Printed in the abstract as 12.49_{-0.88}^{+1.28} km, bounded by the 16% and 84% quantiles, with an estimated systematic error <~ 0.1 km.",)),
+    _j0740("dittmann2024.j0740.radius", "equatorial radius of PSR J0740+6620, updated NICER data (Dittmann et al.)", "R_eq", "12.92", "2.09", "1.13", "km", "68% interval",
+           "A. J. Dittmann et al., A More Precise Measurement of the Radius of PSR J0740+6620 Using Updated NICER Data, arXiv:2406.14467 (2024).",
+           "arXiv:2406.14467 (2024)", "", "2406.14467",
+           ("Printed in the abstract as 12.92_{-1.13}^{+2.09} km (68% credibility).", "With the radius required below 16 km, the abstract gives 12.76_{-1.02}^{+1.49} km; that variant is not stored separately.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS
 
 

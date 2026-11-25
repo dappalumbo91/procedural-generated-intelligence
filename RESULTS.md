@@ -409,9 +409,23 @@ A closed expression that does not reduce to a rational is enclosed by a pair of 
 
 `metric(s2, angular)` is the metric `ds^2 = dθ^2 + sin(θ)^2 dφ^2` on the unit 2-sphere. The inverse is kept only when both products are the identity, and is `diag(1, 1/sin(θ)^2)`. The Levi-Civita connection is torsion-free and metric-compatible, checked identically. The Riemann symmetries and both Bianchi identities hold. The scalar curvature is `2`, and the Ricci tensor equals the metric, so `scalar(metric(s2, angular))` is `2` and `ricci(metric(s2, angular)) = metric(s2, angular)`. Equality of components uses the Pythagorean identity when one side is written as `1 - cos(θ)^2` and the other as `sin(θ)^2`. The unknown chart `metric(s2, spherical)` stays open.
 
+### Astrophysics and the solar system: IAU nominal values, GM, the au, the Moon, Sirius B, PSR J0740+6620
+
+IAU 2015 Resolution B3 is on the board as it prints it. Its eleven nominal conversion constants are exact by resolution: R_sun `6.957 × 10^8` m, S_sun `1361` W m^-2, L_sun `3.828 × 10^26` W, T_eff `5772` K, (GM)_sun `1.327 124 4 × 10^20` m³ s⁻², the Earth radii `6.3781`/`6.3568 × 10^6` m, the Jupiter radii `7.1492`/`6.6854 × 10^7` m, (GM)_E `3.986 004 × 10^14`, and (GM)_J `1.266 865 3 × 10^17`. The best estimates from the resolution's notes are stored beside them and are not the nominal values: S_sun `1361 (± 1)` W m^-2 (2σ, a new kind on the board), L_sun `3.8275 (± 0.0014) × 10^26` W, T_eff `5772.0 (± 0.8)` K, and the Haberreiter photospheric radius `695 658 (± 140)` km. The au is `149 597 870 700` m exactly (IAU 2012 B2, quoted in B3 note 4).
+
+GM comes from the IAU 2026 System of Astronomical Constants (Commission A3, updated 2026-11-20). GM_S is `1.327 124 420 995 × 10^20` [TCB] and `1.327 124 400 418 × 10^20` [TDB] m³ s⁻², each ± `1.0 × 10^8`. GM_E is `3.986 004 417`, `414`, and `355 × 10^14` [TCB, TT, TDB], each ± `3 × 10^5`. The table states no level for these uncertainties. The IERS Conventions PDF failed TLS from the box, so the IAU table is the GM source.
+
+The Moon: lunar laser ranging gives da/dt = `38.30 ± 0.08` mm/year (Williams & Boggs 2016). The NSSDCA fact sheet gives a semimajor axis of `0.3844 × 10^6` km and a recession of `3.8` cm/yr, both with no uncertainty printed.
+
+Sirius B: Bond et al. 2017 give a dynamical mass of `1.018 ± 0.011` M_sun and a flux radius of `0.008098 ± 0.000046` R_sun (internal errors only, as the paper says). Joyce et al. 2018 give a redshift mass of `1.017 ± 0.025` M_sun with a radius of `0.803 ± 0.011` R_sun/100, unit kept as printed.
+
+PSR J0740+6620: the Fonseca 2021 Shapiro-delay mass is `2.08^{+0.07}_{-0.07}` M_sun at 68.3% credibility, also a new kind. Four NICER radii are stored, each as its abstract prints it: Riley 2021 `12.39^{+1.30}_{-0.98}`, Miller 2021 `13.7^{+2.6}_{-1.5}`, Salmi 2024 `12.49^{+1.28}_{-0.88}`, and Dittmann 2024 `12.92^{+2.09}_{-1.13}` km.
+
+The tests are data-only. The nominal values are exact, and each sits inside the uncertainty of the estimate it was rounded from. B3's own rule holds: the nominal GM digits are where the TCB, TT, and TDB values agree. Bond and Joyce agree on the mass and on the radius. The four NICER intervals overlap. NSSDC's 3.8 cm/yr matches the LLR rate to its printed digit. This adds 33 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.73.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.74.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

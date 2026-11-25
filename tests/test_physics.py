@@ -973,6 +973,58 @@ class ParticleBatchFiveTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class AstrophysicsTests(unittest.TestCase):
+    def test_nominal_values_are_exact_and_sit_inside_the_estimates_they_round(self) -> None:
+        nominal = [item for item in QUANTITIES if item.id.startswith("iau2015.nominal.")]
+        self.assertEqual(len(nominal), 11)
+        self.assertTrue(all(item.exact for item in nominal))
+        self.assertTrue(quantity("iau2012.au").exact)
+        self.assertEqual(quantity("iau2012.au").value, 149597870700)
+        for nominal_id, estimate_id, scale in (
+            ("iau2015.nominal.s_sun", "iau2015.cbe.s_sun", 1),
+            ("iau2015.nominal.l_sun", "iau2015.cbe.l_sun", 1),
+            ("iau2015.nominal.teff_sun", "iau2015.cbe.teff_sun", 1),
+            ("iau2015.nominal.r_sun", "haberreiter2008.r_sun", 1000),
+        ):
+            estimate = quantity(estimate_id)
+            self.assertLessEqual(abs(quantity(nominal_id).value - estimate.value * scale), estimate.uncertainty * scale, nominal_id)
+        self.assertEqual(quantity("iau2015.cbe.s_sun").uncertainty_kind, "2 sigma")
+
+    def test_nominal_mass_parameters_are_the_digits_where_time_scales_agree(self) -> None:
+        # Resolution B3: (GM)_sun^N and (GM)_E^N are given to the precision within which the TCB and TDB values agree.
+        for nominal_id, ids in (
+            ("iau2015.nominal.gm_sun", ("iau2026.gm_sun_tcb", "iau2026.gm_sun_tdb")),
+            ("iau2015.nominal.gm_earth", ("iau2026.gm_earth_tcb", "iau2026.gm_earth_tt", "iau2026.gm_earth_tdb")),
+        ):
+            nominal = quantity(nominal_id)
+            step = Fraction(10) ** (len(nominal.value_text.split("e")[0].replace(" ", "").split(".")[1]) - int(nominal.value_text.split("e")[1]))
+            for id in ids:
+                value = quantity(id).value
+                self.assertEqual(Fraction(int(value * step)) / step, nominal.value, id)
+
+    def test_compact_objects_and_the_moon(self) -> None:
+        bond, joyce = quantity("bond2017.sirius_b.mass"), quantity("joyce2018.sirius_b.mass")
+        self.assertLess((bond.value - joyce.value) ** 2, bond.uncertainty**2 + joyce.uncertainty**2)
+        r_bond, r_joyce = quantity("bond2017.sirius_b.radius"), quantity("joyce2018.sirius_b.radius")
+        self.assertEqual(r_joyce.unit, "R_sun/100")
+        self.assertLess((r_bond.value - r_joyce.value / 100) ** 2, r_bond.uncertainty**2 + (r_joyce.uncertainty / 100) ** 2)
+        radii = [quantity(f"{id}.j0740.radius") for id in ("riley2021", "miller2021", "salmi2024", "dittmann2024")]
+        for a in radii:
+            for b in radii:
+                self.assertLess(a.value - a.lower_uncertainty, b.value + b.uncertainty, (a.id, b.id))
+        self.assertGreater(quantity("fonseca2021.j0740.mass").value, 2 * bond.value)
+        self.assertLessEqual(abs(quantity("nssdc.moon.recession").value * 10 - quantity("williams2016.lunar_da_dt").value), Fraction(1, 2))
+
+    def test_astrophysics_asks_link(self) -> None:
+        session = unfold(Request(ask="what is the radius of psr j0740+6620", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"riley2021.j0740.radius", "miller2021.j0740.radius", "salmi2024.j0740.radius", "dittmann2024.j0740.radius"} <= linked)
+        session = unfold(Request(ask="how fast is the lunar recession", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"williams2016.lunar_da_dt", "nssdc.moon.recession"} <= linked)
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
