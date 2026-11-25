@@ -1,8 +1,8 @@
-# Results through pgi-0.39.0
+# Results through pgi-0.40.0
 
 Procedural Generated Intelligence (PGI) unfolds answers from compact rules, seeds, and constraints. The store is generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and the kernel saturates the active packs, retracts contradictions, and renders the settled claims at the requested level of detail.
 
-This note records what the folder holds at rule version `pgi-0.39.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
+This note records what the folder holds at rule version `pgi-0.40.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
 
 ## What the kernel holds
 
@@ -15,7 +15,7 @@ In the kernel now:
 - Closed rationals: a reduced fraction, positive denominator, sign on the numerator. Field operations cite the Lean `Rat` operations and the Isabelle `Rat.thy` lemmas. Division by zero stays open.
 - A Cauchy continuum for the sequences this kernel can check, from Isabelle `Real.thy`. Constant sequences are the rationals. A positive square root is a bisection sequence with a checked modulus. Order is a strict rational enclosure. Core Lean 4.36 has no `Real`.
 - Nested radicals the rules below can see: a tower `base^(odd/2^k)`, a binomial nest, a two-radical sum that denests, the pair `sqrt(sqrt(2) + sqrt(5))` through every further finite outer square root, the nested binomial `sqrt(2 + sqrt(2))` through every further finite outer square root, a two-prime biquadratic under one square root when it does not denest, and a nest times a pair as the square root of the product of those insides.
-- Inverses inside the admitted span, including `1 / sqrt(sqrt(2) + sqrt(3))`, which is the conjugate difference of the two nests that denesting already produced. Arithmetic in a finite square-root tower over Q is one checked rule: an element is a vector on the basis of products of the adjoined square roots, multiplication follows `(a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d`, and the inverse is the conjugate over the norm, taken down the tower and kept only when it multiplies back to 1. Named ladder levels, a summit, an apex, a shell, and any further finite depth use that one rule.
+- Inverses inside the admitted span, including `1 / sqrt(sqrt(2) + sqrt(3))`, which is the conjugate difference of the two nests that denesting already produced. Arithmetic in a finite square-root tower over Q is one checked rule: an element is a vector on the basis of products of the adjoined square roots, multiplication follows `(a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d`, and the inverse is the conjugate over the norm, taken down the tower and kept only when it multiplies back to 1. A zero, a unit, or a rational factor is scaled in one step, and a product of the same vectors in the same tower is reused. Named ladder levels, a summit, an apex, a shell, and any further finite depth use that one rule.
 - Finite sets of those reals. The least upper bound of a nonempty finite set is its maximum.
 - Quantifiers over a finite enumeration. Separation over a finite enumeration. Order rays, the set of every real, and two-sided intervals. Nested conjunction, double negation, implication by `imp_conv_disj`, and a disjunction or union of rays when they overlap, touch, or leave a gap. A gapped union is stored as those admitted pieces in order. The complement of a finite set is the open rays and open intervals around its members. The complement of a two-sided interval is the two outer rays. A comparison that is affine in the binder cancels to a standard ray, to UNIV, to the empty set, or to a singleton. A quadratic comparison is settled by its sign chart at the roots the kernel can construct and check, so `{x. x * x <= 2}` is `atLeastAtMost(-sqrt(2), sqrt(2))` and its supremum is `sqrt(2)`. The supremum of a down-ray is the bound it contains. The supremum of an open upper end is built by the Archimedean bisection in the proof of `complete_real`. The supremum of a bounded gapped union is the upper bound of its right-hand piece. An identically true affine comparison, such as `{x. x <= x + 1}`, is UNIV and is not bounded above.
 - Boolean connectives the kernel can settle: a conjunction of two comparisons, the complement of an order ray, and a disjunction of two closed equalities.
@@ -104,8 +104,9 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 | pgi-0.37.0 | Boolean connectives and affine upper bounds | 117 | about 49.14 s |
 | pgi-0.38.0 | Gapped unions and finite complements | 118 | about 40.28 s |
 | pgi-0.39.0 | Quadratic sign charts | 119 | about 37.89 s |
+| pgi-0.40.0 | Tower product cache | 119 | about 12.50 s |
 
-`python -m unittest discover -s tests -v` at pgi-0.39.0 finished 119 tests, 0 failures, in 37.889 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 37.89 seconds in the table. One test calls GNU Octave through the portable lookup.
+`python -m unittest discover -s tests -v` at pgi-0.40.0 finished 119 tests, 0 failures, in 12.498 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 12.50 seconds in the table. One test calls GNU Octave through the portable lookup.
 
 ### Why the two open radicals stayed open, and what closed them
 
@@ -166,5 +167,10 @@ The complement of a finite set is the open down-ray before the least member, the
 ### Quadratic sign charts
 
 A comparison that is a polynomial of degree two in the binder is settled by a sign chart at the roots the kernel can construct and check. The difference of the two sides is formed, the discriminant is built, and each root is verified by evaluating the polynomial to zero. The sign at a midpoint is checked against the leading coefficient. `{x. x * x <= 2}` is `atLeastAtMost(-sqrt(2), sqrt(2))`. `{x. x * x < 2}` is `greaterThanLessThan(-sqrt(2), sqrt(2))`. `{x. 2 <= x * x}` is `atMost(-sqrt(2)) union atLeast(sqrt(2))`. `{x. x * x = 2}` is `set({-sqrt(2), sqrt(2)})`. A factored quadratic such as `{x. (x - 1) * (x - 3) <= 0}` is `atLeastAtMost(1, 3)`. A quadratic with no real roots and a positive leading coefficient, such as `{x. x * x + 1 <= 0}`, is empty. `sup {x. x * x <= 2}` is `cauchy(sqrt(2))`. Membership follows the admitted interval or cover.
+
+
+### Tower product cache
+
+Tower multiplication still follows `(a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d`, and a constructed inverse is still kept only when it multiplies back to 1. A zero, a unit, or a rational factor is now scaled in one step instead of recursing through every layer, and a product of the same coordinate vectors in the same tower is reused. The admitted forms are unchanged. The full suite still runs before every push.
 
 A polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, stays outside the bisection, as does a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. A negative radicand stays open. Division by zero stays open.

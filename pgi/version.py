@@ -1,1 +1,1 @@
-RULE_VERSION = "pgi-0.39.0"
+RULE_VERSION = "pgi-0.40.0"

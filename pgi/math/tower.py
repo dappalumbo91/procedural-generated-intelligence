@@ -6,8 +6,10 @@ Bit k of a basis index is the factor √(layer k). Each layer radicand is a
 vector in the previous field.
 
 Multiplication follows (a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d.
-The inverse is the conjugate a − b√d over the norm a² − b²d, computed
-recursively down the tower, and is kept only when it multiplies back to 1.
+A zero, a unit, or a rational factor is scaled in one step, and a product
+of the same vectors in the same tower is reused. The inverse is the
+conjugate a − b√d over the norm a² − b²d, computed recursively down the
+tower, and is kept only when it multiplies back to 1.
 """
 
 from __future__ import annotations
@@ -98,14 +100,49 @@ def _scale_coords(coords: tuple[Ratio, ...], factor: Ratio) -> tuple[Ratio, ...]
     return tuple(_qmul(value, factor) for value in coords)
 
 
+# Products of the same coordinate vectors in the same tower are reused.
+# The check that a constructed inverse multiplies back to 1 is unchanged.
+_MUL_CACHE: dict[
+    tuple[tuple[Ratio, ...], tuple[Ratio, ...], tuple[tuple[Ratio, ...], ...]],
+    tuple[Ratio, ...],
+] = {}
+
+
+def _rational_scale(coords: tuple[Ratio, ...]) -> Ratio | None:
+    if all(value.num == 0 for value in coords[1:]):
+        return coords[0]
+    return None
+
+
 def _mul_coords(
     left: tuple[Ratio, ...],
     right: tuple[Ratio, ...],
     layers: tuple[tuple[Ratio, ...], ...],
 ) -> tuple[Ratio, ...]:
-    if len(left) == 1:
+    width = len(left)
+    if width == 1:
         return (_qmul(left[0], right[0]),)
-    half = len(left) // 2
+    if _is_zero_coords(left) or _is_zero_coords(right):
+        return _zeros(width)
+    if _is_one_coords(left):
+        return right
+    if _is_one_coords(right):
+        return left
+    left_scale = _rational_scale(left)
+    if left_scale is not None:
+        return _scale_coords(right, left_scale)
+    right_scale = _rational_scale(right)
+    if right_scale is not None:
+        return _scale_coords(left, right_scale)
+    key = (left, right, layers)
+    cached = _MUL_CACHE.get(key)
+    if cached is not None:
+        return cached
+    swapped = (right, left, layers)
+    cached = _MUL_CACHE.get(swapped)
+    if cached is not None:
+        return cached
+    half = width // 2
     previous = layers[:-1]
     radicand = layers[-1]
     lower_left, upper_left = left[:half], left[half:]
@@ -115,7 +152,9 @@ def _mul_coords(
     bed = _mul_coords(be, radicand, previous)
     ae = _mul_coords(lower_left, upper_right, previous)
     bc = _mul_coords(upper_left, lower_right, previous)
-    return _add_coords(ac, bed) + _add_coords(ae, bc)
+    result = _add_coords(ac, bed) + _add_coords(ae, bc)
+    _MUL_CACHE[key] = result
+    return result
 
 
 def _inv_coords(

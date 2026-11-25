@@ -544,3 +544,15 @@ A polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, stays ou
 The next gap is a polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, and a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 119 tests, 0 failures, about 37.89 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — tower product cache pgi-0.40.0
+
+Tower multiplication still follows `(a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d`, and a constructed inverse is still kept only when it multiplies back to 1. A zero, a unit, or a rational factor is now scaled in one step instead of recursing through every layer, and a product of the same coordinate vectors in the same tower is reused. The admitted forms are unchanged. The full suite still runs before every push; slow engine tests were not split behind a marker.
+
+A polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, stays outside the bisection, as does a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, and a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 119 tests, 0 failures, about 12.50 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
