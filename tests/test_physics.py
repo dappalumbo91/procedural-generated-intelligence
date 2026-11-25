@@ -1182,6 +1182,50 @@ class ExoticQedTests(unittest.TestCase):
         self.assertIn("liu1999.mu.hfs", linked)
 
 
+class NullResultTests(unittest.TestCase):
+    @staticmethod
+    def _bound(id: str):
+        (item,) = [b for b in BOUNDS if b.id == id]
+        return item
+
+    def test_edm_values_sit_inside_their_bounds(self) -> None:
+        for value_id, bound_id in (("jila2023.d_e", "bound.jila2023.electron_edm"), ("abel2020.d_n", "bound.abel2020.neutron_edm")):
+            item, bound = quantity(value_id), self._bound(bound_id)
+            self.assertEqual(item.uncertainty_kind, "statistical and systematic, printed separately")
+            self.assertEqual(item.unit, bound.unit)
+            self.assertLess(abs(item.value), bound.upper, value_id)
+            self.assertEqual(bound.lower, 0)
+
+    def test_proton_bound_is_lower_only(self) -> None:
+        bound = self._bound("bound.superk2020.proton_e_pi0")
+        self.assertIsNone(bound.upper)
+        self.assertEqual(bound.lower, Fraction(24 * 10**33))
+        from pgi.corpus.records import RECORDS
+        (record,) = [r for r in RECORDS if r.id == bound.id]
+        self.assertIn("is at least 2.4 e34 years", record.statement[0])
+
+    def test_mass_bounds_as_printed(self) -> None:
+        self.assertEqual(self._bound("bound.pdg2026.photon_mass").upper, Fraction(1, 10**18))
+        self.assertEqual(self._bound("bound.katrin2025.nu_mass").upper, Fraction(45, 100))
+        gwtc3, pdg = self._bound("bound.gwtc3.graviton_mass"), self._bound("bound.pdg2026.graviton_mass")
+        self.assertEqual(gwtc3.upper_text, "2.42 e-23")
+        self.assertEqual(pdg.upper_text, "1.76 e-23")
+        self.assertTrue(any("1.27" in condition for condition in gwtc3.conditions))
+
+    def test_microscope_eta(self) -> None:
+        eta = quantity("microscope2022.eta_ti_pt")
+        self.assertEqual((eta.value, eta.uncertainty, eta.systematic), (Fraction(-15, 10**16), Fraction(23, 10**16), Fraction(15, 10**16)))
+        self.assertLess(abs(eta.value), eta.uncertainty)
+
+    def test_null_asks_link(self) -> None:
+        session = unfold(Request(ask="list the null results", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"bound.jila2023.electron_edm", "bound.superk2020.proton_e_pi0", "microscope2022.eta_ti_pt"} <= linked)
+        session = unfold(Request(ask="what is the graviton mass bound", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"bound.gwtc3.graviton_mass", "bound.pdg2026.graviton_mass"} <= linked)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

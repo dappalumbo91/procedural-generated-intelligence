@@ -1600,8 +1600,8 @@ class Bound:
         return parse_decimal(self.lower_text)
 
     @property
-    def upper(self) -> Fraction:
-        return parse_decimal(self.upper_text)
+    def upper(self) -> Fraction | None:
+        return parse_decimal(self.upper_text) if self.upper_text else None
 
 
 _BINPOP_SOURCE = (
@@ -2515,8 +2515,88 @@ EXOTIC_QED: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED
-BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS
+_ZERO_EDGE = "Only the upper limit is printed. The lower end 0 is the edge of a magnitude or mass, not a measurement."
+
+
+def _null_bound(id: str, name: str, symbol: str, upper: str, unit: str, *, source: str, edition: str, url: str, retrieved_from: str,
+                keys: tuple[str, ...], phrases: tuple[str, ...], conditions: tuple[str, ...]) -> Bound:
+    return Bound(id=id, name=name, symbol=symbol, lower_text="0", upper_text=upper, unit=unit, source=source, edition=edition, url=url,
+                 retrieved_from=retrieved_from, retrieved=RETRIEVED, keys=keys + ("null result",), phrases=phrases + ("null results", "experimental bounds"),
+                 conditions=conditions + (_ZERO_EDGE,), forbids=())
+
+
+_JILA2023_SOURCE = "T. S. Roussy et al., An improved bound on the electron's electric dipole moment, Science 381, 46-50 (2023), doi:10.1126/science.adg4084, arXiv:2212.11841."
+_ABEL2020_SOURCE = "C. Abel et al., Measurement of the permanent electric dipole moment of the neutron, Phys. Rev. Lett. 124, 081803 (2020), doi:10.1103/PhysRevLett.124.081803, arXiv:2001.11966."
+_MICROSCOPE_SOURCE = "P. Touboul et al. (MICROSCOPE Collaboration), MICROSCOPE mission: final results of the test of the equivalence principle, Phys. Rev. Lett. 129, 121102 (2022), doi:10.1103/PhysRevLett.129.121102, arXiv:2209.15487."
+
+NULL_RESULTS: tuple[Quantity, ...] = (
+    _q("jila2023.d_e", "electron electric dipole moment, measured value", "d_e", "-1.3 e-30", "2.0 e-30", "e cm",
+       kind=_SPLIT_KIND, systematic_text="0.6 e-30", source=_JILA2023_SOURCE, edition="Science 381 (2023)",
+       url="https://doi.org/10.1126/science.adg4084", retrieved_from="https://arxiv.org/pdf/2212.11841",
+       keys=("edm", "electron edm", "cp violation", "null result"), phrases=("electron edm", "electron electric dipole moment", "null results"),
+       notes=("Printed as d_e = (-1.3 +- 2.0_stat +- 0.6_syst) x 10^-30 e cm (eq. 3), from trapped 180Hf19F+ ions; the paper calls it consistent with zero.",
+              "The 90% bound derived by the paper is stored as bound.jila2023.electron_edm.", _SPLIT_NOTE)),
+    _q("abel2020.d_n", "neutron electric dipole moment, measured value", "d_n", "0.0 e-26", "1.1 e-26", "e cm",
+       kind=_SPLIT_KIND, systematic_text="0.2 e-26", source=_ABEL2020_SOURCE, edition="Phys. Rev. Lett. 124 (2020)",
+       url="https://doi.org/10.1103/PhysRevLett.124.081803", retrieved_from="https://export.arxiv.org/api/query?id_list=2001.11966",
+       keys=("edm", "neutron edm", "cp violation", "null result"), phrases=("neutron edm", "neutron electric dipole moment", "null results"),
+       notes=("Printed in the abstract as d_n = (0.0 +- 1.1_stat +- 0.2_sys) x 10^-26 e cm, ultracold neutrons at PSI with a 199Hg co-magnetometer.",
+              "The paper's 90% C.L. bound is stored as bound.abel2020.neutron_edm.", _SPLIT_NOTE)),
+    _q("microscope2022.eta_ti_pt", "Eotvos parameter for titanium and platinum test masses", "eta(Ti,Pt)", "-1.5 e-15", "2.3 e-15", "",
+       kind=_SPLIT_KIND, systematic_text="1.5 e-15", source=_MICROSCOPE_SOURCE, edition="Phys. Rev. Lett. 129 (2022)",
+       url="https://doi.org/10.1103/PhysRevLett.129.121102", retrieved_from="https://export.arxiv.org/api/query?id_list=2209.15487",
+       keys=("equivalence principle", "microscope", "null result"), phrases=("equivalence principle", "eotvos parameter", "weak equivalence principle", "null results"),
+       notes=("Printed in the abstract as eta(Ti, Pt) = [-1.5 +- 2.3 (stat) +- 1.5 (syst)] x 10^-15 'at 1 sigma in statistical errors'.",
+              "The abstract says no violation of the weak equivalence principle was found. The level of the systematic term is not restated in the abstract.", _SPLIT_NOTE)),
+)
+
+NULL_BOUNDS: tuple[Bound, ...] = (
+    _null_bound("bound.jila2023.electron_edm", "electron electric dipole moment magnitude", "|d_e|", "4.1 e-30", "e cm",
+                source=_JILA2023_SOURCE, edition="Science 381 (2023)", url="https://doi.org/10.1126/science.adg4084", retrieved_from="https://arxiv.org/pdf/2212.11841",
+                keys=("edm", "electron edm", "cp violation"), phrases=("electron edm", "electron electric dipole moment", "electron edm bound"),
+                conditions=("Printed as |d_e| < 4.1 x 10^-30 e cm (90% confidence), eq. 4, from the HfF+ measurement d_e = (-1.3 +- 2.0_stat +- 0.6_syst) x 10^-30 e cm.",
+                            "The abstract says it improves on the previous best upper bound by a factor of about 2.4. ACME 2018 is not stored.")),
+    _null_bound("bound.abel2020.neutron_edm", "neutron electric dipole moment magnitude", "|d_n|", "1.8 e-26", "e cm",
+                source=_ABEL2020_SOURCE, edition="Phys. Rev. Lett. 124 (2020)", url="https://doi.org/10.1103/PhysRevLett.124.081803", retrieved_from="https://arxiv.org/pdf/2001.11966",
+                keys=("edm", "neutron edm", "cp violation"), phrases=("neutron edm", "neutron electric dipole moment", "neutron edm bound"),
+                conditions=("Printed as |d_n| < 1.8 x 10^-26 e cm (90% C.L.), interpreting d_n = (0.0 +- 1.1_stat +- 0.2_sys) x 10^-26 e cm.",)),
+    Bound(id="bound.superk2020.proton_e_pi0", name="partial lifetime of the proton for p -> e+ pi0", symbol="tau/B(p -> e+ pi0)",
+          lower_text="2.4 e34", upper_text="", unit="years",
+          source="A. Takenaka et al. (Super-Kamiokande Collaboration), Search for proton decay via p -> e+ pi0 and p -> mu+ pi0 with an enlarged fiducial volume in Super-Kamiokande I-IV, Phys. Rev. D 102, 112011 (2020), doi:10.1103/PhysRevD.102.112011, arXiv:2010.16098.",
+          edition="Phys. Rev. D 102 (2020)", url="https://doi.org/10.1103/PhysRevD.102.112011", retrieved_from="https://export.arxiv.org/api/query?id_list=2010.16098",
+          retrieved=RETRIEVED, keys=("proton decay", "proton lifetime", "null result"), phrases=("proton lifetime", "proton decay", "proton lifetime bound", "null results", "experimental bounds"),
+          conditions=("Printed as tau/B(p -> e+ pi0) > 2.4 x 10^34 years at 90% confidence level, from 450 kton-years of Super-K I-IV data with no candidates.",
+                      "This is a lower limit only. No upper end exists, and a lifetime above this value is allowed.",
+                      "The same paper gives tau/B(p -> mu+ pi0) > 1.6 x 10^34 years; that mode is not stored."),
+          forbids=()),
+    _null_bound("bound.pdg2026.photon_mass", "photon mass", "m_gamma", "1 e-18", "eV",
+                source="Particle Data Group, Review of Particle Physics, 2026 edition, gamma MASS summary (PDG id S000M), from D. D. Ryutov, Plasma Phys. Control. Fusion 49, B429 (2007), doi:10.1088/0741-3335/49/12B/S40.",
+                edition="PDG 2026, S000M", url="https://pdg.lbl.gov/2026/listings/contents_listings.html", retrieved_from=PDG_2026_API,
+                keys=("photon", "photon mass"), phrases=("photon mass", "photon mass bound"),
+                conditions=("PDG prints the summary as < 1 E-18 eV, from MHD of the solar wind (RYUTOV 2007). The PDG record gives no confidence level for it.",)),
+    _null_bound("bound.katrin2025.nu_mass", "effective electron antineutrino mass", "m_nu", "0.45", "eV",
+                source="KATRIN Collaboration, Direct neutrino-mass measurement based on 259 days of KATRIN data, Science 388, 180-185 (2025), doi:10.1126/science.adq9592, arXiv:2406.13516.",
+                edition="Science 388 (2025)", url="https://doi.org/10.1126/science.adq9592", retrieved_from="https://export.arxiv.org/api/query?id_list=2406.13516",
+                keys=("neutrino mass", "katrin"), phrases=("neutrino mass", "neutrino mass bound", "katrin"),
+                conditions=("Printed as m_nu < 0.45 eV at 90% confidence level, from tritium beta-decay spectroscopy over the first five campaigns.",
+                            "The best fit is printed as m_nu^2 = -0.14 +0.13 -0.15 eV^2; it is not stored, since the abstract does not state its level.")),
+    _null_bound("bound.gwtc3.graviton_mass", "graviton mass", "m_g", "2.42 e-23", "eV/c^2",
+                source="LIGO Scientific, Virgo, and KAGRA Collaborations, Tests of General Relativity with GWTC-3, Phys. Rev. D 112, 084080 (2025), doi:10.1103/PhysRevD.112.084080, arXiv:2112.06861v3.",
+                edition="Phys. Rev. D 112 (2025), arXiv v3", url="https://doi.org/10.1103/PhysRevD.112.084080", retrieved_from="https://arxiv.org/pdf/2112.06861v3",
+                keys=("graviton", "graviton mass", "gravitational waves"), phrases=("graviton mass", "graviton mass bound"),
+                conditions=("Printed as m_g <= 2.42 x 10^-23 eV/c^2 at 90% credibility, from the modified-dispersion analysis of 43 GWTC-3 events (Table VII).",
+                            "arXiv v1 (2021) printed 1.27 x 10^-23 eV/c^2. The v3 comment says 'fixed graviton mass bound in abstract', and the v3 text and table give 2.42; the record keeps v3.")),
+    _null_bound("bound.pdg2026.graviton_mass", "graviton mass (PDG summary)", "m_g", "1.76 e-23", "eV",
+                source="Particle Data Group, Review of Particle Physics, 2026 edition, graviton MASS summary (PDG id G033M), from R. Abbott et al., Phys. Rev. D 103, 122002 (2021), doi:10.1103/PhysRevD.103.122002 (GWTC-2).",
+                edition="PDG 2026, G033M", url="https://pdg.lbl.gov/2026/listings/contents_listings.html", retrieved_from=PDG_2026_API,
+                keys=("graviton", "graviton mass"), phrases=("graviton mass", "graviton mass bound"),
+                conditions=("PDG prints the summary as < 1.76 E-23 eV, from the LIGO-Virgo GWTC-2 catalog. The PDG record gives no confidence level for it.",
+                            "PDG 2026 still uses GWTC-2 here; the GWTC-3 bound is stored separately and is not compared or chosen.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS
+BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS
 
 
 def quantity(id: str) -> Quantity:
@@ -2575,7 +2655,10 @@ def audit_bounds(items: tuple[Bound, ...] = BOUNDS) -> None:
             raise ValueError(f"{item.id} needs a source, an edition, and its conditions")
         if not item.url.startswith("https://") or not item.retrieved_from.startswith("https://"):
             raise ValueError(f"{item.id} needs https urls")
-        if not item.lower < item.upper:
+        if item.upper is None:
+            if not any("lower limit only" in condition for condition in item.conditions):
+                raise ValueError(f"{item.id} has no upper end and must say it is a lower limit only")
+        elif not item.lower < item.upper:
             raise ValueError(f"{item.id} has an empty interval")
 
 

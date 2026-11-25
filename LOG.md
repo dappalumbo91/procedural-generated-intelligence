@@ -944,3 +944,11 @@ Ps HFS from Ishida 2014, with stat and sys split, and from Ritter 1984; they dis
 That is 12 records.
 
 `python -m unittest discover -s tests -v` finished 290 tests, 0 failures, about 146.44 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — null results and bounds pgi-0.79.0
+
+Added the eEDM from JILA 2023, the nEDM from Abel 2020, Super-K p → e⁺π⁰ (> 2.4 × 10³⁴ yr), PDG's photon mass bound, KATRIN's 0.45 eV, GWTC-3's 2.42 × 10⁻²³ eV/c² (v3 fixed the abstract's 1.27) beside PDG's 1.76 × 10⁻²³ eV, and MICROSCOPE's η. Bounds can now be lower-only, and the audit requires them to say so.
+
+That is 3 values and 7 bounds, and batch 7 is done.
+
+`python -m unittest discover -s tests -v` finished 295 tests, 0 failures, about 137.54 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -364,11 +364,12 @@ def _bound_record(item: Bound) -> Record:
         id=item.id,
         kind="experimental_bound",
         standing="bound",
-        title=f"{item.edition}: {item.lower_text} <= {item.symbol} <= {item.upper_text}",
+        title=f"{item.edition}: {item.lower_text} <= {item.symbol}" + (f" <= {item.upper_text}" if item.upper_text else ""),
         keys=item.keys,
         phrases=item.phrases,
         statement=(
-            f"{item.edition}: the {item.name}, {item.symbol}, lies between {item.lower_text} and {item.upper_text}{unit}.",
+            (f"{item.edition}: the {item.name}, {item.symbol}, lies between {item.lower_text} and {item.upper_text}{unit}."
+             if item.upper_text else f"{item.edition}: the {item.name}, {item.symbol}, is at least {item.lower_text}{unit}."),
             *item.conditions,
             "A model that sits outside this interval under the same assumptions is blocked. No central value is stored.",
             f"Retrieved {item.retrieved} from {item.retrieved_from}.",

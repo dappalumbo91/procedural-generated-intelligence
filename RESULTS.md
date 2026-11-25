@@ -459,9 +459,17 @@ APS abstracts were behind a bot check, so Ritter, Al-Ramadhan, Liu, and George w
 
 The tests are data-only. The thesis's three intervals close, with ν01 + ν12 = ν02 within the printed uncertainties. The para rate is more than 1000 times the ortho rate. The disagreements are visible. The asks link the right records. This adds 12 records.
 
+### Null results and bounds: EDMs, proton decay, photon, neutrino and graviton masses, equivalence principle
+
+Each bound is stored as its paper printed it, and the measured central values sit beside them where they are printed. JILA 2023 (Roussy et al., Science 381, 46) measured d_e = `(−1.3 ± 2.0 stat ± 0.6 syst) × 10⁻³⁰` e cm and gives \|d_e\| < `4.1 × 10⁻³⁰` e cm at 90% confidence. Abel 2020 measured d_n = `(0.0 ± 1.1 stat ± 0.2 sys) × 10⁻²⁶` e cm and gives \|d_n\| < `1.8 × 10⁻²⁶` e cm at 90% C.L. Super-Kamiokande (Takenaka 2020) gives τ/B(p → e⁺π⁰) > `2.4 × 10³⁴` years at 90% CL. That is the board's first bound with no upper end. A Bound can now leave its upper end empty, but the audit then requires a condition saying it is a lower limit only, and the record reads "is at least".
+
+The photon mass is PDG 2026's summary, < `1 × 10⁻¹⁸` eV (Ryutov 2007, solar-wind MHD; PDG gives no CL). KATRIN 2025 gives m_ν < `0.45` eV at 90% CL. The graviton has two bounds. GWTC-3 gives m_g ≤ `2.42 × 10⁻²³` eV/c² at 90% credibility. Its arXiv v1 abstract printed 1.27 × 10⁻²³, but v3 says it "fixed graviton mass bound in abstract", and the v3 text and Table VII give 2.42, so v3 is kept and the change is noted. PDG 2026 still lists < `1.76 × 10⁻²³` eV from GWTC-2, which is stored separately. MICROSCOPE's final result is η(Ti, Pt) = `[−1.5 ± 2.3 (stat) ± 1.5 (syst)] × 10⁻¹⁵`, stored with its split.
+
+The tests are data-only. Each EDM central value lies inside its own bound. The proton bound has no upper end, and its record says "at least". The printed limits are stored exactly. \|η\| is below its statistical error. The asks link the bounds. This adds 3 values and 7 bounds.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.78.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.79.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
