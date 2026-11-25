@@ -1043,7 +1043,64 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertIn("this comprehension is not a finite enumeration", cubic.text(lod=1))
         self.assertEqual(_atoms(cubic, "value("), ())
 
+    def test_ge_and_gt_rewrite_to_le_and_lt(self) -> None:
+        from pgi.math.syntax import GE_IFF, GT_IFF, parse_term, pretty, rewrite_ge_gt
+
+        parsed = parse_term("{x. x >= 2}")
+        self.assertIsNotNone(parsed)
+        self.assertEqual(pretty(parsed), "{x. x >= 2}")
+        rewritten, lines = rewrite_ge_gt(parsed)
+        self.assertEqual(pretty(rewritten), "{x. 2 <= x}")
+        self.assertIn(GE_IFF, lines)
+
+        parsed_gt = parse_term("{x. x > 2}")
+        rewritten_gt, gt_lines = rewrite_ge_gt(parsed_gt)
+        self.assertEqual(pretty(rewritten_gt), "{x. 2 < x}")
+        self.assertIn(GT_IFF, gt_lines)
+
+        closed = run(Request(ask="what is {x. x >= 2}", seed=1))
+        self.assertEqual(closed.claims[0].atom, "atLeast(2)")
+        self.assertIn("ge_iff_le", closed.text(lod=2))
+        self.assertEqual(closed.open_gaps, ())
+
+        opened = run(Request(ask="what is {x. x > 2}", seed=1))
+        self.assertEqual(opened.claims[0].atom, "greaterThan(2)")
+        self.assertIn("gt_iff_lt", opened.text(lod=2))
+        self.assertEqual(opened.open_gaps, ())
+
+        down = run(Request(ask="what is {x. 2 >= x}", seed=1))
+        self.assertEqual(down.claims[0].atom, "atMost(2)")
+        self.assertEqual(down.open_gaps, ())
+
+        outside = run(Request(ask="what is {x. x * x >= 2}", seed=1))
+        self.assertEqual(outside.claims[0].atom, "atMost(-sqrt(2)) union atLeast(sqrt(2))")
+        self.assertIn("ge_iff_le", outside.text(lod=2))
+        self.assertEqual(outside.open_gaps, ())
+
+        strict = run(Request(ask="what is {x. x * x > 2}", seed=1))
+        self.assertEqual(strict.claims[0].atom, "lessThan(-sqrt(2)) union greaterThan(sqrt(2))")
+        self.assertEqual(strict.open_gaps, ())
+
+        filtered = run(Request(ask="what is {x in {1, 2, 3}. x >= 2}", seed=1))
+        self.assertEqual(filtered.claims[0].atom, "set({2, 3})")
+        self.assertEqual(filtered.open_gaps, ())
+
+        complemented = run(Request(ask="what is {x. not x >= 2}", seed=1))
+        self.assertEqual(complemented.claims[0].atom, "lessThan(2)")
+        self.assertEqual(complemented.open_gaps, ())
+
+        compared = run(Request(ask="prove 5 >= 2", seed=1))
+        self.assertEqual(compared.claims[0].atom, "le(2,5)")
+        self.assertIn("ge_iff_le", compared.text(lod=2))
+        self.assertEqual(compared.open_gaps, ())
+
+        refused = run(Request(ask="prove 2 >= 5", seed=1))
+        self.assertEqual(refused.claims[0].atom, "not_le(5,2)")
+        self.assertIn("ge_iff_le", refused.text(lod=2))
+        self.assertEqual(refused.open_gaps, ())
+
     def test_older_paths_stay_on_their_rules(self) -> None:
+
 
 
         enumerated = run(Request(ask="what is {1, 2}", seed=1))

@@ -556,3 +556,15 @@ A polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, stays ou
 The next gap is a polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, and a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 119 tests, 0 failures, about 12.50 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — greater-or-equal and greater-than rewrites pgi-0.41.0
+
+`>=` and `>` are accepted in a predicate and rewritten to `<=` and `<` by flipping the sides. The rewrite is Lean `ge_iff_le` and `gt_iff_lt`, and Isabelle Orderings.thy defines `x ≥ y` as `y ≤ x` and `x > y` as `y < x`. It is not a silent parser swap. `{x. x >= 2}` is `atLeast(2)`. `{x. x > 2}` is `greaterThan(2)`. `{x. x * x >= 2}` is `atMost(-sqrt(2)) union atLeast(sqrt(2))`. `{x. x * x > 2}` is `lessThan(-sqrt(2)) union greaterThan(sqrt(2))`. `{x in {1, 2, 3}. x >= 2}` is `{2, 3}`. `{x. not x >= 2}` is `lessThan(2)`. `prove 5 >= 2` is `le(2,5)`.
+
+A polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, stays outside the bisection, as does a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, and a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 120 tests, 0 failures, about 13.19 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

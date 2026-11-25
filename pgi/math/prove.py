@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from dataclasses import replace
 
 from pgi.math.axioms import AXIOMS, REDUCING
 from pgi.math.kernel import (
@@ -36,7 +37,7 @@ from pgi.math.set import (
     set_value_rule,
     subset_rule,
 )
-from pgi.math.syntax import App, Eq, IntLit, Term, Var, closed, parse_equation, parse_term, prepare_ask, pretty, pretty_eq
+from pgi.math.syntax import App, Eq, IntLit, Term, Var, closed, parse_equation, parse_term, prepare_ask, pretty, pretty_eq, GE_IFF
 from pgi.model import Rule
 
 _OBSERVABLE = re.compile(r"^([a-z_][a-z0-9_]*)=(-?\d+)@(.+)$")
@@ -48,6 +49,7 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
     if prepared is None:
         return ()
     kind, body = prepared
+    body, order_lines = _rewrite_top_order(body)
     anchors, conflicts = _anchors(facts)
     if kind == "prove" and is_quantifier(body):
         if conflicts:
@@ -60,11 +62,11 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return (_note(f"{body} is not a theorem"),)
         compared = _real_order(body, anchors)
         if compared is not None:
-            return compared
+            return _prepend_lines(compared, order_lines)
         compared = _rational_order(body, anchors)
         if compared is not None:
-            return compared
-        return order_rules(body, lambda term: _explain(term, anchors))
+            return _prepend_lines(compared, order_lines)
+        return _prepend_lines(order_rules(body, lambda term: _explain(term, anchors)), order_lines)
     if kind == "prove" and _split_relation(body, "in") is not None:
         if conflicts:
             return conflicts
@@ -122,6 +124,52 @@ def _has_top_le(text: str) -> bool:
             return True
         index += 1
     return False
+
+
+def _rewrite_top_order(body: str) -> tuple[str, tuple[str, ...]]:
+    parts = _split_top_order(body)
+    if parts is None:
+        return body, ()
+    left, op, right = parts
+    if op == ">=":
+        return f"{right} <= {left}", (GE_IFF,)
+    return body, ()
+
+
+def _split_top_order(text: str) -> tuple[str, str, str] | None:
+    found: int | None = None
+    op = ""
+    depth = 0
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char in "{(":
+            depth += 1
+        elif char in "})":
+            depth -= 1
+        elif depth == 0:
+            for symbol in (">=", "<=", ">", "<"):
+                if text.startswith(symbol, index):
+                    if found is not None:
+                        return None
+                    found = index
+                    op = symbol
+                    index += len(symbol)
+                    break
+            else:
+                index += 1
+                continue
+            continue
+        index += 1
+    if found is None or op != ">=":
+        return None
+    return text[:found].strip(), op, text[found + len(op) :].strip()
+
+
+def _prepend_lines(rules: tuple[Rule, ...], lines: tuple[str, ...]) -> tuple[Rule, ...]:
+    if not lines:
+        return rules
+    return tuple(replace(rule, detail_lines=(*lines, *rule.detail_lines)) for rule in rules)
 
 
 def _split_relation(body: str, word: str) -> tuple[str, str] | None:

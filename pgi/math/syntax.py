@@ -56,6 +56,7 @@ def prepare_ask(ask: str) -> tuple[str, str] | None:
             break
     for pattern, symbol in _WORDS:
         text = pattern.sub(symbol, text)
+    text = text.replace("≤", "<=").replace("≥", ">=").replace("⩽", "<=").replace("⩾", ">=")
     if not text:
         return None
     return kind, text
@@ -109,6 +110,10 @@ def pretty(term: Term, parent: int = 0, right: bool = False) -> str:
         return f"{pretty(term.args[0])} <= {pretty(term.args[1])}"
     if term.op == "lt":
         return f"{pretty(term.args[0])} < {pretty(term.args[1])}"
+    if term.op == "ge":
+        return f"{pretty(term.args[0])} >= {pretty(term.args[1])}"
+    if term.op == "gt":
+        return f"{pretty(term.args[0])} > {pretty(term.args[1])}"
     if term.op == "eq":
         return f"{pretty(term.args[0])} = {pretty(term.args[1])}"
     if term.op == "type":
@@ -161,6 +166,9 @@ def _split_eq(text: str) -> tuple[str, str | None]:
         elif char in "})":
             depth -= 1
         elif char == "<" and index + 1 < len(text) and text[index + 1] == "=":
+            index += 2
+            continue
+        elif char == ">" and index + 1 < len(text) and text[index + 1] == "=":
             index += 2
             continue
         elif char == "=" and depth == 0:
@@ -326,11 +334,11 @@ class _Parser:
     def _comparison(self) -> Term:
         left = self._expr()
         op = self._peek()
-        if op not in {"<=", "=", "<"}:
+        if op not in {"<=", "=", "<", ">=", ">"}:
             raise ParseError("set")
         self._pop()
         right = self._expr()
-        name = {"<=": "le", "=": "eq", "<": "lt"}[op]
+        name = {"<=": "le", "=": "eq", "<": "lt", ">=": "ge", ">": "gt"}[op]
         return App(name, (left, right))
 
     def _paren_holds_predicate(self) -> bool:
@@ -346,7 +354,7 @@ class _Parser:
                 depth -= 1
                 if depth == 0:
                     return False
-            elif token in {"<=", "<", "=", "and", "or", "not", "implies"}:
+            elif token in {"<=", "<", "=", ">=", ">", "and", "or", "not", "implies"}:
                 return True
             offset += 1
 
@@ -417,6 +425,16 @@ def _tokenize(text: str) -> list[str]:
                 index += 1
                 continue
             raise ParseError("character")
+        if char == ">":
+            if depth > 0 and index + 1 < len(text) and text[index + 1] == "=":
+                tokens.append(">=")
+                index += 2
+                continue
+            if depth > 0:
+                tokens.append(">")
+                index += 1
+                continue
+            raise ParseError("character")
         if char == "=":
             if depth <= 0:
                 raise ParseError("character")
@@ -429,3 +447,39 @@ def _tokenize(text: str) -> list[str]:
             continue
         raise ParseError("character")
     return tokens
+
+GE_IFF = "Lean ge_iff_le: a ≥ b ↔ b ≤ a. Isabelle Orderings.thy defines x ≥ y as y ≤ x."
+GT_IFF = "Lean gt_iff_lt: a > b ↔ b < a. Isabelle Orderings.thy defines x > y as y < x."
+
+
+def rewrite_ge_gt(term: Term) -> tuple[Term, tuple[str, ...]]:
+    """Rewrite ≥ and > to ≤ and < by flipping the sides.
+
+    The rewrite is the Lean and Isabelle definition of those symbols, not a
+    silent parser swap. It is kept only as that cited identity.
+    """
+
+    lines: list[str] = []
+    rewritten = _rewrite_ge_gt(term, lines)
+    seen: set[str] = set()
+    unique: list[str] = []
+    for line in lines:
+        if line not in seen:
+            seen.add(line)
+            unique.append(line)
+    return rewritten, tuple(unique)
+
+
+def _rewrite_ge_gt(term: Term, lines: list[str]) -> Term:
+    if not isinstance(term, App):
+        return term
+    args = tuple(_rewrite_ge_gt(arg, lines) for arg in term.args)
+    if term.op == "ge" and len(args) == 2:
+        lines.append(GE_IFF)
+        return App("le", (args[1], args[0]))
+    if term.op == "gt" and len(args) == 2:
+        lines.append(GT_IFF)
+        return App("lt", (args[1], args[0]))
+    if args == term.args:
+        return term
+    return App(term.op, args)

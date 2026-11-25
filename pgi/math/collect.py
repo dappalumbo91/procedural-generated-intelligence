@@ -34,7 +34,7 @@ from pgi.math.set import (
     subset_rule,
 )
 from pgi.math.set import _element_parts, _element_trace
-from pgi.math.syntax import App, IntLit, Term, Var, pretty
+from pgi.math.syntax import App, IntLit, Term, Var, pretty, rewrite_ge_gt
 from pgi.model import Rule
 
 _BOUND = "_bound"
@@ -101,6 +101,7 @@ def eval_collect(term: Term) -> SetTheorem | CollectForm:
     if not isinstance(term, App) or term.op != "collect" or len(term.args) != 3:
         raise NotExact("this comprehension is not settled")
     binder_term, domain, predicate = term.args
+    predicate, _ = rewrite_ge_gt(predicate)
     if not isinstance(binder_term, Var) or not isinstance(predicate, App) or predicate.op not in {"le", "eq", "lt"}:
         raise NotExact("this comprehension is not settled")
     if len(predicate.args) != 2:

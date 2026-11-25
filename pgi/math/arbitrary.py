@@ -129,7 +129,7 @@ from pgi.math.set import (
     set_union,
     set_value_rule,
 )
-from pgi.math.syntax import App, Term, Var, pretty
+from pgi.math.syntax import App, Term, Var, pretty, rewrite_ge_gt
 from pgi.model import Rule
 
 _OPEN_SET = "this set is not settled"
@@ -380,6 +380,7 @@ class ConnectiveTheorem:
 
 
 def interpret(term: Term) -> tuple[object, tuple[str, ...]]:
+    term, order_lines = rewrite_ge_gt(term)
     try:
         value = eval_set(term)
     except NotExact as exc:
@@ -393,13 +394,14 @@ def interpret(term: Term) -> tuple[object, tuple[str, ...]]:
         if reduced is not None:
             return reduced
         if _connective_collect(term):
-            return _from_connective(term)
+            value, detail = _from_connective(term)
+            return value, (*order_lines, *detail)
         raise exc
     if isinstance(value, CollectForm):
         reduced = _from_polynomial(value)
         if reduced is not None:
-            return reduced
-    return value, ()
+            return reduced[0], (*order_lines, *reduced[1])
+    return value, order_lines
 
 
 def ray_sup_rule(origin: Term, theorem: RaySupTheorem | BisectTheorem, prelude: tuple[str, ...] = ()) -> Rule:
@@ -737,13 +739,14 @@ def _reduce_not(binder: str, domain: Term, predicate: Term) -> tuple[object, tup
     inner = predicate.args[0]
     if not isinstance(inner, App):
         raise NotExact(_OUTSIDE)
+    inner, order_lines = rewrite_ge_gt(inner)
     if inner.op in {"and", "or", "not", "implies"}:
         value, detail = _reduce_connective(binder, domain, inner)
         try:
             complemented, extra = _complement(value)
         except NotExact as exc:
             raise NotExact(_OUTSIDE) from exc
-        return complemented, (_NEG, *detail, *extra)
+        return complemented, (_NEG, *order_lines, *detail, *extra)
     if not _atomic_comparison(inner) or len(inner.args) != 2:
         raise NotExact(_OUTSIDE)
     ray = classify(CollectForm(binder, inner.op, inner.args[0], inner.args[1]))
@@ -753,10 +756,11 @@ def _reduce_not(binder: str, domain: Term, predicate: Term) -> tuple[object, tup
             complemented, extra = _complement(value)
         except NotExact as exc:
             raise NotExact(_OUTSIDE) from exc
-        return complemented, (_NEG, *extra)
+        return complemented, (_NEG, *order_lines, *extra)
     if ray.kind == "univ":
         return set_empty(), (
             _NEG,
+            *order_lines,
             "The predicate holds at every real, so the comprehension is UNIV.",
             "Isabelle Compl_UNIV_eq: - UNIV = {}.",
         )
@@ -764,15 +768,17 @@ def _reduce_not(binder: str, domain: Term, predicate: Term) -> tuple[object, tup
     if found is None or ray.bound is None:
         raise NotExact(_OUTSIDE)
     kind, line = found
-    return _synthetic(kind, ray.bound), (_NEG, line)
+    return _synthetic(kind, ray.bound), (_NEG, *order_lines, line)
 
 
 def _side_value(binder: str, domain: Term, predicate: Term) -> tuple[object, tuple[str, ...]]:
+    predicate, order_lines = rewrite_ge_gt(predicate)
     if isinstance(predicate, App) and predicate.op in {"and", "or", "not", "implies"}:
-        return _reduce_connective(binder, domain, predicate)
+        value, detail = _reduce_connective(binder, domain, predicate)
+        return value, (*order_lines, *detail)
     if not _atomic_comparison(predicate):
         raise NotExact(_OUTSIDE)
-    return eval_set(_side_collect(binder, domain, predicate)), ()
+    return eval_set(_side_collect(binder, domain, predicate)), order_lines
 
 
 def _two_atoms(predicate: Term) -> tuple[Term, Term]:
