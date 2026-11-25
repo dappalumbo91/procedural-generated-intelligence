@@ -142,11 +142,38 @@ def rat_div(left: RatTheorem, right: RatTheorem) -> RatTheorem:
     )
 
 
+def rat_pow(base: RatTheorem, exponent: int) -> RatTheorem:
+    if exponent > 32 or exponent < -32:
+        raise NotExact("this power exceeds the exponent limit")
+    if exponent == 0:
+        if base.value.num == 0:
+            raise NotExact("0^0 stays open")
+        return rat_of_int(1)
+    if exponent > 0:
+        result = rat_of_int(1)
+        for _ in range(exponent):
+            result = rat_mul(result, base)
+        return result
+    if base.value.num == 0:
+        raise NotExact("division by zero")
+    inverse = rat_div(rat_of_int(1), base)
+    result = rat_of_int(1)
+    for _ in range(-exponent):
+        result = rat_mul(result, inverse)
+    return result
+
+
 def eval_rat(term: Term) -> RatTheorem:
     if isinstance(term, IntLit):
         return rat_of_int(term.n)
     if not isinstance(term, App):
         raise KernelError("a free variable is not a rational numeral")
+    if term.op == "pow" and len(term.args) == 2:
+        base = eval_rat(term.args[0])
+        exp = eval_rat(term.args[1])
+        if exp.value.den != 1:
+            raise NotExact("this exponent is not a closed integer")
+        return rat_pow(base, exp.value.num)
     args = tuple(eval_rat(arg) for arg in term.args)
     if term.op == "add":
         return rat_add(args[0], args[1])

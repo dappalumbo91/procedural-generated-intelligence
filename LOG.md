@@ -720,3 +720,11 @@ Planck's printed `Ω_m + Ω_Λ` is exactly 1. `Ω_m h^2` agrees with `Ω_m (H0/1
 The next slice is precision particle measurements: the neutron lifetime, `g_A`, the muon and electron `g − 2`, and the proton charge radius.
 
 `python -m unittest discover -s tests -v` finished 177 tests, 0 failures, about 54.42 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — multivariate polynomials, rational functions, and exact partial derivatives pgi-0.55.0
+
+A multivariate polynomial over the rationals is a finite sum of reduced coefficients times monomials. A rational function is a reduced quotient: the numerator and denominator are divided by their primitive GCD, and a zero denominator stays open. A partial derivative is termwise on a polynomial, or the quotient rule on a rational function, kept only when that identity multiplies back. Mixed partials of a polynomial commute, checked exactly. `d(x^2, x)` is `2 * x`. `d(x^2 * y + 3 * x, x)` is `2 * x * y + 3`. `d(x^2 + 2 * x * y + y^2, x)` is `2 * x + 2 * y`. `d(d(x^3 * y^2, x), y)` is `6 * x^2 * y`. `(x^2 - 1) / (x - 1)` is `x + 1`. `(x^2 - y^2) / (x - y)` is `x + y`. `d((x^2 + 1) / (x + 1), x)` is `(x^2 + 2 * x - 1) / (x^2 + 2 * x + 1)`. `d(1 / x, x)` is `-1 / x^2`. `x / x` is `1`. `2^3` is `8`. `(1/2)^2` is `1/4`. A zero denominator and `0^0` stay open.
+
+The next mathematics is charts and transition maps that compose to the identity, then Jacobians, tangent vectors, and the metric tensor. Precision particle measurements are being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 181 tests, 0 failures, about 45.94 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -248,6 +248,12 @@ def demo_text() -> str:
         "=== real eigenvalues ===",
         unfold(Request(ask="what is eigenvalues([[0, 2], [1, 0]])", lod=2, seed=1)).text(lod=2),
         "",
+        "=== a partial derivative ===",
+        unfold(Request(ask="what is d(x^2 * y + 3 * x, x)", lod=2, seed=1)).text(lod=2),
+        "",
+        "=== a cancelled rational function ===",
+        unfold(Request(ask="what is (x^2 - 1) / (x - 1)", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]

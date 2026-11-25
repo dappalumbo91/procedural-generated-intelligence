@@ -130,6 +130,37 @@ def numeral_div(left: int, right: int) -> Theorem:
     )
 
 
+def numeral_pow(base: int, exponent: int) -> Theorem:
+    if exponent < 0:
+        raise NotExact(f"{base}^{exponent} is not an exact integer")
+    if exponent > 32:
+        raise NotExact("this power exceeds the exponent limit")
+    if exponent == 0:
+        if base == 0:
+            raise NotExact("0^0 stays open")
+        return Theorem(
+            Eq(App("pow", (IntLit(base), IntLit(0))), IntLit(1)),
+            "Int.pow",
+            (),
+            ("Int.pow: a nonzero integer to the power 0 is 1.",),
+        )
+    total = 1
+    for _ in range(exponent):
+        step = numeral_mul(total, base)
+        right = step.formula.right
+        if not isinstance(right, IntLit) or right.n != total * base:
+            raise KernelError("power multiplication disagreed with Int.mul")
+        total = right.n
+    if total != base ** exponent:
+        raise KernelError("repeated multiplication disagreed with the integer power")
+    return Theorem(
+        Eq(App("pow", (IntLit(base), IntLit(exponent))), IntLit(total)),
+        "Int.pow",
+        (),
+        (f"Int.pow: {base}^{exponent} = {total} by repeated Int.mul.",),
+    )
+
+
 def exact_quotient(left: int, right: int) -> int | None:
     if right == 0:
         return None
@@ -184,7 +215,7 @@ def _justified(theorem: Theorem) -> bool:
             and isinstance(formula.left, Var)
             and isinstance(formula.right, IntLit)
         )
-    if rule in {"Int.add", "Int.sub", "Int.mul", "Int.ediv"}:
+    if rule in {"Int.add", "Int.sub", "Int.mul", "Int.ediv", "Int.pow"}:
         return _numeral_step(formula, rule)
     if rule == "Int.neg":
         if premises or not isinstance(formula.left, App) or formula.left.op != "neg":
@@ -197,7 +228,7 @@ def _justified(theorem: Theorem) -> bool:
 
 
 def _numeral_step(formula: Eq, rule: str) -> bool:
-    op = {"Int.add": "add", "Int.sub": "sub", "Int.mul": "mul", "Int.ediv": "div"}[rule]
+    op = {"Int.add": "add", "Int.sub": "sub", "Int.mul": "mul", "Int.ediv": "div", "Int.pow": "pow"}[rule]
     if not isinstance(formula.left, App) or formula.left.op != op or len(formula.left.args) != 2:
         return False
     left = formula.left.args[0]
@@ -206,6 +237,12 @@ def _numeral_step(formula: Eq, rule: str) -> bool:
         return False
     if rule == "Int.ediv":
         return exact_quotient(left.n, right.n) == formula.right.n
+    if rule == "Int.pow":
+        if right.n < 0 or right.n > 32:
+            return False
+        if right.n == 0:
+            return left.n != 0 and formula.right.n == 1
+        return formula.right.n == left.n ** right.n
     expected = _operate(rule, left.n, right.n)
     if formula.right.n != expected:
         return False

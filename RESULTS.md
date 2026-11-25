@@ -272,9 +272,13 @@ Planck 2018 VI, A&A 641, A6 (2020), Table 2, the baseline column TT,TE,EE+lowE+l
 
 The tests check that Planck's printed `Ω_m + Ω_Λ` is exactly 1, that `Ω_m h^2` agrees with `Ω_m (H0/100)^2`, and that `σ_8 (Ω_m/0.3)^0.5` agrees with `S_8`. The SH0ES and Planck H0 values differ by more than four combined uncertainties. Both records stay on the board and neither is retracted, because they are different measurements, not two sources for one name. In every DESI combination `w0` is above −1 and `wa` is below 0. No dark-energy model is stored as a claim. That is 22 new quantities and 22 new records.
 
+### Multivariate polynomials, rational functions, and exact partial derivatives
+
+A multivariate polynomial over the rationals is a finite sum of reduced coefficients times monomials. A rational function is a reduced quotient: the numerator and denominator are divided by their primitive GCD, and a zero denominator stays open. A partial derivative is termwise on a polynomial, or the quotient rule on a rational function, kept only when that identity multiplies back. Mixed partials of a polynomial commute, checked exactly. `d(x^2, x)` is `2 * x`. `d(x^2 * y + 3 * x, x)` is `2 * x * y + 3`. `d(x^2 + 2 * x * y + y^2, x)` is `2 * x + 2 * y`. `d(d(x^3 * y^2, x), y)` is `6 * x^2 * y`. `(x^2 - 1) / (x - 1)` is `x + 1`. `(x^2 - y^2) / (x - y)` is `x + y`. `d((x^2 + 1) / (x + 1), x)` is `(x^2 + 2 * x - 1) / (x^2 + 2 * x + 1)`. `d(1 / x, x)` is `-1 / x^2`. `x / x` is `1`. `2^3` is `8`. `(1/2)^2` is `1/4`. A zero denominator and `0^0` stay open.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.54.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.55.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -282,5 +286,5 @@ This list is the current state as of `pgi-0.54.0`. Earlier sections above are hi
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
-- Manifolds, differential geometry, Hilbert space, and gauge theory are still ahead of any physical law.
+- Charts, transition maps that compose to the identity, Jacobians, tangent vectors, and the metric tensor, then differential geometry, Hilbert space, and gauge theory, are still ahead of any physical law.
 - CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The modern Mercury fits are on the board since `pgi-0.53.0`. The rest of the gravitational-wave catalogs are not.

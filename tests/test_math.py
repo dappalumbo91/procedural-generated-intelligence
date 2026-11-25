@@ -187,8 +187,8 @@ class RationalTests(unittest.TestCase):
         self.assertEqual(reflected.claims[0].atom, "le(x,x)")
         self.assertIn("Int.le_refl", reflected.text(lod=2))
         field = run(Request(ask="prove x / x = 1", seed=1))
-        self.assertIn("is not a theorem", field.text(lod=1))
-        self.assertFalse(any(claim.atom.startswith(("value(", "identity(")) for claim in field.claims))
+        self.assertEqual(field.claims[0].atom, "identity(x / x = 1)")
+        self.assertEqual(field.open_gaps, ())
 
     def test_sourced_anchor_and_a_clash(self) -> None:
         measured = run(Request(ask="what is length / 3", facts=("length=4@meter stick",), seed=1))

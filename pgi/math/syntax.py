@@ -149,9 +149,18 @@ def pretty(term: Term, parent: int = 0, right: bool = False) -> str:
         return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
     if term.op == "matrix":
         return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
-    if term.op in {"det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues"}:
+    if term.op in {"det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues", "d", "partial", "diff"}:
         inner = ", ".join(pretty(arg) for arg in term.args)
         return f"{term.op}({inner})"
+    if term.op == "pow" and len(term.args) == 2:
+        left = pretty(term.args[0], 3, False)
+        right_text = pretty(term.args[1], 3, True)
+        if isinstance(term.args[0], App) and term.args[0].op in {"add", "sub", "mul", "div", "neg", "pow"}:
+            left = f"({pretty(term.args[0])})"
+        body = f"{left}^{right_text}"
+        if 3 < parent or (right and 3 == parent):
+            return f"({body})"
+        return body
     prec = 2 if term.op in {"mul", "div"} else 1
     symbol = {"add": "+", "sub": "-", "mul": "*", "div": "/"}[term.op]
     left = pretty(term.args[0], prec, False)
@@ -235,21 +244,36 @@ class _Parser:
         return node
 
     def _term(self) -> Term:
-        node = self._factor()
+        node = self._unary()
         while self._peek() in {"*", "/"}:
             op = self._pop()
-            rhs = self._factor()
+            rhs = self._unary()
             node = App("mul" if op == "*" else "div", (node, rhs))
         return node
 
-    def _factor(self) -> Term:
+    def _unary(self) -> Term:
         token = self._peek()
         if token == "-":
             self._pop()
-            inner = self._factor()
+            inner = self._unary()
             if isinstance(inner, IntLit):
                 return IntLit(-inner.n)
             return App("neg", (inner,))
+        return self._power()
+
+    def _power(self) -> Term:
+        node = self._atom()
+        if self._peek() == "^":
+            self._pop()
+            exp = self._unary()
+            return App("pow", (node, exp))
+        return node
+
+    def _factor(self) -> Term:
+        return self._unary()
+
+    def _atom(self) -> Term:
+        token = self._peek()
         if token == "(":
             self._pop()
             node = self._expr()
@@ -509,7 +533,7 @@ def _tokenize(text: str) -> list[str]:
             tokens.append("=")
             index += 1
             continue
-        if char in "+-*/(),[]":
+        if char in "+-*/(),[]^":
             tokens.append(char)
             index += 1
             continue

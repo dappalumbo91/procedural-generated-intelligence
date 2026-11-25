@@ -16,6 +16,7 @@ from pgi.math.kernel import (
     numeral_add,
     numeral_div,
     numeral_mul,
+    numeral_pow,
     numeral_neg,
     numeral_sub,
     refl,
@@ -27,6 +28,7 @@ from pgi.math.order import rules_from_body as order_rules
 from pgi.math.rational import equality_rules, eval_rat, order_rule, ratio_rule
 from pgi.math.real import eval_real, real_equality_rules, real_order_rule, real_value_rule
 from pgi.math.matrix import eval_lin_result, has_matrix, lin_equality_rules, lin_value_rule
+from pgi.math.poly import eval_sym_result, has_symbolic, sym_equality_rules, sym_value_rule
 from pgi.math.quant import is_quantifier, quantifier_rules
 from pgi.math.set import (
     contains_set,
@@ -86,6 +88,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return _set_equation(equation, anchors)
         if has_matrix(equation.left) or has_matrix(equation.right):
             return _matrix_equation(equation, anchors)
+        if has_symbolic(equation.left) or has_symbolic(equation.right):
+            return _symbolic_equation(equation, anchors)
         if _has_sqrt(equation.left) or _has_sqrt(equation.right):
             return _real_equation(equation, anchors)
         proved = _prove_equation(equation, anchors)
@@ -103,6 +107,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return _set_value(term, anchors)
     if has_matrix(term):
         return _matrix_value(term, anchors)
+    if has_symbolic(term):
+        return _symbolic_value(term, anchors)
     if _has_sqrt(term):
         return _real_value(term, anchors)
     evaluated = _simplify(term, anchors) if kind == "simplify" else _evaluate(term, anchors)
@@ -433,6 +439,38 @@ def _matrix_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, .
     return lin_equality_rules(equation.left, equation.right, left_value, right_value, (*left[1], *right[1]))
 
 
+def _symbolic_closed(term: Term, anchors: dict[str, Theorem]) -> tuple[Term, tuple[str, ...]] | None:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    return body, prelude
+
+
+def _symbolic_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    prepared = _symbolic_closed(term, anchors)
+    if prepared is None:
+        return ()
+    body, prelude = prepared
+    try:
+        result = eval_sym_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (sym_value_rule(term, result, prelude),)
+
+
+def _symbolic_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left = _symbolic_closed(equation.left, anchors)
+    right = _symbolic_closed(equation.right, anchors)
+    if left is None or right is None:
+        return (_note(f"{pretty_eq(equation)} is not a theorem"),)
+    try:
+        left_value = eval_sym_result(left[0])
+        right_value = eval_sym_result(right[0])
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return sym_equality_rules(equation.left, equation.right, left_value, right_value, (*left[1], *right[1]))
+
+
 def _finish_term(term: Term, anchors: dict[str, Theorem], evaluated: Theorem | str | None) -> tuple[Rule, ...]:
     if isinstance(evaluated, Theorem):
         return _rules_for(evaluated, None)
@@ -685,6 +723,8 @@ def _prove_closed(term: Term) -> Theorem:
 def _numeral(op: str, numerals: list[int]) -> Theorem:
     if op == "neg":
         return numeral_neg(numerals[0])
+    if op == "pow":
+        return numeral_pow(numerals[0], numerals[1])
     left, right = numerals
     if op == "add":
         return numeral_add(left, right)
