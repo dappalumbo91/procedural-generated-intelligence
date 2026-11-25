@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.72.0`.
+Rule version `pgi-0.73.0`.
 
 In the kernel now:
 
@@ -98,6 +98,8 @@ In the kernel now:
 - Charts and transition maps of rational atlases, Jacobians that obey the chain rule, metrics, tangent vectors, and curvature. A transition is kept only when the two-way composition is the identity. A pullback is `J^T g J`. Flat space has vanishing curvature. `scalar(metric(s2, north))` is `2`, and the Ricci tensor equals the metric. The Bianchi identities hold identically.
 - Finite-dimensional inner product spaces over Q(i) and Q(√d, i). The inner product is ⟨u, v⟩ = u† v, conjugate-linear in the first argument. Gram–Schmidt is kept only when the result is orthonormal. A matrix is Hermitian only when A† = A, and unitary only when both A† A and A A† are the identity. The Pauli matrices satisfy [σ_i, σ_j] = 2 i ε_ijk σ_k. A 2×2 Hermitian spectral decomposition is kept only when H = U D U†, with U unitary, D real diagonal, and eigenvector norms positive rationals. Tensor products are the Kronecker product. `ket(0)`, `ket(1)`, `ket(+)`, and `ket(-)` are unit vectors, and |+⟩ and |−⟩ are eigenvectors of σ_x. `i * i` is `-1`.
 - The Lie algebras su(2) and su(3). The su(2) generators are T_a = σ_a / 2 and satisfy [T_a, T_b] = i ε_abc T_c. The su(3) generators are T_a = λ_a / 2, and their Gell-Mann structure constants, including √3 / 2, are checked exactly. The Jacobi identity holds, and the Killing form is 2 δ_ab for su(2) and 3 δ_ab for su(3), agreeing with 2n tr(T_a T_b). A U(1) field strength is invariant under A ↦ A + dλ. An SU(2) field strength of constant components transforms as F ↦ U F U† for a special unitary U, and tr(F²) is invariant. A pure-gauge connection from a rational SU(2) rotation has vanishing field strength.
+- Elementary functions. `sin`, `cos`, `exp`, `log`, and `pi` are rewritten by the identities `sin(x)^2 + cos(x)^2 = 1`, `d(sin(x), x) = cos(x)`, and `exp(x + y) = exp(x) * exp(y)`. Special values that are rational, including `sin(0)`, `cos(pi)`, `sin(pi/6)`, and `cos(pi/3)`, are exact. A closed value that does not reduce to a rational is enclosed by a pair of rationals: Machin for `pi`, Taylor series with a remainder bound for `exp`, `sin`, and `cos`, and the artanh series for `log`. An enclosure is a certificate, not a rounded point. `prove pi >= 3` and `prove pi <= 22 / 7` hold because the enclosures separate. The logarithm of a non-positive number, and division by zero, stay open.
+- The unit 2-sphere in angular coordinates. `metric(s2, angular)` is `ds^2 = dtheta^2 + sin(theta)^2 dphi^2`. An inverse is kept only when both products are the identity. The Levi-Civita connection, the Riemann symmetries, and both Bianchi identities are checked identically. `scalar(metric(s2, angular))` is `2`, and the Ricci tensor equals the metric.
 
 Still outside the kernel, and required before a physical law can be written:
 

@@ -113,6 +113,28 @@ class MetricTests(unittest.TestCase):
         unknown = run(Request(ask="what is metric(s2, spherical)", seed=1))
         self.assertEqual(unknown.claims[0].atom, "open(this chart is not in the atlas)")
 
+    def test_angular_sphere_has_scalar_curvature_two(self) -> None:
+        metric = run(Request(ask="what is metric(s2, angular)", seed=1))
+        self.assertEqual(metric.claims[0].atom, "g([[1, 0], [0, sin(theta)^2]])")
+        self.assertEqual(
+            run(Request(ask="what is scalar(metric(s2, angular))", seed=1)).claims[0].atom,
+            "value(2)",
+        )
+        ricci = run(
+            Request(ask="prove ricci(metric(s2, angular)) = metric(s2, angular)", seed=1)
+        )
+        self.assertEqual(
+            ricci.claims[0].atom,
+            "identity(ricci(metric(s2, angular)) = metric(s2, angular))",
+        )
+        scalar = run(
+            Request(ask="prove scalar(metric(s2, angular)) = 2", seed=1)
+        )
+        self.assertEqual(
+            scalar.claims[0].atom,
+            "identity(scalar(metric(s2, angular)) = 2)",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

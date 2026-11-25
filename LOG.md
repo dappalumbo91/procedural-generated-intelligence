@@ -894,3 +894,13 @@ PDG 2026 neutrino parameters went on the board as printed, with the atmospheric 
 The data tests show the CDF tension: more than 3σ from both LHC values on the papers' own totals, while ATLAS and CMS agree. That is 17 records. Batch 5 is done, and nothing is derived from theory.
 
 `python -m unittest discover -s tests -v` finished 261 tests, 0 failures, about 210.39 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — elementary functions, rational enclosures, and the angular 2-sphere pgi-0.73.0
+
+`sin`, `cos`, `exp`, `log`, and `pi` are elementary functions. The identities `sin(x)^2 + cos(x)^2 = 1`, `d(sin(x), x) = cos(x)`, and `exp(x + y) = exp(x) * exp(y)` are kept by rewriting. Special values that are rational are exact, including `sin(pi/6) = 1/2` and `cos(pi) = -1`. A closed value that does not reduce to a rational is enclosed by a pair of rationals: Machin for `pi`, Taylor series with a remainder bound for `exp`, `sin`, and `cos`, and the artanh series for `log`. An enclosure is a certificate, not a rounded point. `prove pi >= 3` holds, and `prove pi <= 3` stays open. The logarithm of a non-positive number stays open.
+
+The unit 2-sphere in angular coordinates is now in the atlas. `metric(s2, angular)` is `dθ^2 + sin(θ)^2 dφ^2`. Its inverse multiplies back to the identity. The Levi-Civita connection and both Bianchi identities are checked identically. `scalar(metric(s2, angular))` is `2`, and the Ricci tensor equals the metric.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 267 tests, 0 failures, about 154.87 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

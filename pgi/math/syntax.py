@@ -149,7 +149,7 @@ def pretty(term: Term, parent: int = 0, right: bool = False) -> str:
         return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
     if term.op == "matrix":
         return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
-    if term.op in {"det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues", "trace", "d", "partial", "diff", "transition", "compose", "jacobian", "identity", "chart", "metric", "embedding", "pullback", "vector", "apply", "dot", "christoffel", "riemann", "ricci", "scalar", "pauli", "sigma", "ket", "bra", "inner", "braket", "dagger", "commutator", "comm", "tensor", "gramschmidt", "spectral", "eigendiag", "hermitian", "unitary", "su2", "su3", "gellmann", "structure", "killing", "jacobi", "fieldstrength", "puregauge", "su2rot", "adjoint"}:
+    if term.op in {"det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues", "trace", "sin", "cos", "exp", "log", "enclose", "d", "partial", "diff", "transition", "compose", "jacobian", "identity", "chart", "metric", "embedding", "pullback", "vector", "apply", "dot", "christoffel", "riemann", "ricci", "scalar", "pauli", "sigma", "ket", "bra", "inner", "braket", "dagger", "commutator", "comm", "tensor", "gramschmidt", "spectral", "eigendiag", "hermitian", "unitary", "su2", "su3", "gellmann", "structure", "killing", "jacobi", "fieldstrength", "puregauge", "su2rot", "adjoint"}:
         inner = ", ".join(pretty(arg) for arg in term.args)
         return f"{term.op}({inner})"
     if term.op == "pow" and len(term.args) == 2:

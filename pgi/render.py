@@ -118,8 +118,14 @@ def _claim_block(support: Support, index: int, lod: int) -> list[str]:
         lines.append(f"   {support.atom} is the exact polynomial")
     elif support.atom.startswith("rat("):
         lines.append(f"   {support.atom} is the exact rational function")
-    elif support.atom.startswith("identity(") and " = " not in support.atom:
+    elif support.atom.startswith("trans("):
+        lines.append(f"   {support.atom} is the exact elementary expression")
+    elif support.atom.startswith("enclose("):
+        lines.append(f"   {support.atom} is the exact rational enclosure")
+    elif support.atom.startswith("identity(") and " = " not in support.atom and "<=" not in support.atom and " < " not in support.atom:
         lines.append(f"   {support.atom} is the identity map on these coordinates")
+    elif support.atom.startswith("identity(") and "<=" in support.atom:
+        lines.append(f"   {support.atom} is the exact comparison")
     elif support.atom.startswith("map("):
         lines.append(f"   {support.atom} is the exact rational map")
     elif support.atom.startswith("jac("):

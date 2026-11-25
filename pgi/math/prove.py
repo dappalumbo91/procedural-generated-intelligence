@@ -32,6 +32,15 @@ from pgi.math.manifold import eval_man_result, has_manifold, man_equality_rules,
 from pgi.math.hilbert import eval_hilbert_result, has_hilbert, hilbert_equality_rules, hilbert_value_rule, side_as_hilbert
 from pgi.math.gauge import eval_gauge_result, has_gauge, gauge_equality_rules, gauge_value_rule, side_as_gauge
 from pgi.math.poly import eval_sym_result, has_symbolic, sym_equality_rules, sym_value_rule
+from pgi.math.trans import (
+    enclose_term,
+    eval_trans_result,
+    has_trans,
+    side_as_trans,
+    trans_equality_rules,
+    trans_order_rule,
+    trans_value_rule,
+)
 from pgi.math.quant import is_quantifier, quantifier_rules
 from pgi.math.set import (
     contains_set,
@@ -69,6 +78,9 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         compared = _real_order(body, anchors)
         if compared is not None:
             return _prepend_lines(compared, order_lines)
+        compared = _trans_order(body, anchors)
+        if compared is not None:
+            return _prepend_lines(compared, order_lines)
         compared = _rational_order(body, anchors)
         if compared is not None:
             return _prepend_lines(compared, order_lines)
@@ -93,6 +105,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return _gauge_equation(equation, anchors)
         if has_hilbert(equation.left) or has_hilbert(equation.right):
             return _hilbert_equation(equation, anchors)
+        if has_trans(equation.left) or has_trans(equation.right):
+            return _trans_equation(equation, anchors)
         if has_manifold(equation.left) or has_manifold(equation.right):
             return _manifold_equation(equation, anchors)
         if has_matrix(equation.left) or has_matrix(equation.right):
@@ -118,6 +132,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return _gauge_value(term, anchors)
     if has_hilbert(term):
         return _hilbert_value(term, anchors)
+    if has_trans(term):
+        return _trans_value(term, anchors)
     if has_manifold(term):
         return _manifold_value(term, anchors)
     if has_matrix(term):
@@ -474,6 +490,59 @@ def _hilbert_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, 
     except NotExact as exc:
         return (_note(str(exc)),)
     return hilbert_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
+
+
+def _trans_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    try:
+        result = eval_trans_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (trans_value_rule(term, result, prelude),)
+
+
+def _trans_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left_sub = _substitute(equation.left, anchors)
+    right_sub = _substitute(equation.right, anchors)
+    left_body = left_sub.formula.right
+    right_body = right_sub.formula.right
+    prelude = (
+        *(trace(left_sub) if left_sub.rule != "Eq.refl" else ()),
+        *(trace(right_sub) if right_sub.rule != "Eq.refl" else ()),
+    )
+    try:
+        left_value = side_as_trans(left_body)
+        right_value = side_as_trans(right_body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return trans_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
+
+
+def _trans_order(body: str, anchors: dict[str, Theorem]) -> tuple[Rule, ...] | None:
+    text = body.replace("≤", "<=")
+    if text.count("<=") != 1:
+        return None
+    left_text, _, right_text = text.partition("<=")
+    left = parse_term(left_text)
+    right = parse_term(right_text)
+    if left is None or right is None:
+        return None
+    if not (has_trans(left) or has_trans(right)):
+        return None
+    left_sub = _substitute(left, anchors)
+    right_sub = _substitute(right, anchors)
+    prelude = (
+        *(trace(left_sub) if left_sub.rule != "Eq.refl" else ()),
+        *(trace(right_sub) if right_sub.rule != "Eq.refl" else ()),
+    )
+    try:
+        left_enc = enclose_term(left_sub.formula.right)
+        right_enc = enclose_term(right_sub.formula.right)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (trans_order_rule(left, right, left_enc, right_enc, prelude),)
 
 
 def _manifold_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:

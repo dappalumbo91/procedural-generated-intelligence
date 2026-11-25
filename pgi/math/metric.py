@@ -1,7 +1,8 @@
-"""Exact metrics, tangent vectors, and curvature of rational charts.
+"""Exact metrics, tangent vectors, and curvature of exact charts.
 
-A metric is a symmetric matrix of reduced rational functions on a
-chart. A tangent vector is a tuple of rational components, acting as a
+A metric is a symmetric matrix of exact functions on a chart.
+Rational components stay rational. The unit 2-sphere in angular
+coordinates uses sin(theta)^2. A tangent vector is a tuple of rational components, acting as a
 derivation: it is kept only when it annihilates constants, reproduces
 its own components on the coordinate functions, and satisfies the
 Leibniz rule on products of those coordinates. The pullback of a
@@ -14,7 +15,7 @@ metric 4 / (1 + ρ^2)^2 times the identity.
 
 Christoffel symbols, Riemann, Ricci, and the scalar curvature are
 computed from the metric by the standard formulas, with exact
-rational arithmetic. An inverse metric is kept only when both
+arithmetic. An inverse metric is kept only when both
 products are the identity. The Levi-Civita connection is kept only
 when it is torsion-free and metric-compatible. Flat Euclidean and
 Minkowski space have vanishing curvature. The unit 2-sphere has
@@ -83,6 +84,146 @@ _FOUR = Ratio(4, 1)
 _HALF = Ratio(1, 2)
 
 
+def _is_fun(value) -> bool:
+    from pgi.math.trans import FExpr
+
+    return isinstance(value, FExpr)
+
+
+def _metric_is_fun(value: "Metric") -> bool:
+    return any(_is_fun(entry) for row in value.rows for entry in row)
+
+
+def _lift(value):
+    from pgi.math.trans import FExpr
+
+    if isinstance(value, FExpr):
+        return value
+    return FExpr(value, ())
+
+
+def _zero_for(metric: "Metric"):
+    from pgi.math.trans import const_fexpr
+
+    if _metric_is_fun(metric):
+        return const_fexpr(_ZERO, metric.names)
+    return zero_rat()
+
+
+def _field_add(left, right):
+    from pgi.math.trans import fexpr_add
+
+    if _is_fun(left) or _is_fun(right):
+        return fexpr_add(_lift(left), _lift(right))
+    return mrat_add(left, right)
+
+
+def _field_sub(left, right):
+    from pgi.math.trans import fexpr_sub
+
+    if _is_fun(left) or _is_fun(right):
+        return fexpr_sub(_lift(left), _lift(right))
+    return mrat_sub(left, right)
+
+
+def _field_mul(left, right):
+    from pgi.math.trans import fexpr_mul
+
+    if _is_fun(left) or _is_fun(right):
+        return fexpr_mul(_lift(left), _lift(right))
+    return mrat_mul(left, right)
+
+
+def _field_neg(value):
+    from pgi.math.trans import fexpr_neg
+
+    if _is_fun(value):
+        return fexpr_neg(value)
+    return mrat_neg(value)
+
+
+def _field_div(left, right):
+    from pgi.math.trans import fexpr_div
+
+    if _is_fun(left) or _is_fun(right):
+        return fexpr_div(_lift(left), _lift(right))
+    return mrat_div(left, right)
+
+
+def _field_diff(value, name: str):
+    from pgi.math.trans import fexpr_diff
+
+    if _is_fun(value):
+        return fexpr_diff(value, name)
+    return mrat_diff(value, name)
+
+
+def _field_eq(left, right) -> bool:
+    from pgi.math.trans import fexpr_eq
+
+    if _is_fun(left) or _is_fun(right):
+        return fexpr_eq(_lift(left), _lift(right))
+    return mrat_eq(left, right)
+
+
+def _field_is_zero(value) -> bool:
+    from pgi.math.trans import fexpr_eq, const_fexpr
+
+    if _is_fun(value):
+        return fexpr_eq(value, const_fexpr(_ZERO, ()))
+    return mrat_eq(value, zero_rat())
+
+
+def _field_embed(value, names: tuple[str, ...]):
+    from pgi.math.trans import FExpr, _embed, _merge_names, _plains_of
+
+    if isinstance(value, FExpr):
+        return _embed(value, _merge_names(_plains_of(value), names), value.atoms)
+    return embed_rat(value, names)
+
+
+def _field_sum(parts, metric: "Metric"):
+    total = _zero_for(metric)
+    for part in parts:
+        total = _field_add(total, part)
+    return total
+
+
+def _as_mrat_constant(value):
+    from pgi.math.trans import FExpr, _as_ratio
+
+    if isinstance(value, FExpr):
+        rat = _as_ratio(value)
+        if rat is not None:
+            return const_rat(rat)
+    return value
+
+
+def _field_show(value) -> str:
+    from pgi.math.trans import show_fexpr
+
+    if _is_fun(value):
+        return show_fexpr(value)
+    return show_rat(value)
+
+
+def _fexpr_used_names(value) -> set[str]:
+    from pgi.math.trans import _SLOT, _degree_in, _plains_of
+
+    used: set[str] = set()
+
+    def walk(expr) -> None:
+        for name in _plains_of(expr):
+            if name != "pi" and _degree_in(expr, name):
+                used.add(name)
+        for index, atom in enumerate(expr.atoms):
+            if _degree_in(expr, f"{_SLOT}{index}"):
+                walk(atom.arg)
+
+    walk(value)
+    return used
+
+
 @dataclass(frozen=True)
 class Metric:
     names: tuple[str, ...]
@@ -90,7 +231,7 @@ class Metric:
 
     def __post_init__(self) -> None:
         if not _metric_ok(self):
-            raise KernelError("this metric is not a symmetric matrix of rational functions")
+            raise KernelError("this metric is not a symmetric matrix of exact functions")
 
     @property
     def dim(self) -> int:
@@ -166,7 +307,7 @@ def _metric_ok(value: Metric) -> bool:
         for j in range(n):
             if not _component_in(value.rows[i][j], value.names):
                 return False
-            if i <= j and not mrat_eq(value.rows[i][j], value.rows[j][i]):
+            if i <= j and not _field_eq(value.rows[i][j], value.rows[j][i]):
                 return False
     return True
 
@@ -192,22 +333,31 @@ def _tensor_ok(value: Tensor) -> bool:
 
 def _shape_ok(components, shape: tuple[int, ...], names: tuple[str, ...]) -> bool:
     if not shape:
-        return isinstance(components, MRat) and _component_in(components, names)
+        return _is_component(components) and _component_in(components, names)
     if not isinstance(components, tuple) or len(components) != shape[0]:
         return False
     return all(_shape_ok(child, shape[1:], names) for child in components)
 
 
-def _component_in(value: MRat, names: tuple[str, ...]) -> bool:
-    from pgi.math.manifold import actual_names
+def _is_component(value) -> bool:
+    from pgi.math.trans import FExpr
 
+    return isinstance(value, (MRat, FExpr))
+
+
+def _component_in(value, names: tuple[str, ...]) -> bool:
+    from pgi.math.manifold import actual_names
+    from pgi.math.trans import FExpr
+
+    if isinstance(value, FExpr):
+        return _fexpr_used_names(value) <= set(names)
     return actual_names(value.num, value.den) <= set(names)
 
 
 def show_metric(value: Metric) -> str:
     rows = []
     for row in value.rows:
-        rows.append("[" + ", ".join(show_rat(entry) for entry in row) + "]")
+        rows.append("[" + ", ".join(_field_show(entry) for entry in row) + "]")
     return "g([" + ", ".join(rows) + "])"
 
 
@@ -222,14 +372,22 @@ def show_tensor(value: Tensor) -> str:
 
 
 def _show_nested(value) -> str:
-    if isinstance(value, MRat):
-        return show_rat(value)
+    if _is_component(value):
+        return _field_show(value)
     return "[" + ", ".join(_show_nested(child) for child in value) + "]"
 
 
 def metric_eq(left: Metric, right: Metric) -> bool:
     if left.dim != right.dim:
         return False
+    if _metric_is_fun(left) or _metric_is_fun(right):
+        if left.names != right.names:
+            return False
+        return all(
+            _field_eq(left.rows[i][j], right.rows[i][j])
+            for i in range(left.dim)
+            for j in range(left.dim)
+        )
     if left.names == right.names:
         return all(
             mrat_eq(left.rows[i][j], right.rows[i][j])
@@ -263,8 +421,8 @@ def tensor_eq(left: Tensor, right: Tensor) -> bool:
 
 
 def _nested_eq(left, right) -> bool:
-    if isinstance(left, MRat) and isinstance(right, MRat):
-        return mrat_eq(left, right)
+    if _is_component(left) and _is_component(right):
+        return _field_eq(left, right)
     if isinstance(left, tuple) and isinstance(right, tuple) and len(left) == len(right):
         return all(_nested_eq(a, b) for a, b in zip(left, right))
     return False
@@ -281,13 +439,13 @@ def tensor_is_zero(value: Tensor) -> bool:
 
 
 def _nested_zero(value) -> bool:
-    if isinstance(value, MRat):
-        return mrat_eq(value, zero_rat())
+    if _is_component(value):
+        return _field_is_zero(value)
     return all(_nested_zero(child) for child in value)
 
 
 def metric_is_zero(value: Metric) -> bool:
-    return all(mrat_eq(entry, zero_rat()) for row in value.rows for entry in row)
+    return all(_field_is_zero(entry) for row in value.rows for entry in row)
 
 
 def constant_metric(names: tuple[str, ...], diag: tuple[Ratio, ...]) -> Metric:
@@ -391,6 +549,8 @@ def jac_as_metric(value: JacMatrix) -> Metric:
 
 @lru_cache(maxsize=256)
 def metric_inverse(value: Metric) -> Metric:
+    if _metric_is_fun(value):
+        return _fun_metric_inverse(value)
     inverse = jac_as_metric(jac_inv(metric_as_jac(value)))
     ident = jac_as_metric(identity_jac(value.names))
     product = jac_as_metric(jac_mul(metric_as_jac(inverse), metric_as_jac(value)))
@@ -398,6 +558,80 @@ def metric_inverse(value: Metric) -> Metric:
     if not metric_eq(product, ident) or not metric_eq(other, ident):
         raise KernelError("this inverse metric did not multiply back to the identity")
     return inverse
+
+
+def _fun_metric_inverse(value: Metric) -> Metric:
+    from pgi.math.trans import const_fexpr
+
+    n = value.dim
+    names = value.names
+    matrix = [[_lift(value.rows[i][j]) for j in range(n)] for i in range(n)]
+    inverse = [
+        [const_fexpr(_ONE if i == j else _ZERO, names) for j in range(n)]
+        for i in range(n)
+    ]
+    for col in range(n):
+        pivot = None
+        for row in range(col, n):
+            if not _field_is_zero(matrix[row][col]):
+                pivot = row
+                break
+        if pivot is None:
+            raise NotExact("this metric is singular")
+        if pivot != col:
+            matrix[col], matrix[pivot] = matrix[pivot], matrix[col]
+            inverse[col], inverse[pivot] = inverse[pivot], inverse[col]
+        pivot_value = matrix[col][col]
+        for j in range(n):
+            matrix[col][j] = _field_div(matrix[col][j], pivot_value)
+            inverse[col][j] = _field_div(inverse[col][j], pivot_value)
+        for row in range(n):
+            if row == col:
+                continue
+            factor = matrix[row][col]
+            if _field_is_zero(factor):
+                continue
+            for j in range(n):
+                matrix[row][j] = _field_sub(matrix[row][j], _field_mul(factor, matrix[col][j]))
+                inverse[row][j] = _field_sub(inverse[row][j], _field_mul(factor, inverse[col][j]))
+    rows = tuple(tuple(_field_embed(inverse[i][j], names) for j in range(n)) for i in range(n))
+    result = Metric(names, rows)
+    ident = Metric(
+        names,
+        tuple(
+            tuple(const_fexpr(_ONE if i == j else _ZERO, names) for j in range(n))
+            for i in range(n)
+        ),
+    )
+    product = Metric(
+        names,
+        tuple(
+            tuple(
+                _field_embed(
+                    _field_sum((_field_mul(result.rows[i][k], value.rows[k][j]) for k in range(n)), value),
+                    names,
+                )
+                for j in range(n)
+            )
+            for i in range(n)
+        ),
+    )
+    other = Metric(
+        names,
+        tuple(
+            tuple(
+                _field_embed(
+                    _field_sum((_field_mul(value.rows[i][k], result.rows[k][j]) for k in range(n)), value),
+                    names,
+                )
+                for j in range(n)
+            )
+            for i in range(n)
+        ),
+    )
+    if not metric_eq(product, ident) or not metric_eq(other, ident):
+        raise KernelError("this inverse metric did not multiply back to the identity")
+    return result
 
 
 def push_vector(value: Vector, mapping: RatMap) -> Vector:
@@ -513,6 +747,17 @@ def _sphere_conformal(names: tuple[str, ...]) -> Metric:
 
 
 @lru_cache(maxsize=256)
+def _sphere_angular() -> "Metric":
+    from pgi.math.syntax import parse_term
+    from pgi.math.trans import const_fexpr, eval_trans
+
+    names = ("theta", "phi")
+    one = const_fexpr(_ONE, names)
+    zero = const_fexpr(_ZERO, names)
+    sine = _field_embed(eval_trans(parse_term("sin(theta)^2")), names)
+    return Metric(names, ((one, zero), (zero, sine)))
+
+
 def named_metric(manifold: str, chart: str | None = None) -> Metric:
     manifold, chart = _canonical_metric(manifold, chart)
     if manifold in {"e2", "euclidean2"}:
@@ -528,6 +773,8 @@ def named_metric(manifold: str, chart: str | None = None) -> Metric:
             return minkowski
         return pullback(minkowski, transition_map("minkowski2", chart, "tx"))
     if manifold in {"s2", "sphere"}:
+        if chart in {"angular", "thetaphi"}:
+            return _sphere_angular()
         pulled = pullback(named_metric("e3", "xyz"), sphere_embedding(chart))
         expected = _sphere_conformal(pulled.names)
         if not metric_eq(pulled, expected):
@@ -557,7 +804,7 @@ def _canonical_metric(manifold: str, chart: str | None) -> tuple[str, str]:
         return manifold, chart
     if manifold == "minkowski2" and chart in {"tx", "uv"}:
         return manifold, chart
-    if manifold == "s2" and chart in {"north", "south"}:
+    if manifold == "s2" and chart in {"north", "south", "angular", "thetaphi"}:
         return manifold, chart
     raise NotExact("this chart is not in the atlas")
 
@@ -573,17 +820,17 @@ def christoffel(metric: Metric) -> Tensor:
         for i in range(n):
             row = []
             for j in range(n):
-                total = zero_rat()
+                total = _zero_for(metric)
                 for ell in range(n):
-                    term = mrat_add(
-                        mrat_diff(metric.rows[j][ell], names[i]),
-                        mrat_sub(
-                            mrat_diff(metric.rows[i][ell], names[j]),
-                            mrat_diff(metric.rows[i][j], names[ell]),
+                    term = _field_add(
+                        _field_diff(metric.rows[j][ell], names[i]),
+                        _field_sub(
+                            _field_diff(metric.rows[i][ell], names[j]),
+                            _field_diff(metric.rows[i][j], names[ell]),
                         ),
                     )
-                    total = mrat_add(total, mrat_mul(inverse.rows[k][ell], term))
-                entry = embed_rat(mrat_mul(const_rat(_HALF), total), names)
+                    total = _field_add(total, _field_mul(inverse.rows[k][ell], term))
+                entry = _field_embed(_field_mul(const_rat(_HALF), total), names)
                 row.append(entry)
             planes.append(tuple(row))
         components.append(tuple(planes))
@@ -599,17 +846,17 @@ def _check_levi_civita(metric: Metric, connection: Tensor) -> None:
     for k in range(n):
         for i in range(n):
             for j in range(n):
-                if not mrat_eq(gamma[k][i][j], gamma[k][j][i]):
+                if not _field_eq(gamma[k][i][j], gamma[k][j][i]):
                     raise KernelError("the connection is not torsion-free")
     # Metric compatibility: ∇_k g_{ij} = 0.
     for k in range(n):
         for i in range(n):
             for j in range(n):
-                total = mrat_diff(metric.rows[i][j], names[k])
+                total = _field_diff(metric.rows[i][j], names[k])
                 for ell in range(n):
-                    total = mrat_sub(total, mrat_mul(gamma[ell][k][i], metric.rows[ell][j]))
-                    total = mrat_sub(total, mrat_mul(gamma[ell][k][j], metric.rows[i][ell]))
-                if not mrat_eq(embed_rat(total, names), embed_rat(zero_rat(), names)):
+                    total = _field_sub(total, _field_mul(gamma[ell][k][i], metric.rows[ell][j]))
+                    total = _field_sub(total, _field_mul(gamma[ell][k][j], metric.rows[i][ell]))
+                if not _field_eq(_field_embed(total, names), _field_embed(_zero_for(metric), names)):
                     raise KernelError("the connection is not metric-compatible")
 
 
@@ -626,14 +873,14 @@ def riemann(metric: Metric) -> Tensor:
             for mu in range(n):
                 row = []
                 for nu in range(n):
-                    term = mrat_sub(
-                        mrat_diff(gamma[rho][nu][sig], names[mu]),
-                        mrat_diff(gamma[rho][mu][sig], names[nu]),
+                    term = _field_sub(
+                        _field_diff(gamma[rho][nu][sig], names[mu]),
+                        _field_diff(gamma[rho][mu][sig], names[nu]),
                     )
                     for lam in range(n):
-                        term = mrat_add(term, mrat_mul(gamma[rho][mu][lam], gamma[lam][nu][sig]))
-                        term = mrat_sub(term, mrat_mul(gamma[rho][nu][lam], gamma[lam][mu][sig]))
-                    row.append(embed_rat(term, names))
+                        term = _field_add(term, _field_mul(gamma[rho][mu][lam], gamma[lam][nu][sig]))
+                        term = _field_sub(term, _field_mul(gamma[rho][nu][lam], gamma[lam][mu][sig]))
+                    row.append(_field_embed(term, names))
                 mu_planes.append(tuple(row))
             sig_planes.append(tuple(mu_planes))
         components.append(tuple(sig_planes))
@@ -652,10 +899,10 @@ def _lower_riemann(metric: Metric, value: Tensor) -> tuple:
             for k in range(n):
                 row = []
                 for ell in range(n):
-                    total = zero_rat()
+                    total = _zero_for(metric)
                     for rho in range(n):
-                        total = mrat_add(total, mrat_mul(metric.rows[i][rho], value.components[rho][j][k][ell]))
-                    row.append(embed_rat(total, metric.names))
+                        total = _field_add(total, _field_mul(metric.rows[i][rho], value.components[rho][j][k][ell]))
+                    row.append(_field_embed(total, metric.names))
                 k_planes.append(tuple(row))
             j_planes.append(tuple(k_planes))
         lowered.append(tuple(j_planes))
@@ -666,20 +913,20 @@ def _check_riemann(metric: Metric, value: Tensor) -> None:
     lowered = _lower_riemann(metric, value)
     n = metric.dim
     names = metric.names
-    zero = embed_rat(zero_rat(), names)
+    zero = _field_embed(_zero_for(metric), names)
     for i in range(n):
         for j in range(n):
             for k in range(n):
                 for ell in range(n):
                     r_ijkl = lowered[i][j][k][ell]
-                    if not mrat_eq(r_ijkl, mrat_neg(lowered[j][i][k][ell])):
+                    if not _field_eq(r_ijkl, _field_neg(lowered[j][i][k][ell])):
                         raise KernelError("Riemann is not antisymmetric in the first pair")
-                    if not mrat_eq(r_ijkl, mrat_neg(lowered[i][j][ell][k])):
+                    if not _field_eq(r_ijkl, _field_neg(lowered[i][j][ell][k])):
                         raise KernelError("Riemann is not antisymmetric in the last pair")
-                    if not mrat_eq(r_ijkl, lowered[k][ell][i][j]):
+                    if not _field_eq(r_ijkl, lowered[k][ell][i][j]):
                         raise KernelError("Riemann is not symmetric under pair interchange")
-                    first = mrat_add(r_ijkl, mrat_add(lowered[i][k][ell][j], lowered[i][ell][j][k]))
-                    if not mrat_eq(embed_rat(first, names), zero):
+                    first = _field_add(r_ijkl, _field_add(lowered[i][k][ell][j], lowered[i][ell][j][k]))
+                    if not _field_eq(_field_embed(first, names), zero):
                         raise KernelError("the first Bianchi identity did not hold")
     _check_second_bianchi(metric, value)
 
@@ -690,27 +937,27 @@ def _check_second_bianchi(metric: Metric, value: Tensor) -> None:
     riemann_c = value.components
     n = metric.dim
     names = metric.names
-    zero = embed_rat(zero_rat(), names)
+    zero = _field_embed(_zero_for(metric), names)
 
     def cov(lam: int, rho: int, sig: int, mu: int, nu: int) -> MRat:
-        total = mrat_diff(riemann_c[rho][sig][mu][nu], names[lam])
+        total = _field_diff(riemann_c[rho][sig][mu][nu], names[lam])
         for tau in range(n):
-            total = mrat_add(total, mrat_mul(gamma[rho][lam][tau], riemann_c[tau][sig][mu][nu]))
-            total = mrat_sub(total, mrat_mul(gamma[tau][lam][sig], riemann_c[rho][tau][mu][nu]))
-            total = mrat_sub(total, mrat_mul(gamma[tau][lam][mu], riemann_c[rho][sig][tau][nu]))
-            total = mrat_sub(total, mrat_mul(gamma[tau][lam][nu], riemann_c[rho][sig][mu][tau]))
-        return embed_rat(total, names)
+            total = _field_add(total, _field_mul(gamma[rho][lam][tau], riemann_c[tau][sig][mu][nu]))
+            total = _field_sub(total, _field_mul(gamma[tau][lam][sig], riemann_c[rho][tau][mu][nu]))
+            total = _field_sub(total, _field_mul(gamma[tau][lam][mu], riemann_c[rho][sig][tau][nu]))
+            total = _field_sub(total, _field_mul(gamma[tau][lam][nu], riemann_c[rho][sig][mu][tau]))
+        return _field_embed(total, names)
 
     for rho in range(n):
         for sig in range(n):
             for lam in range(n):
                 for mu in range(n):
                     for nu in range(n):
-                        cycle = mrat_add(
+                        cycle = _field_add(
                             cov(lam, rho, sig, mu, nu),
-                            mrat_add(cov(mu, rho, sig, nu, lam), cov(nu, rho, sig, lam, mu)),
+                            _field_add(cov(mu, rho, sig, nu, lam), cov(nu, rho, sig, lam, mu)),
                         )
-                        if not mrat_eq(embed_rat(cycle, names), zero):
+                        if not _field_eq(_field_embed(cycle, names), zero):
                             raise KernelError("the second Bianchi identity did not hold")
 
 
@@ -722,10 +969,10 @@ def ricci(metric: Metric) -> Metric:
     for sig in range(n):
         row = []
         for nu in range(n):
-            total = zero_rat()
+            total = _zero_for(metric)
             for rho in range(n):
-                total = mrat_add(total, riem[rho][sig][rho][nu])
-            row.append(embed_rat(total, metric.names))
+                total = _field_add(total, riem[rho][sig][rho][nu])
+            row.append(_field_embed(total, metric.names))
         rows.append(tuple(row))
     result = Metric(metric.names, tuple(rows))
     return result
@@ -735,18 +982,19 @@ def ricci(metric: Metric) -> Metric:
 def scalar_curvature(metric: Metric) -> MRat:
     inverse = metric_inverse(metric)
     ric = ricci(metric)
-    total = zero_rat()
+    total = _zero_for(metric)
     for i in range(metric.dim):
         for j in range(metric.dim):
-            total = mrat_add(total, mrat_mul(inverse.rows[i][j], ric.rows[i][j]))
-    result = embed_rat(total, metric.names)
+            total = _field_add(total, _field_mul(inverse.rows[i][j], ric.rows[i][j]))
+    result = _field_embed(total, metric.names)
+    result = _as_mrat_constant(result)
     if _is_unit_sphere(metric):
-        if not mrat_eq(result, const_rat(_TWO)):
+        if not _field_eq(result, const_rat(_TWO)):
             raise KernelError("the unit 2-sphere did not have scalar curvature 2")
         if not metric_eq(ric, metric):
             raise KernelError("the Ricci tensor of the unit 2-sphere did not equal the metric")
         _check_sphere_riemann(metric)
-    if _is_flat_named(metric) and not mrat_eq(result, embed_rat(zero_rat(), metric.names)):
+    if _is_flat_named(metric) and not _field_eq(result, _field_embed(_zero_for(metric), metric.names)):
         raise KernelError("flat space did not have scalar curvature 0")
     return result
 
@@ -754,7 +1002,11 @@ def scalar_curvature(metric: Metric) -> MRat:
 def _is_unit_sphere(metric: Metric) -> bool:
     if metric.dim != 2:
         return False
-    return metric_eq(metric, named_metric("s2", "north")) or metric_eq(metric, named_metric("s2", "south"))
+    return (
+        metric_eq(metric, named_metric("s2", "north"))
+        or metric_eq(metric, named_metric("s2", "south"))
+        or metric_eq(metric, named_metric("s2", "angular"))
+    )
 
 
 def _is_flat_named(metric: Metric) -> bool:
@@ -775,11 +1027,11 @@ def _check_sphere_riemann(metric: Metric) -> None:
         for j in range(n):
             for k in range(n):
                 for ell in range(n):
-                    expected = mrat_sub(
-                        mrat_mul(metric.rows[i][k], metric.rows[j][ell]),
-                        mrat_mul(metric.rows[i][ell], metric.rows[j][k]),
+                    expected = _field_sub(
+                        _field_mul(metric.rows[i][k], metric.rows[j][ell]),
+                        _field_mul(metric.rows[i][ell], metric.rows[j][k]),
                     )
-                    if not mrat_eq(lowered[i][j][k][ell], expected):
+                    if not _field_eq(lowered[i][j][k][ell], expected):
                         raise KernelError("the unit 2-sphere Riemann tensor did not have sectional curvature 1")
 
 
@@ -905,6 +1157,8 @@ def _metric_coords(manifold: str, chart: str) -> tuple[str, ...]:
     if manifold in {"minkowski2", "m2"}:
         return ("t", "x") if chart == "tx" else ("u", "v")
     if manifold in {"s2", "sphere"}:
+        if chart in {"angular", "thetaphi"}:
+            return ("theta", "phi")
         return ("u", "v") if chart == "north" else ("p", "q")
     raise NotExact("this metric is not in the atlas")
 
@@ -990,9 +1244,9 @@ def _as_tensor(value: object) -> Tensor | None:
 
 def _metric_detail(term: Term, value: Metric) -> tuple[str, ...]:
     lines = [
-        "A metric is a symmetric matrix of reduced rational functions on a chart.",
+        "A metric is a symmetric matrix of exact functions on a chart.",
         "A pullback is J^T g J, kept only when it agrees with g(df X, df Y) on the coordinate basis.",
-        "The unit 2-sphere metric is the pullback of the Euclidean 3-metric through the stereographic embedding.",
+        "The unit 2-sphere metric is the pullback of the Euclidean 3-metric through the stereographic embedding, or ds^2 = dtheta^2 + sin(theta)^2 dphi^2 in angular coordinates.",
         "Lee, Introduction to Riemannian Manifolds: Riemannian metrics and pullbacks.",
     ]
     if isinstance(term, App) and term.op == "ricci":
