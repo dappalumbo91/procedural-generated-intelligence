@@ -1736,6 +1736,32 @@ class ParticleHadronsBrTests(unittest.TestCase):
         self.assertTrue({"pdg2026.br.z_invisible", "pdg2026.gamma_z_invisible"} <= self._linked("what is the z invisible width"))
 
 
+class GravEventsSkytreeTests(unittest.TestCase):
+    EVENTS = ("gw170817", "gw190521", "gw190814", "gw190425", "gw200115", "gw230529", "gw231123", "gw250114")
+
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_catalogue_conventions(self) -> None:
+        for event in self.EVENTS:
+            m1, m2, d = (quantity(f"{event}.{k}") for k in ("m1_source", "m2_source", "luminosity_distance"))
+            self.assertGreaterEqual(m1.value, m2.value, event)  # m_1 is the heavier component by the catalogue's own labelling
+            self.assertEqual(m1.uncertainty_kind, "90% credible interval")
+            self.assertGreater(d.value - d.lower_uncertainty, 0, event)
+        nearest = min(self.EVENTS, key=lambda e: quantity(f"{e}.luminosity_distance").value)
+        self.assertEqual(nearest, "gw170817")
+
+    def test_skytree_heights_agree_as_printed(self) -> None:
+        clock, ranging = quantity("takamoto2020.clock_height"), quantity("takamoto2020.laser_ranging_height")
+        self.assertLessEqual(abs(clock.value - ranging.value), clock.uncertainty)
+
+    def test_asks_link(self) -> None:
+        self.assertIn("takamoto2020.redshift_alpha", self._linked("what did the tokyo skytree clock test measure"))
+        self.assertTrue({"gw170817.m1_source", "gw170817.luminosity_distance"} <= self._linked("what are the gw170817 masses and distance"))
+        self.assertIn("gw231123.m1_source", self._linked("what is the gw231123 primary source-frame mass"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

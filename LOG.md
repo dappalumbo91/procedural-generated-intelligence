@@ -1064,3 +1064,11 @@ Added 16 PDG 2026 heavier-hadron masses, six Higgs branching fractions, the Z in
 That is 25 records.
 
 `python -m unittest discover -s tests -v` finished 352 tests, 0 failures, about 92.61 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — gravitation Skytree and GWTC events pgi-0.94.0
+
+Added the Takamoto 2020 Skytree clock test (α, both height differences, and the same-height beat note) and source-frame masses and luminosity distances for eight GWTC events across GWTC-1, 2.1, 3, 4.0, and 5.0. COVERAGE.md's Skytree and GW-events gaps closed themselves.
+
+That is 28 records.
+
+`python -m unittest discover -s tests -v` finished 355 tests, 0 failures, about 112.34 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

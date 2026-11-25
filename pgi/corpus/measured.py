@@ -3551,7 +3551,72 @@ PARTICLE_HADRONS_BR: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR
+def _gw_event(id: str, event: str, what: str, symbol: str, value: str, upper: str, lower: str, unit: str, catalog: str, json_url: str, about: str, field: str) -> Quantity:
+    source, doi = _GW_RELEASES[catalog]
+    return _q(f"{id}", f"{event} {what} ({catalog})", f"{symbol}({event})", value, upper, unit, kind="90% credible interval", lower_text=lower,
+              source=source, edition=f"{catalog} via the GWOSC event API", url=f"https://doi.org/{doi}", retrieved_from=json_url,
+              keys=("gravitational waves", "gw events", event.lower()), phrases=(event.lower(), f"{event.lower()} {what}", "gravitational wave events", "gwtc events", "compact binary mergers"),
+              notes=(f"The GWOSC event API prints {field} = {value} with lower {('-' + lower)} and upper +{upper} {unit}: the median and the 90% credible interval.",
+                     "These are the catalogue's source-frame values under its default cosmology and priors; distances are luminosity distances."))
+
+
+_GW_RELEASES = {
+    "GWTC-1": ("LIGO Scientific and Virgo Collaborations, GWTC-1 data release, doi:10.7935/82H3-HH23 (catalogue paper Phys. Rev. X 9, 031040 (2019))", "10.7935/82H3-HH23"),
+    "GWTC-2.1": ("LIGO Scientific and Virgo Collaborations, GWTC-2.1 data release, doi:10.7935/qf3a-3z67 (catalogue paper Phys. Rev. D 109, 022001 (2024))", "10.7935/qf3a-3z67"),
+    "GWTC-3": ("LIGO Scientific, Virgo and KAGRA Collaborations, GWTC-3 data release, doi:10.7935/b024-1886 (catalogue paper Phys. Rev. X 13, 041039 (2023))", "10.7935/b024-1886"),
+    "GWTC-4.0": ("LIGO Scientific, Virgo and KAGRA Collaborations, GWTC-4.0 data release, doi:10.7935/aes8-px89", "10.7935/aes8-px89"),
+    "GWTC-5.0": ("LIGO Scientific, Virgo and KAGRA Collaborations, GWTC-5.0 data release, doi:10.7935/bk00-6a89", "10.7935/bk00-6a89"),
+}
+
+_TAK_SOURCE = ("M. Takamoto, I. Ushijima, N. Ohmae, T. Yahagi, K. Kokado, H. Shinkai, and H. Katori, Test of general relativity by a pair of transportable optical lattice clocks, Nature Photon. 14, 411-415 (2020), doi:10.1038/s41566-020-0619-8, "
+               "as reported by its authors in H. Shinkai, M. Takamoto, and H. Katori, Int. J. Mod. Phys. D 34, 2540012 (2025), arXiv:2502.06104, Sect. 4.2")
+_TAK_URL = "https://arxiv.org/pdf/2502.06104"
+
+
+def _tak(key: str, name: str, symbol: str, value: str, unc: str, unit: str, printed: str, phrases: tuple[str, ...]) -> Quantity:
+    return _q(f"takamoto2020.{key}", name, symbol, value, unc, unit, kind="uncertainty as printed, level not stated", source=_TAK_SOURCE,
+              edition="Nature Photon. 14 (2020), numbers from the authors' 2025 review (arXiv v1)", url="https://doi.org/10.1038/s41566-020-0619-8", retrieved_from=_TAK_URL,
+              keys=("gravitational redshift", "optical clock", "tokyo skytree"), phrases=phrases + ("tokyo skytree", "skytree clock test", "optical clock height", "clock height test"),
+              notes=(f"Sect. 4.2 prints {printed}.", "The Nature Photonics paper itself was not reachable from the box (publisher block); the review is by three of its authors and describes the same 2018 Skytree measurement (its ref. 8)."))
+
+
+GRAV_EVENTS_SKYTREE: tuple[Quantity, ...] = (
+    _tak("redshift_alpha", "redshift violation parameter from two transportable Sr lattice clocks 452 m apart at Tokyo Skytree", "alpha", "1.4 e-5", "9.1 e-5", "",
+         "'These results indicate a value of alpha = (1.4+-9.1)x10^-5, giving the best constraint on the gravitational redshift on the ground'", ("redshift test", "gravitational redshift")),
+    _tak("clock_height", "Skytree height difference measured by the clocks (chronometric levelling)", "Delta h_clock", "452.650", "0.039", "m",
+         "'... to obtain Delta h = (452.650 +- 0.039) m', from clock comparisons over days in October 2018", ("chronometric levelling",)),
+    _tak("laser_ranging_height", "Skytree height difference from simultaneous laser ranging", "Delta h_ranging", "452.631", "0.013", "m",
+         "'the simultaneous laser ranging value of Delta h = (452.631+-0.013) m', which agrees with the clock value 'within 1 sigma uncertainty'", ()),
+    _tak("same_height_beat", "fractional beat note of the two transportable clocks at the same height after the Skytree run", "Delta f/f", "-0.3 e-18", "4.7 e-18", "",
+         "'The beat note of two clocks set at the same height (red triangles) demonstrates an excellent reproducibility (-0.3 +- 4.7) x 10^-18'", ("clock reproducibility",)),
+    _gw_event("gw170817.m1_source", "GW170817", "primary source-frame mass", "m_1", "1.46", "0.12", "0.1", "M_sun", "GWTC-1", "https://gwosc.org/eventapi/json/GWTC-1-confident/GW170817/v3", "binary neutron star merger with a kilonova", "mass_1_source"),
+    _gw_event("gw170817.m2_source", "GW170817", "secondary source-frame mass", "m_2", "1.27", "0.09", "0.09", "M_sun", "GWTC-1", "https://gwosc.org/eventapi/json/GWTC-1-confident/GW170817/v3", "binary neutron star merger with a kilonova", "mass_2_source"),
+    _gw_event("gw170817.luminosity_distance", "GW170817", "luminosity distance", "d_L", "40.0", "7.0", "15.0", "Mpc", "GWTC-1", "https://gwosc.org/eventapi/json/GWTC-1-confident/GW170817/v3", "binary neutron star merger with a kilonova", "luminosity_distance"),
+    _gw_event("gw190521.m1_source", "GW190521", "primary source-frame mass", "m_1", "98.4", "33.6", "21.7", "M_sun", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190521/v4", "heaviest O3a binary black hole", "mass_1_source"),
+    _gw_event("gw190521.m2_source", "GW190521", "secondary source-frame mass", "m_2", "57.2", "27.1", "30.1", "M_sun", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190521/v4", "heaviest O3a binary black hole", "mass_2_source"),
+    _gw_event("gw190521.luminosity_distance", "GW190521", "luminosity distance", "d_L", "3310.0", "2790.0", "1800.0", "Mpc", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190521/v4", "heaviest O3a binary black hole", "luminosity_distance"),
+    _gw_event("gw190814.m1_source", "GW190814", "primary source-frame mass", "m_1", "23.3", "1.4", "1.4", "M_sun", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190814/v3", "binary with a 2.6 M_sun secondary", "mass_1_source"),
+    _gw_event("gw190814.m2_source", "GW190814", "secondary source-frame mass", "m_2", "2.6", "0.1", "0.1", "M_sun", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190814/v3", "binary with a 2.6 M_sun secondary", "mass_2_source"),
+    _gw_event("gw190814.luminosity_distance", "GW190814", "luminosity distance", "d_L", "230.0", "40.0", "50.0", "Mpc", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190814/v3", "binary with a 2.6 M_sun secondary", "luminosity_distance"),
+    _gw_event("gw190425.m1_source", "GW190425", "primary source-frame mass", "m_1", "2.1", "0.5", "0.4", "M_sun", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190425/v3", "second binary neutron star candidate", "mass_1_source"),
+    _gw_event("gw190425.m2_source", "GW190425", "secondary source-frame mass", "m_2", "1.3", "0.3", "0.2", "M_sun", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190425/v3", "second binary neutron star candidate", "mass_2_source"),
+    _gw_event("gw190425.luminosity_distance", "GW190425", "luminosity distance", "d_L", "150.0", "80.0", "60.0", "Mpc", "GWTC-2.1", "https://gwosc.org/eventapi/json/GWTC-2.1-confident/GW190425/v3", "second binary neutron star candidate", "luminosity_distance"),
+    _gw_event("gw200115.m1_source", "GW200115", "primary source-frame mass", "m_1", "5.9", "2.0", "2.5", "M_sun", "GWTC-3", "https://gwosc.org/eventapi/json/GWTC-3-confident/GW200115_042309/v2", "neutron star - black hole merger", "mass_1_source"),
+    _gw_event("gw200115.m2_source", "GW200115", "secondary source-frame mass", "m_2", "1.44", "0.85", "0.28", "M_sun", "GWTC-3", "https://gwosc.org/eventapi/json/GWTC-3-confident/GW200115_042309/v2", "neutron star - black hole merger", "mass_2_source"),
+    _gw_event("gw200115.luminosity_distance", "GW200115", "luminosity distance", "d_L", "290.0", "150.0", "100.0", "Mpc", "GWTC-3", "https://gwosc.org/eventapi/json/GWTC-3-confident/GW200115_042309/v2", "neutron star - black hole merger", "luminosity_distance"),
+    _gw_event("gw230529.m1_source", "GW230529", "primary source-frame mass", "m_1", "3.66", "0.82", "1.21", "M_sun", "GWTC-4.0", "https://gwosc.org/eventapi/json/GWTC-4.0/GW230529_181500/v2", "mass-gap primary with a neutron star", "mass_1_source"),
+    _gw_event("gw230529.m2_source", "GW230529", "secondary source-frame mass", "m_2", "1.42", "0.6", "0.22", "M_sun", "GWTC-4.0", "https://gwosc.org/eventapi/json/GWTC-4.0/GW230529_181500/v2", "mass-gap primary with a neutron star", "mass_2_source"),
+    _gw_event("gw230529.luminosity_distance", "GW230529", "luminosity distance", "d_L", "203.0", "103.0", "98.0", "Mpc", "GWTC-4.0", "https://gwosc.org/eventapi/json/GWTC-4.0/GW230529_181500/v2", "mass-gap primary with a neutron star", "luminosity_distance"),
+    _gw_event("gw231123.m1_source", "GW231123", "primary source-frame mass", "m_1", "137.0", "23.0", "18.0", "M_sun", "GWTC-4.0", "https://gwosc.org/eventapi/json/GWTC-4.0/GW231123_135430/v2", "most massive binary black hole in GWTC-4.0", "mass_1_source"),
+    _gw_event("gw231123.m2_source", "GW231123", "secondary source-frame mass", "m_2", "101.0", "22.0", "50.0", "M_sun", "GWTC-4.0", "https://gwosc.org/eventapi/json/GWTC-4.0/GW231123_135430/v2", "most massive binary black hole in GWTC-4.0", "mass_2_source"),
+    _gw_event("gw231123.luminosity_distance", "GW231123", "luminosity distance", "d_L", "2200.0", "1900.0", "1500.0", "Mpc", "GWTC-4.0", "https://gwosc.org/eventapi/json/GWTC-4.0/GW231123_135430/v2", "most massive binary black hole in GWTC-4.0", "luminosity_distance"),
+    _gw_event("gw250114.m1_source", "GW250114", "primary source-frame mass", "m_1", "33.76", "1.28", "0.9", "M_sun", "GWTC-5.0", "https://gwosc.org/eventapi/json/GWTC-5.0/GW250114_082203/v2", "loudest binary black hole signal to date", "mass_1_source"),
+    _gw_event("gw250114.m2_source", "GW250114", "secondary source-frame mass", "m_2", "32.26", "0.95", "1.47", "M_sun", "GWTC-5.0", "https://gwosc.org/eventapi/json/GWTC-5.0/GW250114_082203/v2", "loudest binary black hole signal to date", "mass_2_source"),
+    _gw_event("gw250114.luminosity_distance", "GW250114", "luminosity distance", "d_L", "405.0", "84.0", "73.0", "Mpc", "GWTC-5.0", "https://gwosc.org/eventapi/json/GWTC-5.0/GW250114_082203/v2", "loudest binary black hole signal to date", "luminosity_distance"),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

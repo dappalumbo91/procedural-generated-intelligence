@@ -601,9 +601,17 @@ The Higgs measured branching fractions sit beside its signal strengths: bb `53 �
 
 This adds 25 records.
 
+### Gravitation: Tokyo Skytree and more gravitational-wave events
+
+The 2018 Tokyo Skytree test is now on the board. Two transportable strontium lattice clocks, one on the ground floor and one on the observatory floor, measured the height difference as `452.650 ± 0.039` m. Laser ranging over the same period gave `452.631 ± 0.013` m. The result is α = `(1.4 ± 9.1)×10⁻⁵`, and back at RIKEN the clocks read `(−0.3 ± 4.7)×10⁻¹⁸` apart at equal height. The Nature Photonics paper is blocked from the box, so the numbers come from the 2025 review by three of its authors, which reports the same measurement. The source string says so.
+
+GW150914 is no longer the only event. Eight more come from the GWOSC event API, each from its own catalogue data release: GW170817 (GWTC-1), GW190521, GW190814, and GW190425 (GWTC-2.1), GW200115 (GWTC-3), GW230529 and GW231123 (GWTC-4.0), and GW250114 (GWTC-5.0). Each has its source-frame component masses and luminosity distance, with the 90% credible bounds as printed. For example, GW170817 is `1.46`, `1.27` M_sun at `40` Mpc, and GW231123 is `137`, `101` M_sun at `2200` Mpc. The tests check the catalogue's own labels (m₁ ≥ m₂, positive lower distance bound) and that GW170817 is the nearest. Event descriptions like "heaviest" or "mass gap" are left out because they're interpretation, not printed values.
+
+This adds 28 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.93.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.94.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
