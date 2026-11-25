@@ -1,8 +1,8 @@
-# Results through pgi-0.34.0
+# Results through pgi-0.35.0
 
 Procedural Generated Intelligence (PGI) unfolds answers from compact rules, seeds, and constraints. The store is generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and the kernel saturates the active packs, retracts contradictions, and renders the settled claims at the requested level of detail.
 
-This note records what the folder holds at rule version `pgi-0.34.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
+This note records what the folder holds at rule version `pgi-0.35.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
 
 ## What the kernel holds
 
@@ -99,8 +99,9 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 | pgi-0.32.0 | Inverse of one plus an admitted radical | 116 | about 10.36 s |
 | pgi-0.33.0 | Inverse of one plus a peak | 116 | about 14.10 s |
 | pgi-0.34.0 | Inverse of one plus a fold | 116 | about 20.86 s |
+| pgi-0.35.0 | Inverse of one plus a crest | 116 | about 87.88 s |
 
-`python -m unittest discover -s tests -v` at pgi-0.34.0 finished 116 tests, 0 failures, in 20.858 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 20.86 seconds in the table. One test calls GNU Octave through the portable lookup.
+`python -m unittest discover -s tests -v` at pgi-0.35.0 finished 116 tests, 0 failures, in 87.875 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 87.88 seconds in the table. One test calls GNU Octave through the portable lookup.
 
 ### Why the two open radicals stayed open, and what closed them
 
@@ -137,6 +138,11 @@ The inverse of a rational plus one admitted radical stayed outside when the kern
 
 `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stayed outside because a deep times a fold was not in the kernel, so the constructed inverse could not be multiplied back by `1` plus that fold. That product is the same mixed rule already used for a fold times a deep. With it in place, the shifted inverse multiplies back to 1 by `inverse_unique`. The closed form is `cauchy(1 - sqrt(2) + sqrt(2 + sqrt(2)) - sqrt(4 + 2 * sqrt(2)) + sqrt(sqrt(2 + sqrt(2))) - sqrt(2 * sqrt(2 + sqrt(2))) + sqrt(sqrt(20 + 14 * sqrt(2))) - sqrt(2 * sqrt(20 + 14 * sqrt(2))) - sqrt(sqrt(sqrt(2 + sqrt(2)))) + sqrt(2 * sqrt(sqrt(2 + sqrt(2)))) - sqrt(sqrt(sqrt(20 + 14 * sqrt(2)))) + sqrt(2 * sqrt(sqrt(20 + 14 * sqrt(2)))) - sqrt(sqrt(2 * sqrt(58 + 41 * sqrt(2)))) + sqrt(2 * sqrt(2 * sqrt(58 + 41 * sqrt(2)))) - sqrt(sqrt(2 * sqrt(676 + 478 * sqrt(2)))) + sqrt(2 * sqrt(2 * sqrt(676 + 478 * sqrt(2)))))`. Further finite depths of that fold close by the same rule.
 
-`1 / (1 + ...)` from the crest downward on the pair ladder stays outside, because the products of a crest with a peak, a high, or a pair are not yet in the kernel. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
+
+### Inverse of one plus a crest
+
+`1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))` stayed outside because a crest times a pair, a high, or a peak was not in the kernel. A crest times a pair is the square root of the already closed peak-times-pair product, associated so the field element does not split: `sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))) * sqrt(sqrt(2) + sqrt(5))` is `cauchy(sqrt(sqrt(sqrt(sqrt(40681 * sqrt(2) + 25729 * sqrt(5))))))`. A crest times a high is `cauchy(sqrt(sqrt(sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5))))))`. A crest times a peak is `cauchy(sqrt(sqrt(sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))))))`. The shifted inverse then closes `1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))`, and the quotient multiplies back to 1 by `inverse_unique`.
+
+`1 / (1 + ...)` from the summit downward on the pair ladder stays outside, because the products of a summit with a crest, a peak, a high, or a pair are not yet in the kernel. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
 
 `primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.

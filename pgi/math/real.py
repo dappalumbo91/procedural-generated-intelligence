@@ -1723,7 +1723,14 @@ def _mul_pair(
             pmult, hmult, peak_left, left_r, peak_right, right_r, left_c, right_c
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, peak_coeff)))
-    if other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
+    for crest_coeff, qmult, pmult, hmult, crest_left, crest_left_rad, crest_right, crest_right_rad in other.crests:
+        if crest_left_rad != left_r or crest_right_rad != right_r:
+            raise NotExact("this nested radical stays outside")
+        scaled = _crest_times_pair(
+            qmult, pmult, hmult, crest_left, left_r, crest_right, right_r, left_c, right_c
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, crest_coeff)))
+    if other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -2085,7 +2092,14 @@ def _mul_one_high(
             pmult, hmult, peak_left, left_r, peak_right, right_r, mult, left_c, right_c
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, peak_coeff)))
-    if other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
+    for crest_coeff, qmult, pmult, hmult, crest_left, crest_left_rad, crest_right, crest_right_rad in other.crests:
+        if crest_left_rad != left_r or crest_right_rad != right_r:
+            raise NotExact("this nested radical stays outside")
+        scaled = _crest_times_high(
+            qmult, pmult, hmult, crest_left, left_r, crest_right, right_r, mult, left_c, right_c
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, crest_coeff)))
+    if other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -2276,7 +2290,24 @@ def _mul_one_peak(
             pmult, hmult, left_c, left_r, right_c, right_r, high_mult, high_left, high_right
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, high_coeff)))
-    if other.towers or other.nests or other.deeps or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
+    for crest_coeff, qmult, crest_pmult, crest_hmult, crest_left, crest_left_rad, crest_right, crest_right_rad in other.crests:
+        if crest_left_rad != left_r or crest_right_rad != right_r:
+            raise NotExact("this nested radical stays outside")
+        scaled = _crest_times_peak(
+            qmult,
+            crest_pmult,
+            crest_hmult,
+            crest_left,
+            left_r,
+            crest_right,
+            right_r,
+            pmult,
+            hmult,
+            left_c,
+            right_c,
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, crest_coeff)))
+    if other.towers or other.nests or other.deeps or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     for (
         peak_coeff,
@@ -2441,6 +2472,62 @@ def _crest_times_crest(
     return _sqrt_of_form(_scale(peak_product, _ratio(qmult * other_qmult, 1)))
 
 
+def _crest_times_pair(
+    qmult: int,
+    pmult: int,
+    hmult: int,
+    left_c: int,
+    left_r: int,
+    right_c: int,
+    right_r: int,
+    pair_left: int,
+    pair_right: int,
+) -> RealForm:
+    core = _peak_form(_ratio(1, 1), pmult, hmult, left_c, left_r, right_c, right_r)
+    pair = _pair_form(_ratio(1, 1), pair_left, left_r, pair_right, right_r)
+    # C * pair = sqrt((core * pair) * pair). Associate through the already
+    # closed peak-times-pair product.
+    mixed = _mul_forms(_mul_forms(core, pair), pair)
+    return _sqrt_of_form(_scale(mixed, _ratio(qmult, 1)))
+
+
+def _crest_times_high(
+    qmult: int,
+    pmult: int,
+    hmult: int,
+    left_c: int,
+    left_r: int,
+    right_c: int,
+    right_r: int,
+    high_mult: int,
+    high_left: int,
+    high_right: int,
+) -> RealForm:
+    core = _peak_form(_ratio(1, 1), pmult, hmult, left_c, left_r, right_c, right_r)
+    other = _high_form(_ratio(1, 1), high_mult, high_left, left_r, high_right, right_r)
+    squared = _square_high(other)
+    return _sqrt_of_form(_scale(_mul_forms(core, squared), _ratio(qmult, 1)))
+
+
+def _crest_times_peak(
+    qmult: int,
+    pmult: int,
+    hmult: int,
+    left_c: int,
+    left_r: int,
+    right_c: int,
+    right_r: int,
+    peak_pmult: int,
+    peak_hmult: int,
+    peak_left: int,
+    peak_right: int,
+) -> RealForm:
+    core = _peak_form(_ratio(1, 1), pmult, hmult, left_c, left_r, right_c, right_r)
+    other = _peak_form(_ratio(1, 1), peak_pmult, peak_hmult, peak_left, left_r, peak_right, right_r)
+    squared = _square_peak(other)
+    return _sqrt_of_form(_scale(_mul_forms(core, squared), _ratio(qmult, 1)))
+
+
 def _mul_one_crest(
     coeff: Ratio,
     qmult: int,
@@ -2457,13 +2544,49 @@ def _mul_one_crest(
     for other_coeff, other_rad in other.terms:
         scaled = _crest_times_term(qmult, pmult, hmult, left_c, left_r, right_c, right_r, other_rad)
         product = _add_forms(product, _scale(scaled, _qmul(coeff, other_coeff)))
+    for pair_coeff, pair_left, pair_left_rad, pair_right, pair_right_rad in other.pairs:
+        if pair_left_rad != left_r or pair_right_rad != right_r:
+            raise NotExact("this nested radical stays outside")
+        scaled = _crest_times_pair(
+            qmult, pmult, hmult, left_c, left_r, right_c, right_r, pair_left, pair_right
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, pair_coeff)))
+    for high_coeff, high_mult, high_left, high_left_rad, high_right, high_right_rad in other.highs:
+        if high_left_rad != left_r or high_right_rad != right_r:
+            raise NotExact("this nested radical stays outside")
+        scaled = _crest_times_high(
+            qmult, pmult, hmult, left_c, left_r, right_c, right_r, high_mult, high_left, high_right
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, high_coeff)))
+    for (
+        peak_coeff,
+        peak_pmult,
+        peak_hmult,
+        peak_left,
+        peak_left_rad,
+        peak_right,
+        peak_right_rad,
+    ) in other.peaks:
+        if peak_left_rad != left_r or peak_right_rad != right_r:
+            raise NotExact("this nested radical stays outside")
+        scaled = _crest_times_peak(
+            qmult,
+            pmult,
+            hmult,
+            left_c,
+            left_r,
+            right_c,
+            right_r,
+            peak_pmult,
+            peak_hmult,
+            peak_left,
+            peak_right,
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, peak_coeff)))
     if (
         other.towers
         or other.nests
-        or other.pairs
         or other.deeps
-        or other.highs
-        or other.peaks
         or other.summits or other.apexes or other.shells or other.folds or other.quads
     ):
         raise NotExact("this nested radical stays outside")
