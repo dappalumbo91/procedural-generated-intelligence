@@ -78,6 +78,11 @@ rational square is not enough to denest: both relative norms must be
 squares in the intermediate field. When they are not, and that fact is
 decided, the root stays the biquadratic radical.
 A radicand the kernel cannot see as nonnegative stays open.
+Arithmetic in a finite square-root tower over Q is one checked rule: an element
+is a vector on the basis of products of the adjoined square roots, multiplication
+follows (a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d, and the inverse is the
+conjugate over the norm, taken down the tower and kept only when it multiplies
+back to 1. Named ladder levels and any further finite depth use that one rule.
 Division multiplies by the inverse.
 That inverse lies in the same span, and its product with the divisor is the
 constant sequence 1. A divisor the kernel cannot see as nonzero stays open.
@@ -85,14 +90,33 @@ constant sequence 1. A divisor the kernel cannot see as nonzero stays open.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
+from math import isqrt
+import sys
+
+if hasattr(sys, "set_int_max_str_digits"):
+    sys.set_int_max_str_digits(0)
 
 from pgi.math.kernel import KernelError, NotExact
 from pgi.math.rational import Ratio, rat_add, rat_div, rat_mul, rat_neg, rat_normalize, rat_sub
+from pgi.math import tower as sqrt_tower
 from pgi.math.syntax import App, IntLit, Term, pretty
 from pgi.model import Rule
 
 _CERT_DEPTH = 4
+_TOWER_GUARD = 0
+
+
+@contextmanager
+def _tower_guard():
+    global _TOWER_GUARD
+    _TOWER_GUARD += 1
+    try:
+        yield
+    finally:
+        _TOWER_GUARD -= 1
+
 _DEPTHS = (0, 1, 2, 4, 8, 16, 32, 48, 64)
 
 
@@ -702,7 +726,32 @@ def _sub_forms(left: RealForm, right: RealForm) -> RealForm:
     return _add_forms(left, _neg_form(right))
 
 
+def _uses_nested_radicals(form: RealForm) -> bool:
+    return bool(
+        form.nests
+        or form.pairs
+        or form.deeps
+        or form.highs
+        or form.peaks
+        or form.crests
+        or form.summits
+        or form.apexes
+        or form.shells
+        or form.folds
+        or form.quads
+    )
+
+
 def _mul_forms(left: RealForm, right: RealForm) -> RealForm:
+    if _TOWER_GUARD == 0 and (_uses_nested_radicals(left) or _uses_nested_radicals(right)):
+        with _tower_guard():
+            towered = _mul_forms_tower(left, right)
+        if towered is not None:
+            return towered
+    return _mul_forms_parts(left, right)
+
+
+def _mul_forms_parts(left: RealForm, right: RealForm) -> RealForm:
     product = _scale(right, left.constant)
     for coeff, rad in left.terms:
         product = _add_forms(product, _mul_sqrt(coeff, rad, right))
@@ -1704,10 +1753,16 @@ def _mul_pair(
     for other_coeff, other_left, other_left_rad, other_right, other_right_rad in other.pairs:
         if other_left_rad != left_r or other_right_rad != right_r:
             raise NotExact("this nested radical stays outside")
-        rational = left_c * other_left * left_r + right_c * other_right * right_r
-        cross = left_c * other_right + right_c * other_left
-        # Same two radicals: the product of the insides is one binomial, not another pair.
-        combined = _sqrt_of_crossed(rational, cross, left_r * right_r)
+        if left_c == other_left and right_c == other_right:
+            # sqrt((A*sqrt(m) + B*sqrt(n))^2) is the positive inside.
+            combined = _pair_inside(left_c, left_r, right_c, right_r)
+        elif left_c == -other_left and right_c == -other_right:
+            combined = _pair_inside(-left_c, left_r, -right_c, right_r)
+        else:
+            rational = left_c * other_left * left_r + right_c * other_right * right_r
+            cross = left_c * other_right + right_c * other_left
+            # Same two radicals: the product of the insides is one binomial, not another pair.
+            combined = _sqrt_of_crossed(rational, cross, left_r * right_r)
         product = _add_forms(product, _scale(combined, _qmul(coeff, other_coeff)))
     for high_coeff, high_mult, high_left, high_left_rad, high_right, high_right_rad in other.highs:
         if high_left_rad != left_r or high_right_rad != right_r:
@@ -7369,7 +7424,9 @@ def _justified(theorem: RealTheorem) -> bool:
         if rule == "Real.div":
             if len(premises) != 2 or _is_zero(premises[1].form):
                 return False
-            return form == _div_form(premises[0].form, premises[1].form)
+            if not _apart(premises[1].form):
+                return False
+            return _mul_forms(form, premises[1].form) == premises[0].form
     except NotExact:
         return False
     return False
@@ -7420,6 +7477,11 @@ def _div_form(left: RealForm, right: RealForm) -> RealForm:
         raise NotExact("division by zero")
     if not _apart(right):
         raise NotExact(_UNSEEN_DIVISOR)
+    if _TOWER_GUARD == 0:
+        with _tower_guard():
+            towered = _div_forms_tower(left, right)
+        if towered is not None:
+            return towered
     inverse = _inverse_form(right)
     if _mul_forms(inverse, right) != RealForm(_ratio(1, 1), ()):
         raise KernelError("constructed inverse did not multiply back to 1")
@@ -7483,6 +7545,11 @@ def _invert_shifted_radical(form: RealForm) -> RealForm:
 def _inverse_form(form: RealForm) -> RealForm:
     if _is_rational(form):
         return RealForm(_inverse(form.constant), ())
+    if _TOWER_GUARD == 0:
+        with _tower_guard():
+            towered = _inverse_form_tower(form)
+        if towered is not None:
+            return towered
     if _as_shifted_radical(form) is not None:
         return _invert_shifted_radical(form)
     if form.quads:
@@ -8439,6 +8506,103 @@ def _canonical_ratio(value: Ratio) -> bool:
     return value.den > 0 and _gcd(abs(value.num), value.den) == 1
 
 
+def _miller_rabin(number: int) -> bool:
+    if number < 2:
+        return False
+    small = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31)
+    for prime in small:
+        if number == prime:
+            return True
+        if number % prime == 0:
+            return False
+    reduced = number - 1
+    twos = 0
+    while reduced % 2 == 0:
+        reduced //= 2
+        twos += 1
+    witnesses = small
+    if number.bit_length() > 64:
+        witnesses = small + (37, 41, 43, 47, 53, 59, 61, 67, 71, 73)
+    for witness in witnesses:
+        power = pow(witness, reduced, number)
+        if power == 1 or power == number - 1:
+            continue
+        for _ in range(twos - 1):
+            power = (power * power) % number
+            if power == number - 1:
+                break
+        else:
+            return False
+    return True
+
+
+def _pollard_rho(number: int) -> int:
+    if number % 2 == 0:
+        return 2
+    seed = 2
+    while seed < 64:
+        y = seed
+        cycle = 2
+        factor = 1
+        while factor == 1:
+            x = y
+            for _ in range(cycle):
+                y = (y * y + seed) % number
+                factor = _gcd(abs(x - y), number)
+                if factor > 1:
+                    break
+            cycle *= 2
+        if factor != number:
+            return factor
+        seed += 1
+    raise KernelError("square part factorization stalled")
+
+
+def _factor_int(number: int) -> dict[int, int]:
+    factors: dict[int, int] = {}
+    stack = [number]
+    while stack:
+        current = stack.pop()
+        if current == 1:
+            continue
+        square = isqrt(current)
+        if square * square == current and current > 1:
+            inner = _factor_int(square)
+            for prime, count in inner.items():
+                factors[prime] = factors.get(prime, 0) + 2 * count
+            continue
+        if _miller_rabin(current):
+            factors[current] = factors.get(current, 0) + 1
+            continue
+        trial = 2
+        bound = 100000
+        rest = current
+        split = False
+        while trial <= bound and trial * trial <= rest:
+            if rest % trial == 0:
+                count = 0
+                while rest % trial == 0:
+                    rest //= trial
+                    count += 1
+                factors[trial] = factors.get(trial, 0) + count
+                if rest == 1:
+                    split = True
+                    break
+                stack.append(rest)
+                split = True
+                break
+            trial = 3 if trial == 2 else trial + 2
+        if split:
+            continue
+        if rest != current:
+            stack.append(rest)
+            continue
+        factor = _pollard_rho(current)
+        stack.append(factor)
+        stack.append(current // factor)
+    return factors
+
+
 def _square_part(number: int) -> tuple[int, int]:
     if number < 1:
         raise KernelError("square part needs a positive integer")
@@ -8446,7 +8610,7 @@ def _square_part(number: int) -> tuple[int, int]:
     free = 1
     rest = number
     prime = 2
-    while prime * prime <= rest:
+    while prime * prime <= rest and prime <= 1000:
         exponent = 0
         while rest % prime == 0:
             rest //= prime
@@ -8457,7 +8621,16 @@ def _square_part(number: int) -> tuple[int, int]:
                 free *= prime
         prime = 3 if prime == 2 else prime + 2
     if rest > 1:
-        free *= rest
+        square = isqrt(rest)
+        if square * square == rest:
+            root *= square
+        elif _miller_rabin(rest):
+            free *= rest
+        else:
+            for prime, exponent in _factor_int(rest).items():
+                root *= prime ** (exponent // 2)
+                if exponent % 2 == 1:
+                    free *= prime
     if root * root * free != number:
         raise KernelError("square part disagreed")
     if free > 1 and _has_square_factor(free):
@@ -8468,12 +8641,22 @@ def _square_part(number: int) -> tuple[int, int]:
 def _has_square_factor(number: int) -> bool:
     rest = number
     prime = 2
-    while prime * prime <= rest:
+    while prime * prime <= rest and prime <= 1000:
         if rest % (prime * prime) == 0:
             return True
         while rest % prime == 0:
             rest //= prime
         prime = 3 if prime == 2 else prime + 2
+    if rest <= 1:
+        return False
+    square = isqrt(rest)
+    if square * square == rest:
+        return True
+    if _miller_rabin(rest):
+        return False
+    for _, exponent in _factor_int(rest).items():
+        if exponent >= 2:
+            return True
     return False
 
 
@@ -8518,3 +8701,522 @@ def _inverse(value: Ratio) -> Ratio:
 def _qcmp(left: Ratio, right: Ratio) -> int:
     difference = _qsub(left, right).num
     return (difference > 0) - (difference < 0)
+
+
+def _factor_square_free(number: int) -> tuple[int, ...]:
+    if number < 2:
+        return ()
+    primes: list[int] = []
+    rest = number
+    prime = 2
+    while prime * prime <= rest:
+        if rest % prime == 0:
+            primes.append(prime)
+            rest //= prime
+            if rest % prime == 0:
+                return ()
+        prime = 3 if prime == 2 else prime + 2
+    if rest > 1:
+        primes.append(rest)
+    return tuple(primes)
+
+
+def _is_monic_single_radical(form: RealForm) -> bool:
+    if form.constant.num != 0 or form.terms or form.towers:
+        return False
+    count = 0
+    for items in (
+        form.nests,
+        form.pairs,
+        form.deeps,
+        form.highs,
+        form.peaks,
+        form.crests,
+        form.summits,
+        form.apexes,
+        form.shells,
+        form.folds,
+        form.quads,
+    ):
+        if items:
+            count += len(items)
+    return count == 1
+
+
+def _iter_atoms(form: RealForm) -> list[tuple[Ratio, RealForm]]:
+    atoms: list[tuple[Ratio, RealForm]] = []
+    if form.constant.num != 0:
+        atoms.append((form.constant, RealForm(_ratio(1, 1), ())))
+    for coeff, rad in form.terms:
+        atoms.append((coeff, _term_form(_ratio(1, 1), rad)))
+    for coeff, base, numer, log_den in form.towers:
+        atoms.append(
+            (coeff, RealForm(_ratio(0, 1), (), ((_ratio(1, 1), base, numer, log_den),)))
+        )
+    for coeff, constant, sqrt_coeff, rad in form.nests:
+        atoms.append((coeff, _nest_form(_ratio(1, 1), constant, sqrt_coeff, rad)))
+    for coeff, left_c, left_r, right_c, right_r in form.pairs:
+        atoms.append((coeff, _pair_form(_ratio(1, 1), left_c, left_r, right_c, right_r)))
+    for coeff, mult, constant, sqrt_coeff, rad in form.deeps:
+        atoms.append((coeff, _deep_form(_ratio(1, 1), mult, constant, sqrt_coeff, rad)))
+    for coeff, mult, left_c, left_r, right_c, right_r in form.highs:
+        atoms.append((coeff, _high_form(_ratio(1, 1), mult, left_c, left_r, right_c, right_r)))
+    for coeff, pmult, hmult, left_c, left_r, right_c, right_r in form.peaks:
+        atoms.append(
+            (coeff, _peak_form(_ratio(1, 1), pmult, hmult, left_c, left_r, right_c, right_r))
+        )
+    for coeff, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.crests:
+        atoms.append(
+            (
+                coeff,
+                _crest_form(_ratio(1, 1), qmult, pmult, hmult, left_c, left_r, right_c, right_r),
+            )
+        )
+    for coeff, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.summits:
+        atoms.append(
+            (
+                coeff,
+                _summit_form(
+                    _ratio(1, 1), smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r
+                ),
+            )
+        )
+    for coeff, amult, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.apexes:
+        atoms.append(
+            (
+                coeff,
+                _apex_form(
+                    _ratio(1, 1),
+                    amult,
+                    smult,
+                    qmult,
+                    pmult,
+                    hmult,
+                    left_c,
+                    left_r,
+                    right_c,
+                    right_r,
+                ),
+            )
+        )
+    for coeff, extra, amult, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.shells:
+        atoms.append(
+            (
+                coeff,
+                _shell_form(
+                    _ratio(1, 1),
+                    extra,
+                    amult,
+                    smult,
+                    qmult,
+                    pmult,
+                    hmult,
+                    left_c,
+                    left_r,
+                    right_c,
+                    right_r,
+                ),
+            )
+        )
+    for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds:
+        atoms.append(
+            (coeff, _fold_form(_ratio(1, 1), extra, mult, constant, sqrt_coeff, rad))
+        )
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        atoms.append(
+            (
+                coeff,
+                _quad_form(
+                    _ratio(1, 1), constant, first_coeff, first, second_coeff, second, product_coeff
+                ),
+            )
+        )
+    return atoms
+
+
+def _only_family(form: RealForm, name: str) -> bool:
+    if form.constant.num != 0 or form.terms or form.towers:
+        return False
+    families = {
+        "nests": form.nests,
+        "pairs": form.pairs,
+        "deeps": form.deeps,
+        "highs": form.highs,
+        "peaks": form.peaks,
+        "crests": form.crests,
+        "summits": form.summits,
+        "apexes": form.apexes,
+        "shells": form.shells,
+        "folds": form.folds,
+        "quads": form.quads,
+    }
+    return all(
+        (bool(items) and name == key) or (not items and name != key)
+        for key, items in families.items()
+    )
+
+
+def _stack_unit(layers: tuple[tuple[Ratio, ...], ...], count: int) -> sqrt_tower.SqrtTower:
+    stacked = list(layers)
+    for _ in range(count):
+        stacked.append(sqrt_tower.unit_last(len(stacked)))
+    return sqrt_tower.SqrtTower(tuple(stacked))
+
+
+def _nest_layers(constant: Ratio, sqrt_coeff: Ratio, rad: int) -> tuple[tuple[Ratio, ...], ...]:
+    return ((_ratio(rad, 1),), (constant, sqrt_coeff))
+
+
+def _pair_layers(
+    left_c: int, left_r: int, right_c: int, right_r: int
+) -> tuple[tuple[Ratio, ...], ...]:
+    return (
+        (_ratio(left_r, 1),),
+        (_ratio(right_r, 1), _ratio(0, 1)),
+        (_ratio(0, 1), _ratio(left_c, 1), _ratio(right_c, 1), _ratio(0, 1)),
+    )
+
+
+def _towers_from_monic(monic: RealForm) -> list[sqrt_tower.SqrtTower]:
+    towers: list[sqrt_tower.SqrtTower] = []
+    if (
+        monic.terms
+        and monic.constant.num == 0
+        and len(monic.terms) == 1
+        and not monic.towers
+        and not monic.nests
+        and not monic.pairs
+        and not monic.deeps
+        and not monic.highs
+        and not monic.peaks
+        and not monic.crests
+        and not monic.summits
+        and not monic.apexes
+        and not monic.shells
+        and not monic.folds
+        and not monic.quads
+    ):
+        rad = monic.terms[0][1]
+        towers.append(sqrt_tower.integer_tower((rad,)))
+        factors = _factor_square_free(rad)
+        if len(factors) > 1:
+            towers.append(sqrt_tower.integer_tower(factors))
+        return towers
+    if monic.nests and len(monic.nests) == 1 and _only_family(monic, "nests"):
+        _, constant, sqrt_coeff, rad = monic.nests[0]
+        towers.append(sqrt_tower.SqrtTower(_nest_layers(constant, sqrt_coeff, rad)))
+        return towers
+    if monic.pairs and len(monic.pairs) == 1 and _only_family(monic, "pairs"):
+        _, left_c, left_r, right_c, right_r = monic.pairs[0]
+        towers.append(sqrt_tower.SqrtTower(_pair_layers(left_c, left_r, right_c, right_r)))
+        if (left_c, right_c) != (1, 1):
+            towers.append(sqrt_tower.SqrtTower(_pair_layers(1, left_r, 1, right_r)))
+        return towers
+    if monic.deeps and len(monic.deeps) == 1 and _only_family(monic, "deeps"):
+        _, mult, constant, sqrt_coeff, rad = monic.deeps[0]
+        nest = _nest_layers(_ratio(constant, 1), _ratio(sqrt_coeff, 1), rad)
+        towers.append(_stack_unit(nest, 1))
+        return towers
+    if monic.highs and len(monic.highs) == 1 and _only_family(monic, "highs"):
+        _, mult, left_c, left_r, right_c, right_r = monic.highs[0]
+        towers.append(_stack_unit(_pair_layers(left_c, left_r, right_c, right_r), 1))
+        if (left_c, right_c) != (1, 1):
+            towers.append(_stack_unit(_pair_layers(1, left_r, 1, right_r), 1))
+        return towers
+    if monic.peaks and len(monic.peaks) == 1 and _only_family(monic, "peaks"):
+        _, pmult, hmult, left_c, left_r, right_c, right_r = monic.peaks[0]
+        towers.append(_stack_unit(_pair_layers(left_c, left_r, right_c, right_r), 2))
+        if (left_c, right_c) != (1, 1):
+            towers.append(_stack_unit(_pair_layers(1, left_r, 1, right_r), 2))
+        return towers
+    if monic.crests and len(monic.crests) == 1 and _only_family(monic, "crests"):
+        _, qmult, pmult, hmult, left_c, left_r, right_c, right_r = monic.crests[0]
+        towers.append(_stack_unit(_pair_layers(left_c, left_r, right_c, right_r), 3))
+        if (left_c, right_c) != (1, 1):
+            towers.append(_stack_unit(_pair_layers(1, left_r, 1, right_r), 3))
+        return towers
+    if monic.summits and len(monic.summits) == 1 and _only_family(monic, "summits"):
+        _, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r = monic.summits[0]
+        towers.append(_stack_unit(_pair_layers(left_c, left_r, right_c, right_r), 4))
+        if (left_c, right_c) != (1, 1):
+            towers.append(_stack_unit(_pair_layers(1, left_r, 1, right_r), 4))
+        return towers
+    if monic.apexes and len(monic.apexes) == 1 and _only_family(monic, "apexes"):
+        _, amult, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r = monic.apexes[0]
+        towers.append(_stack_unit(_pair_layers(left_c, left_r, right_c, right_r), 5))
+        if (left_c, right_c) != (1, 1):
+            towers.append(_stack_unit(_pair_layers(1, left_r, 1, right_r), 5))
+        return towers
+    if monic.shells and len(monic.shells) == 1 and _only_family(monic, "shells"):
+        _, extra, amult, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r = monic.shells[0]
+        towers.append(_stack_unit(_pair_layers(left_c, left_r, right_c, right_r), 5 + len(extra)))
+        if (left_c, right_c) != (1, 1):
+            towers.append(_stack_unit(_pair_layers(1, left_r, 1, right_r), 5 + len(extra)))
+        return towers
+    if monic.folds and len(monic.folds) == 1 and _only_family(monic, "folds"):
+        _, extra, mult, constant, sqrt_coeff, rad = monic.folds[0]
+        nest = _nest_layers(_ratio(constant, 1), _ratio(sqrt_coeff, 1), rad)
+        towers.append(_stack_unit(nest, 1 + len(extra)))
+        return towers
+    if monic.quads and len(monic.quads) == 1 and _only_family(monic, "quads"):
+        _, constant, first_coeff, first, second_coeff, second, product_coeff = monic.quads[0]
+        layers = (
+            (_ratio(first, 1),),
+            (_ratio(second, 1), _ratio(0, 1)),
+            (constant, first_coeff, second_coeff, product_coeff),
+        )
+        towers.append(sqrt_tower.SqrtTower(layers))
+        return towers
+    return towers
+
+
+def _collected_primes(*forms: RealForm) -> tuple[int, ...]:
+    primes: set[int] = set()
+    for form in forms:
+        for _, rad in form.terms:
+            factors = _factor_square_free(rad)
+            if factors:
+                primes.update(factors)
+            else:
+                primes.add(rad)
+        for _, monic in _iter_atoms(form):
+            for tower in _towers_from_monic(monic):
+                for radicand in tower.layers[: tower.integer_prefix]:
+                    value = radicand[0]
+                    if value.den == 1 and value.num > 1:
+                        factors = _factor_square_free(value.num)
+                        if factors:
+                            primes.update(factors)
+                        else:
+                            primes.add(value.num)
+    return tuple(sorted(primes))
+
+
+def _candidate_towers(*forms: RealForm) -> list[sqrt_tower.SqrtTower]:
+    for form in forms:
+        if form.towers:
+            return []
+    seen: dict[tuple[tuple[Ratio, ...], ...], sqrt_tower.SqrtTower] = {}
+    for form in forms:
+        for _, monic in _iter_atoms(form):
+            for tower in _towers_from_monic(monic):
+                seen[tower.layers] = tower
+    primes = _collected_primes(*forms)
+    if primes:
+        integer = sqrt_tower.integer_tower(primes)
+        seen[integer.layers] = integer
+    candidates = list(seen.values())
+    candidates.sort(
+        key=lambda tower: (
+            -tower.degree,
+            tower.complexity,
+            tuple(tuple((value.num, value.den) for value in layer) for layer in tower.layers),
+        )
+    )
+    return candidates
+
+
+_BASIS_FORMS: dict[tuple[tuple[tuple[Ratio, ...], ...], int], RealForm] = {}
+_BASIS_INDEX: dict[tuple[tuple[Ratio, ...], ...], dict[RealForm, int]] = {}
+_GEN_FORMS: dict[tuple[tuple[tuple[Ratio, ...], ...], int], RealForm] = {}
+_GEN_POWER: dict[
+    tuple[tuple[tuple[Ratio, ...], ...], int, int, int], sqrt_tower.TowerElem
+] = {}
+
+
+def _generator_form(tower: sqrt_tower.SqrtTower, index: int) -> RealForm:
+    key = (tower.layers, index)
+    cached = _GEN_FORMS.get(key)
+    if cached is not None:
+        return cached
+    prefix = sqrt_tower.SqrtTower(tower.layers[:index])
+    radicand = sqrt_tower.TowerElem(prefix, tower.layers[index])
+    form = _sqrt_of_form(_write_elem(radicand))
+    _GEN_FORMS[key] = form
+    _BASIS_FORMS[(tower.layers, 1 << index)] = form
+    return form
+
+
+def _generator_power(
+    tower: sqrt_tower.SqrtTower, index: int, steps: int, prefix: sqrt_tower.SqrtTower
+) -> sqrt_tower.TowerElem:
+    key = (tower.layers, index, steps, prefix.degree)
+    cached = _GEN_POWER.get(key)
+    if cached is not None:
+        return cached
+    short = sqrt_tower.SqrtTower(tower.layers[: index + 1])
+    elem = sqrt_tower.TowerElem(short, sqrt_tower.mask_coords(short, 1 << index))
+    for _ in range(steps):
+        elem = sqrt_tower.mul(elem, elem)
+        while (
+            len(elem.tower.layers) > len(prefix.layers)
+            and all(value.num == 0 for value in elem.coords[elem.tower.degree // 2 :])
+        ):
+            smaller = sqrt_tower.SqrtTower(elem.tower.layers[:-1])
+            elem = sqrt_tower.TowerElem(smaller, elem.coords[: smaller.degree])
+    if len(elem.tower.layers) <= len(prefix.layers):
+        result = sqrt_tower.lift(elem, prefix)
+    else:
+        if any(value.num != 0 for value in elem.coords[prefix.degree :]):
+            raise NotExact("this quotient stays outside")
+        result = sqrt_tower.TowerElem(prefix, elem.coords[: prefix.degree])
+    _GEN_POWER[key] = result
+    return result
+
+
+def _basis_form(tower: sqrt_tower.SqrtTower, mask: int) -> RealForm:
+    key = (tower.layers, mask)
+    cached = _BASIS_FORMS.get(key)
+    if cached is not None:
+        return cached
+    if mask == 0:
+        form = RealForm(_ratio(1, 1), ())
+        _BASIS_FORMS[key] = form
+        return form
+    highest = mask.bit_length() - 1
+    lower = mask ^ (1 << highest)
+    if lower == 0:
+        form = _generator_form(tower, highest)
+        _BASIS_FORMS[key] = form
+        return form
+    lower_form = _basis_form(tower, lower)
+    generator = _generator_form(tower, highest)
+    try:
+        form = _mul_forms_parts(lower_form, generator)
+        _BASIS_FORMS[key] = form
+        return form
+    except NotExact:
+        pass
+    prefix_len = tower.integer_prefix
+    if highest < prefix_len:
+        raise NotExact("this quotient stays outside")
+    steps = highest - prefix_len + 1
+    prefix = sqrt_tower.SqrtTower(tower.layers[:prefix_len])
+    image = sqrt_tower.one(prefix)
+    bit = 0
+    rest = mask
+    while rest:
+        if rest & 1:
+            image = sqrt_tower.mul(image, _generator_power(tower, bit, steps, prefix))
+        rest >>= 1
+        bit += 1
+    form = _write_elem(image)
+    for _ in range(steps):
+        form = _sqrt_of_form(form)
+    _BASIS_FORMS[key] = form
+    return form
+
+
+def _remember_basis(tower: sqrt_tower.SqrtTower, mask: int, form: RealForm) -> None:
+    index = _BASIS_INDEX.setdefault(tower.layers, {})
+    index[form] = mask
+    _BASIS_FORMS[(tower.layers, mask)] = form
+
+
+def _lookup_monic(tower: sqrt_tower.SqrtTower, monic: RealForm) -> int | None:
+    index = _BASIS_INDEX.setdefault(tower.layers, {})
+    found = index.get(monic)
+    if found is not None:
+        return found
+    unit = RealForm(_ratio(1, 1), ())
+    if monic == unit:
+        _remember_basis(tower, 0, unit)
+        return 0
+    for layer in range(len(tower.layers)):
+        form = _generator_form(tower, layer)
+        _remember_basis(tower, 1 << layer, form)
+        if form == monic:
+            return 1 << layer
+    for (layers, mask), form in list(_BASIS_FORMS.items()):
+        if layers == tower.layers:
+            index[form] = mask
+            if form == monic:
+                return mask
+    prefix_len = tower.integer_prefix
+    for mask in range(1, 1 << prefix_len):
+        try:
+            form = _basis_form(tower, mask)
+        except NotExact:
+            continue
+        _remember_basis(tower, mask, form)
+        if form == monic:
+            return mask
+    return None
+
+
+def _write_elem(elem: sqrt_tower.TowerElem) -> RealForm:
+    result = RealForm(_ratio(0, 1), ())
+    for mask, coeff in enumerate(elem.coords):
+        if coeff.num == 0:
+            continue
+        piece = _basis_form(elem.tower, mask)
+        _remember_basis(elem.tower, mask, piece)
+        result = _add_forms(result, _scale(piece, coeff))
+    return result
+
+
+def _read_form(form: RealForm, tower: sqrt_tower.SqrtTower) -> sqrt_tower.TowerElem | None:
+    coords = [_ratio(0, 1)] * tower.degree
+    for coeff, monic in _iter_atoms(form):
+        if monic == RealForm(_ratio(1, 1), ()):
+            coords[0] = _qadd(coords[0], coeff)
+            continue
+        mask = _lookup_monic(tower, monic)
+        if mask is None:
+            return None
+        coords[mask] = _qadd(coords[mask], coeff)
+    return sqrt_tower.TowerElem(tower, tuple(coords))
+
+
+def _embed_forms(forms: tuple[RealForm, ...]) -> list[sqrt_tower.TowerElem] | None:
+    for tower in _candidate_towers(*forms):
+        try:
+            elems: list[sqrt_tower.TowerElem] = []
+            ok = True
+            for form in forms:
+                elem = _read_form(form, tower)
+                if elem is None:
+                    ok = False
+                    break
+                elems.append(elem)
+            if ok:
+                return elems
+        except NotExact:
+            continue
+    return None
+
+
+def _mul_forms_tower(left: RealForm, right: RealForm) -> RealForm | None:
+    if _is_rational(left):
+        return _scale(right, left.constant)
+    if _is_rational(right):
+        return _scale(left, right.constant)
+    packed = _embed_forms((left, right))
+    if packed is None:
+        return None
+    return _write_elem(sqrt_tower.mul(packed[0], packed[1]))
+
+
+def _inverse_form_tower(form: RealForm) -> RealForm | None:
+    if _is_monic_single_radical(form):
+        return None
+    packed = _embed_forms((form,))
+    if packed is None:
+        return None
+    try:
+        return _write_elem(sqrt_tower.inv(packed[0]))
+    except NotExact:
+        return None
+
+
+def _div_forms_tower(left: RealForm, right: RealForm) -> RealForm | None:
+    if _is_monic_single_radical(right):
+        return None
+    packed = _embed_forms((left, right))
+    if packed is None:
+        return None
+    try:
+        inverse = sqrt_tower.inv(packed[1])
+    except NotExact:
+        return None
+    return _write_elem(sqrt_tower.mul(packed[0], inverse))

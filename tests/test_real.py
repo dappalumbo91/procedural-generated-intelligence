@@ -5,6 +5,7 @@ import unittest
 from pgi.engine import unfold
 from pgi.math.kernel import KernelError
 from pgi.math.rational import Ratio
+import pgi.math.real as real_mod
 from pgi.math.real import (
     RealForm,
     RealTheorem,
@@ -23,6 +24,19 @@ from pgi.model import Request
 def run(request: Request, **kwargs):
     kwargs.setdefault("use_store", False)
     return unfold(request, **kwargs)
+
+
+
+def _tower_inverse_multiplies_back(expr: str) -> bool:
+    """The general square-root-tower inverse multiplies back to 1 in coordinates."""
+
+    form = eval_real(parse_term(expr)).form
+    packed = real_mod._embed_forms((form,))
+    if packed is None:
+        return False
+    inverse = real_mod.sqrt_tower.inv(packed[0])
+    return real_mod.sqrt_tower.is_one(real_mod.sqrt_tower.mul(inverse, packed[0]))
+
 
 
 class ContinuumTests(unittest.TestCase):
@@ -576,9 +590,26 @@ class ContinuumTests(unittest.TestCase):
         mixed = run(Request(ask="what is sqrt(2 + sqrt(2)) * sqrt(sqrt(2) + sqrt(5))", seed=1))
         self.assertEqual(mixed.claims[0].atom, "cauchy(sqrt(2 + 2 * sqrt(2) + 2 * sqrt(5) + sqrt(10)))")
         self.assertEqual(mixed.open_gaps, ())
+        mixed_shown = (
+            "-14/31 + 6/31 * sqrt(2) - 8/31 * sqrt(5) - 1/31 * sqrt(10)"
+            " - 6/31 * sqrt(sqrt(2) + sqrt(5)) + 7/31 * sqrt(2 * sqrt(2) + 2 * sqrt(5))"
+            " + 1/31 * sqrt(5 * sqrt(2) + 5 * sqrt(5)) + 4/31 * sqrt(10 * sqrt(2) + 10 * sqrt(5))"
+        )
         quotient = run(Request(ask="what is 1 / (sqrt(sqrt(2) + sqrt(5)) + sqrt(2))", seed=1))
-        self.assertIn("this quotient stays outside", quotient.text(lod=1))
-        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in quotient.claims))
+        self.assertEqual(quotient.claims[0].atom, f"cauchy({mixed_shown})")
+        self.assertIn("inverse_unique", quotient.text(lod=2))
+        self.assertEqual(quotient.open_gaps, ())
+        mixed_back = run(
+            Request(
+                ask="prove (1 / (sqrt(sqrt(2) + sqrt(5)) + sqrt(2))) * (sqrt(sqrt(2) + sqrt(5)) + sqrt(2)) = 1",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            mixed_back.claims[0].atom,
+            "identity(1 / (sqrt(sqrt(2) + sqrt(5)) + sqrt(2)) * (sqrt(sqrt(2) + sqrt(5)) + sqrt(2)) = 1)",
+        )
+        self.assertEqual(mixed_back.open_gaps, ())
 
     def test_denesting_sqrt_of_nested_binomial(self) -> None:
         nested = run(Request(ask="what is sqrt(sqrt(2 + sqrt(2)))", seed=1))
@@ -1136,9 +1167,11 @@ class ContinuumTests(unittest.TestCase):
         negative = run(Request(ask="what is sqrt(-sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))", seed=1))
         self.assertIn("square root of a negative stays open", negative.text(lod=1))
         self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in negative.claims))
-        quotient = run(Request(ask="what is 1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))", seed=1))
-        self.assertIn("this quotient stays outside", quotient.text(lod=1))
-        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in quotient.claims))
+        self.assertTrue(
+            _tower_inverse_multiplies_back(
+                "1 + sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))"
+            )
+        )
         five = run(Request(ask="what is sqrt(1 + sqrt(2) + sqrt(5))", seed=1))
         self.assertEqual(five.claims[0].atom, "cauchy(sqrt(1 + sqrt(2) + sqrt(5)))")
         self.assertEqual(five.open_gaps, ())
@@ -1228,9 +1261,8 @@ class ContinuumTests(unittest.TestCase):
         negative = run(Request(ask="what is sqrt(-sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))))", seed=1))
         self.assertIn("square root of a negative stays open", negative.text(lod=1))
         self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in negative.claims))
-        quotient = run(Request(ask="what is 1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))))", seed=1))
-        self.assertIn("this quotient stays outside", quotient.text(lod=1))
-        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in quotient.claims))
+        # 1/(1+apex) is closed by the general tower rule; see
+        # test_inverse_of_one_plus_a_shifted_radical.
         five = run(Request(ask="what is sqrt(1 + sqrt(2) + sqrt(5))", seed=1))
         self.assertEqual(five.claims[0].atom, "cauchy(sqrt(1 + sqrt(2) + sqrt(5)))")
         self.assertEqual(five.open_gaps, ())
@@ -1332,8 +1364,8 @@ class ContinuumTests(unittest.TestCase):
         negative = run(Request(ask=f"what is sqrt(-{eighth})", seed=1))
         self.assertIn("square root of a negative stays open", negative.text(lod=1))
         self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in negative.claims))
-        quotient = run(Request(ask=f"what is 1 / (1 + {eighth})", seed=1))
-        self.assertIn("this quotient stays outside", quotient.text(lod=1))
+        # 1/(1+shell) is closed by the general tower rule; see
+        # test_inverse_of_one_plus_a_shifted_radical.
         five = run(Request(ask="what is sqrt(1 + sqrt(2) + sqrt(5))", seed=1))
         self.assertEqual(five.claims[0].atom, "cauchy(sqrt(1 + sqrt(2) + sqrt(5)))")
         self.assertEqual(five.open_gaps, ())
@@ -1877,14 +1909,31 @@ class ContinuumTests(unittest.TestCase):
             "cauchy(sqrt(sqrt(sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))))))",
         )
         self.assertEqual(peak_product.open_gaps, ())
+        summit_term = "sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))"
         summit = run(
             Request(
-                ask="what is 1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))",
+                ask=f"what is 1 / (1 + {summit_term})",
                 seed=1,
             )
         )
-        self.assertIn("this quotient stays outside", summit.text(lod=1))
-        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in summit.claims))
+        self.assertTrue(summit.claims[0].atom.startswith("cauchy("))
+        self.assertIn("inverse_unique", summit.text(lod=2))
+        self.assertEqual(summit.open_gaps, ())
+        summit_back = run(
+            Request(
+                ask=f"prove (1 / (1 + {summit_term})) * (1 + {summit_term}) = 1",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            summit_back.claims[0].atom,
+            f"identity(1 / (1 + {summit_term}) * (1 + {summit_term}) = 1)",
+        )
+        self.assertEqual(summit_back.open_gaps, ())
+        apex_term = "sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))"
+        self.assertTrue(_tower_inverse_multiplies_back(f"1 + {apex_term}"))
+        shell_term = "sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))))"
+        self.assertTrue(_tower_inverse_multiplies_back(f"1 + {shell_term}"))
 
     def test_integer_order_is_unchanged(self) -> None:
 

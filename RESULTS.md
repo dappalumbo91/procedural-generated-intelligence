@@ -1,8 +1,8 @@
-# Results through pgi-0.35.0
+# Results through pgi-0.36.0
 
 Procedural Generated Intelligence (PGI) unfolds answers from compact rules, seeds, and constraints. The store is generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and the kernel saturates the active packs, retracts contradictions, and renders the settled claims at the requested level of detail.
 
-This note records what the folder holds at rule version `pgi-0.35.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
+This note records what the folder holds at rule version `pgi-0.36.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
 
 ## What the kernel holds
 
@@ -15,7 +15,7 @@ In the kernel now:
 - Closed rationals: a reduced fraction, positive denominator, sign on the numerator. Field operations cite the Lean `Rat` operations and the Isabelle `Rat.thy` lemmas. Division by zero stays open.
 - A Cauchy continuum for the sequences this kernel can check, from Isabelle `Real.thy`. Constant sequences are the rationals. A positive square root is a bisection sequence with a checked modulus. Order is a strict rational enclosure. Core Lean 4.36 has no `Real`.
 - Nested radicals the rules below can see: a tower `base^(odd/2^k)`, a binomial nest, a two-radical sum that denests, the pair `sqrt(sqrt(2) + sqrt(5))` through every further finite outer square root, the nested binomial `sqrt(2 + sqrt(2))` through every further finite outer square root, a two-prime biquadratic under one square root when it does not denest, and a nest times a pair as the square root of the product of those insides.
-- Inverses inside the admitted span, including `1 / sqrt(sqrt(2) + sqrt(3))`, which is the conjugate difference of the two nests that denesting already produced.
+- Inverses inside the admitted span, including `1 / sqrt(sqrt(2) + sqrt(3))`, which is the conjugate difference of the two nests that denesting already produced. Arithmetic in a finite square-root tower over Q is one checked rule: an element is a vector on the basis of products of the adjoined square roots, multiplication follows `(a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d`, and the inverse is the conjugate over the norm, taken down the tower and kept only when it multiplies back to 1. Named ladder levels, a summit, an apex, a shell, and any further finite depth use that one rule.
 - Finite sets of those reals. The least upper bound of a nonempty finite set is its maximum.
 - Quantifiers over a finite enumeration. Separation over a finite enumeration. Order rays, the set of every real, and two-sided intervals. The supremum of a down-ray is the bound it contains. The supremum of an open upper end is built by the Archimedean bisection in the proof of `complete_real`.
 - Boolean connectives the kernel can settle: a conjunction of two comparisons, the complement of an order ray, and a disjunction of two closed equalities.
@@ -100,8 +100,9 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 | pgi-0.33.0 | Inverse of one plus a peak | 116 | about 14.10 s |
 | pgi-0.34.0 | Inverse of one plus a fold | 116 | about 20.86 s |
 | pgi-0.35.0 | Inverse of one plus a crest | 116 | about 87.88 s |
+| pgi-0.36.0 | Square-root tower arithmetic | 116 | about 57.85 s |
 
-`python -m unittest discover -s tests -v` at pgi-0.35.0 finished 116 tests, 0 failures, in 87.875 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 87.88 seconds in the table. One test calls GNU Octave through the portable lookup.
+`python -m unittest discover -s tests -v` at pgi-0.36.0 finished 116 tests, 0 failures, in 57.853 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 57.85 seconds in the table. One test calls GNU Octave through the portable lookup.
 
 ### Why the two open radicals stayed open, and what closed them
 

@@ -191,6 +191,9 @@ def demo_text() -> str:
         "=== inverse of one plus a crest ===",
         unfold(Request(ask="what is 1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))", lod=2, seed=1)).text(lod=2),
         "",
+        "=== inverse of one plus a summit ===",
+        unfold(Request(ask="what is 1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]

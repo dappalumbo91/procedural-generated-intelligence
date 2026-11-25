@@ -490,3 +490,17 @@ The shifted inverse of a rational plus one admitted radical then closes `1 / (1 
 The next gap is `1 / (1 + ...)` from the summit downward on the pair ladder. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 116 tests, 0 failures, about 87.88 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — square-root tower arithmetic pgi-0.36.0
+
+Adding one named ladder level per version never ends, and the suite had grown to about 87.88 seconds at pgi-0.35.0. This slice replaces the per-level product and inverse rules with one checked rule for arithmetic in a finite square-root tower over Q. An element is a vector on the basis of products of the adjoined square roots. Multiplication follows `(a + b√d)(c + e√d) = (ac + bed) + (ae + bc)√d`. The inverse is the conjugate over the norm, taken down the tower, and is kept only when it multiplies back to 1.
+
+The old named cases remain tests of that one rule. `1 / (1 + sqrt(sqrt(2) + sqrt(5)))`, `1 / (1 + sqrt(sqrt(2 + sqrt(2))))`, `1 / (1 + a peak)`, `1 / (1 + a fold)`, and `1 / (1 + a crest)` are the same atoms as before, and each still multiplies back to 1 by `inverse_unique`. The same rule closes `1 / (1 + a summit)`, `1 / (1 + an apex)`, `1 / (1 + a shell)`, and further finite depth, and also `1 / (sqrt(sqrt(2) + sqrt(5)) + sqrt(2))`, which is `cauchy(-14/31 + 6/31 * sqrt(2) - 8/31 * sqrt(5) - 1/31 * sqrt(10) - 6/31 * sqrt(sqrt(2) + sqrt(5)) + 7/31 * sqrt(2 * sqrt(2) + 2 * sqrt(5)) + 1/31 * sqrt(5 * sqrt(2) + 5 * sqrt(5)) + 4/31 * sqrt(10 * sqrt(2) + 10 * sqrt(5)))`.
+
+A monic inverse of one named radical keeps its compact absorbed form. A nest times a pair still uses the already closed biquadratic product when the two towers are not a prefix of one another. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a boolean connective the kernel cannot settle, and a set whose upper-bound predicate the kernel cannot decide. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 116 tests, 0 failures, about 57.85 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
