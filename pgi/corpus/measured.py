@@ -31,8 +31,10 @@ UNCERTAINTY_KINDS = frozenset(
         "99.7% interval",
         "acceptance interval",
         "PDG estimated range",
+        "exact, printed truncated",
     }
 )
+_TRUNCATED_KIND = "exact, printed truncated"
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval"})
 _SPLIT_KIND = "statistical and systematic, printed separately"
 
@@ -63,11 +65,26 @@ class Quantity:
 
     @property
     def exact(self) -> bool:
-        return self.uncertainty_kind == "exact"
+        return self.uncertainty_kind in {"exact", _TRUNCATED_KIND}
+
+    @property
+    def truncated(self) -> bool:
+        """Exact by definition, but the source prints only leading digits and '...'."""
+        return self.uncertainty_kind == _TRUNCATED_KIND
 
     @property
     def value(self) -> Fraction:
+        if self.truncated:
+            raise ValueError(f"{self.id} is printed truncated; use truncation_bounds")
         return parse_decimal(self.value_text)
+
+    @property
+    def truncation_bounds(self) -> tuple[Fraction, Fraction]:
+        """For a truncated print such as `5.670 374 419... e-8`: the printed digits and
+        one more unit in the last printed place. The exact value lies in [low, high)."""
+        if not self.truncated:
+            raise ValueError(f"{self.id} is not printed truncated")
+        return parse_truncated(self.value_text)
 
     @property
     def uncertainty(self) -> Fraction | None:
@@ -101,6 +118,20 @@ def parse_decimal(text: str) -> Fraction:
     if not cleaned or "..." in cleaned or "(" in cleaned:
         raise ValueError(f"not an exact decimal: {text!r}")
     return Fraction(cleaned)
+
+
+def parse_truncated(text: str) -> tuple[Fraction, Fraction]:
+    """Read `5.670 374 419... e-8`, digits cut off with '...', as the half-open
+    interval [printed digits, printed digits + one unit in the last place) for a
+    positive value."""
+    cleaned = text.replace(" ", "")
+    head, sep, tail = cleaned.partition("...")
+    if not sep or not head or head.startswith("-") or (tail and not tail.startswith("e")):
+        raise ValueError(f"not a truncated value: {text!r}")
+    places = len(head.partition(".")[2])
+    scale = Fraction(10) ** int(tail[1:]) if tail else Fraction(1)
+    low = Fraction(head) * scale
+    return low, low + Fraction(1, 10**places) * scale
 
 
 def parse_concise(text: str) -> tuple[Fraction, Fraction]:
@@ -146,6 +177,7 @@ def _codata(
     record: bool = True,
 ) -> Quantity:
     exact = uncertainty_text == "(exact)"
+    kind = (_TRUNCATED_KIND if "..." in value_text else "exact") if exact else "standard uncertainty"
     return Quantity(
         id=id,
         name=name,
@@ -153,7 +185,7 @@ def _codata(
         value_text=value_text,
         uncertainty_text="exact" if exact else uncertainty_text,
         unit=unit,
-        uncertainty_kind="exact" if exact else "standard uncertainty",
+        uncertainty_kind=kind,
         source=CODATA_2022_SOURCE,
         edition=CODATA_2022_EDITION,
         url=f"https://physics.nist.gov/cgi-bin/cuu/Value?{code}",
@@ -1519,9 +1551,23 @@ NUCLEAR_CODATA: tuple[Quantity, ...] = (
             keys=_NUCLEAR, phrases=("neutron magnetic moment", "proton magnetic moment", "nucleon magnetic moment")),
 )
 
+_EXACT_DERIVED = (
+    "CODATA lists this constant as exact: it is fixed by the defining constants h, c, and k of the 2019 SI. "
+    "The table prints its leading digits followed by '...', and those digits are stored as printed.",
+)
+
+RADIATION_CONSTANTS: tuple[Quantity, ...] = (
+    _codata("codata2022.sigma", "Stefan-Boltzmann constant", "sigma", "5.670 374 419... e-8", "(exact)", "W m^-2 K^-4", "sigma",
+            keys=("stefan",), phrases=("stefan-boltzmann", "stefan boltzmann", "radiation constant"), notes=_EXACT_DERIVED),
+    _codata("codata2022.b_wien", "Wien wavelength displacement law constant", "b", "2.897 771 955... e-3", "(exact)", "m K", "bwien",
+            keys=("wien",), phrases=("wien displacement", "wien constant", "radiation constant"), notes=_EXACT_DERIVED),
+    _codata("codata2022.b_prime_wien", "Wien frequency displacement law constant", "b'", "5.878 925 757... e10", "(exact)", "Hz K^-1", "bpwien",
+            keys=("wien",), phrases=("wien displacement", "wien constant", "radiation constant"), notes=_EXACT_DERIVED),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS + GRAVITY_TESTS + ATOMIC_SPECTROSCOPY + NUCLEAR_CODATA
+    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS + GRAVITY_TESTS + ATOMIC_SPECTROSCOPY + NUCLEAR_CODATA + RADIATION_CONSTANTS
 )
 
 
@@ -1638,7 +1684,10 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
                 raise ValueError(f"{item.id} needs https urls")
         if len(item.retrieved) != 10 or item.retrieved[4] != "-" or item.retrieved[7] != "-":
             raise ValueError(f"{item.id} needs a retrieval date")
-        item.value
+        if item.truncated:
+            item.truncation_bounds
+        else:
+            item.value
         if not item.exact:
             upper = item.uncertainty
             lower = item.lower_uncertainty

@@ -311,7 +311,12 @@ RECORDS: tuple[Record, ...] = (
 def _quantity_statement(item: Quantity) -> tuple[str, ...]:
     unit = f" {item.unit}" if item.unit else ""
     lines = [f"{item.edition}: {item.name}, {item.symbol} = {item.value_text}{unit}."]
-    if item.exact:
+    if item.truncated:
+        lines.append(
+            "The value is exact. The source prints only its leading digits, so the exact value lies between the printed digits "
+            "and one more unit in the last printed place. It is a definitional anchor. It is not a number derived by this system."
+        )
+    elif item.exact:
         lines.append("The value is exact. It is a definitional anchor. It is not a number derived by this system.")
     elif item.systematic_text:
         lower = f" -{item.systematic_lower_text}" if item.systematic_lower_text else ""

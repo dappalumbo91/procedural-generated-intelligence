@@ -4,7 +4,7 @@ import unittest
 from fractions import Fraction
 
 from pgi.corpus.formulas import FORMULAS, audit_formulas, formula, planck_u, rayleigh_jeans_u
-from pgi.corpus.measured import BOUNDS, QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, quantity
+from pgi.corpus.measured import BOUNDS, QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, parse_truncated, quantity
 from pgi.corpus.records import RECORDS, audit_records
 from pgi.engine import unfold
 from pgi.model import Request
@@ -52,7 +52,13 @@ class QuantityLoadTests(unittest.TestCase):
             self.assertTrue(item.retrieved_from.startswith("https://"), item.id)
             self.assertEqual(item.retrieved, "2026-11-25")
             self.assertTrue(item.edition)
-            self.assertEqual(item.value, parse_decimal(item.value_text))
+            if item.truncated:
+                with self.assertRaises(ValueError):
+                    item.value
+                low, high = item.truncation_bounds
+                self.assertLess(low, high)
+            else:
+                self.assertEqual(item.value, parse_decimal(item.value_text))
             if item.record:
                 record = board[item.id]
                 self.assertIn(item.value_text, " ".join(record.statement))
@@ -737,6 +743,68 @@ class NuclearCodataTests(unittest.TestCase):
         session = unfold(Request(ask="nucleon magnetic moment", seed=1))
         linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
         self.assertEqual(linked, {"codata2022.mu_p", "codata2022.mu_n", "codata2022.mu_p_over_mu_n_nuclear", "codata2022.mu_n_over_mu_n_nuclear", "codata2022.mu_n_over_mu_p"})
+        self.assertEqual(session.retracted, ())
+
+
+def _exp_enclosure(y: Fraction, terms: int = 60) -> tuple[Fraction, Fraction]:
+    """e^y for 0 <= y < terms + 2: the Taylor partial sum, and that sum plus a geometric bound on the tail."""
+    total, term = Fraction(0), Fraction(1)
+    for n in range(terms + 1):
+        total += term
+        term = term * y / (n + 1)
+    return total, total + term / (1 - y / (terms + 2))
+
+
+def _wien_root(n: int, guess: float) -> tuple[Fraction, Fraction]:
+    """Enclose the positive root of x = n (1 - e^-x), checked in exact rationals:
+    f(x) = x - n + n e^-x is increasing past ln n, negative below the root and positive above it."""
+    low = Fraction(round(guess * 10**15) - 100, 10**15)
+    high = Fraction(round(guess * 10**15) + 100, 10**15)
+    exp_low_lo, exp_low_hi = _exp_enclosure(low)
+    exp_high_lo, exp_high_hi = _exp_enclosure(high)
+    assert low - n + n / exp_low_lo < 0  # largest possible e^-low still leaves f(low) < 0
+    assert high - n + n / exp_high_hi > 0  # smallest possible e^-high still leaves f(high) > 0
+    return low, high
+
+
+class RadiationConstantTests(unittest.TestCase):
+    def test_truncated_print_is_read_as_a_half_open_interval(self) -> None:
+        self.assertEqual(parse_truncated("5.670 374 419... e-8"), (Fraction(5670374419, 10**17), Fraction(5670374420, 10**17)))
+        with self.assertRaises(ValueError):
+            parse_truncated("5.670 374 419 e-8")
+        for id in ("codata2022.sigma", "codata2022.b_wien", "codata2022.b_prime_wien"):
+            item = quantity(id)
+            self.assertTrue(item.exact and item.truncated, id)
+            self.assertEqual(item.uncertainty_kind, "exact, printed truncated")
+            self.assertIsNone(item.uncertainty)
+            record = {r.id: r for r in RECORDS}[id]
+            self.assertEqual(record.forbids, (f"derived({id})",))
+
+    def test_stefan_boltzmann_follows_from_h_c_k_with_an_exact_pi_enclosure(self) -> None:
+        h, c, k = (quantity(f"codata2022.{x}").value for x in ("h", "c", "k"))
+        pi_low, pi_high = _pi_enclosure(30)
+        factor = 2 * k**4 / (15 * h**3 * c**2)
+        low, high = quantity("codata2022.sigma").truncation_bounds
+        self.assertLessEqual(low, factor * pi_low**5)
+        self.assertLess(factor * pi_high**5, high)
+
+    def test_wien_constants_follow_from_h_c_k_and_the_exact_roots(self) -> None:
+        h, c, k = (quantity(f"codata2022.{x}").value for x in ("h", "c", "k"))
+        x5_low, x5_high = _wien_root(5, 4.965114231744276)
+        x3_low, x3_high = _wien_root(3, 2.821439372122079)
+        b_low, b_high = quantity("codata2022.b_wien").truncation_bounds
+        self.assertLessEqual(b_low, h * c / (k * x5_high))
+        self.assertLess(h * c / (k * x5_low), b_high)
+        bp_low, bp_high = quantity("codata2022.b_prime_wien").truncation_bounds
+        self.assertLessEqual(bp_low, x3_low * k / h)
+        self.assertLess(x3_high * k / h, bp_high)
+        # The two peaks differ: b' b / c = x3 / x5, well below 1.
+        self.assertLess(bp_high * b_high / c, Fraction(6, 10))
+
+    def test_radiation_constant_ask_links(self) -> None:
+        session = unfold(Request(ask="show the radiation constant values", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"codata2022.sigma", "codata2022.b_wien", "codata2022.b_prime_wien"} <= linked)
         self.assertEqual(session.retracted, ())
 
 

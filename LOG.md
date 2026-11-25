@@ -842,3 +842,13 @@ Christoffel symbols, Riemann, Ricci, and the scalar curvature are computed exact
 The next mathematics is Hilbert space, then gauge theory. Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 227 tests, 0 failures, about 64.43 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Stefan–Boltzmann and Wien constants, exact and printed truncated pgi-0.67.0
+
+σ, b, and b′ are on the board from CODATA 2022 as exact definitional anchors. CODATA prints them as `5.670 374 419... e-8`, `2.897 771 955... e-3`, and `5.878 925 757... e10`, and the digits are stored as printed. The new kind `exact, printed truncated` makes the record an interval [digits, digits + 1 ulp). `value` refuses it, `truncation_bounds` gives it, and the statement says so.
+
+The tests check σ = 2π⁵k⁴/(15h³c²) with an exact Machin enclosure of π. The Wien roots of x = 5(1 − e^−x) and x = 3(1 − e^−x) are enclosed by rational Taylor bounds and a sign check. hc/(k x₅) and x₃k/h fall inside the printed intervals. All of it is exact rationals.
+
+That is 3 new records, and batch 4 is complete.
+
+`python -m unittest discover -s tests -v` finished 231 tests, 0 failures, about 69.11 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
