@@ -249,6 +249,35 @@ class MercuryTests(unittest.TestCase):
         self.assertNotIn("43.03", text)
 
 
+class MercuryModernTests(unittest.TestCase):
+    def test_modern_records_load_with_their_kinds(self) -> None:
+        self.assertEqual(quantity("mercury.park2017.total_precession").value, Fraction(5753100, 10**4))
+        self.assertEqual(quantity("mercury.park2017.beta_minus_1").value, Fraction(-27, 10**6))
+        self.assertIn("-2.6", " ".join(quantity("mercury.park2017.beta_minus_1").notes))
+        self.assertEqual(quantity("mercury.epm2011.beta_minus_1").uncertainty_kind, "3 sigma")
+        self.assertEqual(quantity("mercury.epm2011.gamma_minus_1").value, Fraction(4, 10**5))
+        self.assertEqual(
+            quantity("mercury.epm2011.extra_perihelion_precession").uncertainty_kind, "standard uncertainty"
+        )
+        # Clemence stays on the board beside the modern numbers.
+        self.assertEqual(quantity("mercury.clemence1947.residual").value, Fraction(4256, 100))
+
+    def test_the_modern_residual_is_inside_its_uncertainty(self) -> None:
+        extra = quantity("mercury.epm2011.extra_perihelion_precession")
+        self.assertLess(abs(extra.value), extra.uncertainty)
+
+    def test_ppn_determinations_overlap(self) -> None:
+        def overlap(a: Quantity, b: Quantity) -> bool:
+            return a.value - a.lower_uncertainty <= b.value + b.uncertainty and b.value - b.lower_uncertainty <= a.value + a.uncertainty
+
+        self.assertTrue(overlap(quantity("mercury.park2017.beta_minus_1"), quantity("mercury.epm2011.beta_minus_1")))
+        self.assertTrue(overlap(quantity("cassini.bertotti2003.gamma_minus_1"), quantity("mercury.epm2011.gamma_minus_1")))
+        for id in ("mercury.park2017.beta_minus_1", "mercury.epm2011.beta_minus_1", "cassini.bertotti2003.gamma_minus_1", "mercury.epm2011.gamma_minus_1"):
+            item = quantity(id)
+            self.assertLessEqual(item.value - item.lower_uncertainty, 0, id)
+            self.assertLessEqual(0, item.value + item.uncertainty, id)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
@@ -375,6 +404,14 @@ class PhysicsBoardTests(unittest.TestCase):
         self.assertIn("law(newtonian_perturbations_explain_mercury_perihelion)", session.retracted)
         self.assertIn("record(mercury.clemence1947.residual)", [claim.atom for claim in session.claims])
         self.assertIn("42.56", session.text(lod=2))
+
+    def test_mercury_asks_link_both_eras(self) -> None:
+        text = unfold(Request(ask="what is the mercury perihelion residual", seed=1)).text(lod=2)
+        self.assertIn("record(mercury.clemence1947.residual)", text)
+        self.assertIn("record(mercury.park2017.total_precession)", text)
+        self.assertIn("record(mercury.epm2011.extra_perihelion_precession)", text)
+        self.assertIn("575.3100", text)
+        self.assertIn("-0.020", text)
 
     def test_speed_of_gravity_links_the_bound(self) -> None:
         session = unfold(Request(ask="what is the speed of gravity", seed=1))

@@ -254,9 +254,19 @@ The tests evaluate both stored texts with the CODATA `h`, `k`, and `c`. At `h ν
 
 The characteristic polynomial of a square rational matrix is `det(tI - A)`, monic in t. It is kept only when Faddeev–LeVerrier agrees with interpolation through those determinants, the polynomial annihilates the matrix, and it matches the determinant at an extra point. `charpoly([[1, 2], [3, 4]])` is `x^2 - 5 * x - 2`. `charpoly([[0, -1], [1, 0]])` is `x^2 + 1`. `charpoly([[2, 0, 0], [0, 3, 0], [0, 0, 5]])` is `x^3 - 10 * x^2 + 31 * x - 30`. Real eigenvalues are the real roots of that polynomial, isolated by the algebraic-number kernel. `eigenvalues([[0, 1], [1, 0]])` is `{-1, 1}`. `eigenvalues([[0, 2], [1, 0]])` is `{-sqrt(2), sqrt(2)}`. `eigenvalues([[1, 2], [3, 4]])` is `{5/2 - 1/2 * sqrt(33), 5/2 + 1/2 * sqrt(33)}`. A characteristic polynomial with no real root, such as `eigenvalues([[0, -1], [1, 0]])`, yields the empty set. A non-square matrix has no characteristic polynomial here.
 
+### Modern Mercury perihelion and PPN fits
+
+Clemence's 1947 table stays on the board. Beside it are the modern ephemeris numbers, each in the notation and with the uncertainty label of its paper.
+
+Park, Folkner, Konopliv, Williams, Smith, and Zuber, Astron. J. 153, 121 (2017), fitted JPL's ephemeris with MESSENGER ranging from 2011 March to 2014 August. The total precession rate of Mercury's perihelion is `575.3100 ± 0.0015` arcseconds per Julian century, measured along Mercury's mean orbit plane. That frame has no general precession, so the number is not comparable to Clemence's `5599.74`. With `γ` held at the Cassini value as a considered parameter, `β − 1 = (−2.7 ± 3.9) × 10^-5` and the solar `J2 = (2.25 ± 0.09) × 10^-7`. The abstract and conclusions print `−2.7`. Table 1 prints `−2.6`. The abstract value is stored and the difference is written on the record. The paper names no confidence level, so the kind is `uncertainty as printed, level not stated`. The computed contributions in its Table 3, the relativistic ones included, are not stored.
+
+Pitjeva and Pitjev, Mon. Not. R. Astron. Soc. 432, 3431 (2013), fitted EPM2011 to about 780 thousand observations. Mercury's additional perihelion precession beyond every modeled effect is `−0.020 ± 0.030` mas/yr, with the uncertainty called σ. That is the modern residual. The same paper gives `β − 1 = −0.00002 ± 0.00003` and `γ − 1 = +0.00004 ± 0.00006` at 3σ. Bertotti, Iess, and Tortora, Nature 425, 374 (2003), give `γ − 1 = (2.1 ± 2.3) × 10^-5` from Cassini.
+
+The tests check that the EPM2011 residual sits inside its own uncertainty, that the two `β` intervals overlap, that the Cassini and EPM2011 `γ` intervals overlap, and that each `β − 1` and `γ − 1` interval contains zero. That is 7 new quantities and 7 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.52.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.53.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -265,4 +275,4 @@ This list is the current state as of `pgi-0.52.0`. Earlier sections above are hi
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
 - Manifolds, differential geometry, Hilbert space, and gauge theory are still ahead of any physical law.
-- CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The rest of the gravitational-wave catalogs and a modern Mercury reduction are not.
+- CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The modern Mercury fits are on the board since `pgi-0.53.0`. The rest of the gravitational-wave catalogs are not.

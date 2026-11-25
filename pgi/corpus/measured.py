@@ -24,6 +24,8 @@ UNCERTAINTY_KINDS = frozenset(
         "uncertainty at CL = 90%",
         "probable error",
         "90% credible interval",
+        "uncertainty as printed, level not stated",
+        "3 sigma",
     }
 )
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval"})
@@ -368,7 +370,203 @@ GW150914: tuple[Quantity, ...] = (
     _gw150914("gw150914.redshift", "GW150914 redshift", "z", "0.09", "0.03", "0.03", "", notes=("GWTC-1 computes this redshift from the luminosity distance under its assumed cosmology.",)),
 )
 
-QUANTITIES: tuple[Quantity, ...] = CODATA_2022 + PDG_2026 + MERCURY + GW150914
+def _q(
+    id: str,
+    name: str,
+    symbol: str,
+    value_text: str,
+    uncertainty_text: str,
+    unit: str,
+    *,
+    kind: str,
+    source: str,
+    edition: str,
+    url: str,
+    retrieved_from: str,
+    keys: tuple[str, ...] = (),
+    phrases: tuple[str, ...] = (),
+    notes: tuple[str, ...] = (),
+    lower_text: str = "",
+    printed: str = "",
+    forbids: tuple[str, ...] = (),
+) -> Quantity:
+    return Quantity(
+        id=id,
+        name=name,
+        symbol=symbol,
+        value_text=value_text,
+        uncertainty_text=uncertainty_text,
+        unit=unit,
+        uncertainty_kind=kind,
+        source=source,
+        edition=edition,
+        url=url,
+        retrieved_from=retrieved_from,
+        retrieved=RETRIEVED,
+        keys=keys,
+        phrases=phrases,
+        notes=notes,
+        lower_text=lower_text,
+        printed=printed,
+        forbids=forbids,
+    )
+
+
+PARK_2017_SOURCE = (
+    "R. S. Park, W. M. Folkner, A. S. Konopliv, J. G. Williams, D. E. Smith, and M. T. Zuber, Precession of Mercury's "
+    "Perihelion from Ranging to the MESSENGER Spacecraft, Astron. J. 153, 121 (2017), doi:10.3847/1538-3881/aa5be2."
+)
+PARK_2017_EDITION = "AJ 153:121 (2017 March)"
+PARK_2017_URL = "https://doi.org/10.3847/1538-3881/aa5be2"
+PARK_2017_PDF = "https://iopscience.iop.org/article/10.3847/1538-3881/aa5be2/pdf"
+_PARK_LEVEL = "The paper prints this uncertainty without naming a confidence level, so none is assigned here."
+_PARK_GAMMA = "The fit holds gamma as a considered parameter with the Cassini a priori uncertainty 2.3 e-5, and the solar angular momentum from helioseismology."
+
+PITJEVA_2013_SOURCE = (
+    "E. V. Pitjeva and N. P. Pitjev, Relativistic effects and dark matter in the Solar system from observations of planets "
+    "and spacecraft, Mon. Not. R. Astron. Soc. 432, 3431-3437 (2013), doi:10.1093/mnras/stt695, arXiv:1306.3043."
+)
+PITJEVA_2013_EDITION = "EPM2011 ephemeris, MNRAS 432 (2013)"
+PITJEVA_2013_URL = "https://doi.org/10.1093/mnras/stt695"
+PITJEVA_2013_PDF = "https://arxiv.org/pdf/1306.3043"
+
+BERTOTTI_2003_SOURCE = (
+    "B. Bertotti, L. Iess, and P. Tortora, A test of general relativity using radio links with the Cassini spacecraft, "
+    "Nature 425, 374-376 (2003), doi:10.1038/nature01997."
+)
+
+MERCURY_MODERN: tuple[Quantity, ...] = (
+    _q(
+        "mercury.park2017.total_precession",
+        "total precession rate of Mercury's perihelion in the frame of Mercury's mean orbit plane",
+        "dot(omega) Mercury",
+        "575.3100",
+        "0.0015",
+        "arcsec per Julian century",
+        kind="uncertainty as printed, level not stated",
+        source=PARK_2017_SOURCE + " Table 3, Total.",
+        edition=PARK_2017_EDITION,
+        url=PARK_2017_URL,
+        retrieved_from=PARK_2017_PDF,
+        keys=("mercury", "perihelion", "messenger"),
+        phrases=("perihelion of mercury", "mercury perihelion"),
+        notes=(
+            "The rate comes from JPL's ephemeris fit that includes MESSENGER ranging, 2011 March to 2014 August.",
+            "It is measured along Mercury's mean orbit plane, not against the moving equinox, so it does not contain general precession and is not comparable to Clemence's 5599.74.",
+            "Table 3 splits the total into contributions computed in that fit, including relativistic terms. Those computed terms are not stored.",
+            "The uncertainty is the root-sum-square of the Table 3 uncertainties, as the paper states.",
+            _PARK_LEVEL,
+        ),
+    ),
+    _q(
+        "mercury.park2017.beta_minus_1",
+        "PPN parameter beta minus one from MESSENGER ranging",
+        "beta - 1",
+        "-2.7 e-5",
+        "3.9 e-5",
+        "",
+        kind="uncertainty as printed, level not stated",
+        source=PARK_2017_SOURCE + " Abstract and Section 5.",
+        edition=PARK_2017_EDITION,
+        url=PARK_2017_URL,
+        retrieved_from=PARK_2017_PDF,
+        keys=("mercury", "messenger", "ppn"),
+        phrases=("ppn beta", "post-newtonian beta"),
+        notes=(
+            "The abstract and the conclusions print (beta - 1) = (-2.7 +- 3.9) x 10^-5. Table 1 of the same paper prints -2.6 +- 3.9 in units of 10^-5. The abstract value is stored and the difference is recorded here.",
+            _PARK_GAMMA,
+            _PARK_LEVEL,
+        ),
+    ),
+    _q(
+        "mercury.park2017.solar_j2",
+        "solar quadrupole moment from MESSENGER ranging",
+        "J2_sun",
+        "2.25 e-7",
+        "0.09 e-7",
+        "",
+        kind="uncertainty as printed, level not stated",
+        source=PARK_2017_SOURCE + " Abstract and Table 1.",
+        edition=PARK_2017_EDITION,
+        url=PARK_2017_URL,
+        retrieved_from=PARK_2017_PDF,
+        keys=("mercury", "messenger"),
+        phrases=("solar quadrupole", "solar oblateness", "solar j2"),
+        notes=(_PARK_GAMMA, _PARK_LEVEL),
+    ),
+    _q(
+        "mercury.epm2011.extra_perihelion_precession",
+        "additional perihelion precession of Mercury beyond all modeled effects, EPM2011",
+        "Delta dot(pi) Mercury",
+        "-0.020",
+        "0.030",
+        "mas per year",
+        kind="standard uncertainty",
+        source=PITJEVA_2013_SOURCE + " Table 4.",
+        edition=PITJEVA_2013_EDITION,
+        url=PITJEVA_2013_URL,
+        retrieved_from=PITJEVA_2013_PDF,
+        keys=("mercury", "perihelion", "epm2011"),
+        phrases=("perihelion of mercury", "mercury perihelion", "supplementary perihelion"),
+        notes=(
+            "This is the residual of the modern ephemeris: a correction fitted on top of every known effect, relativistic ones included, from about 780 thousand observations.",
+            "The paper calls the printed uncertainty sigma and says it can be treated as an upper limit on an additional secular drift.",
+        ),
+    ),
+    _q(
+        "mercury.epm2011.beta_minus_1",
+        "PPN parameter beta minus one, EPM2011",
+        "beta - 1",
+        "-0.00002",
+        "0.00003",
+        "",
+        kind="3 sigma",
+        source=PITJEVA_2013_SOURCE + " Eq. (3).",
+        edition=PITJEVA_2013_EDITION,
+        url=PITJEVA_2013_URL,
+        retrieved_from=PITJEVA_2013_PDF,
+        keys=("epm2011", "ppn"),
+        phrases=("ppn beta", "post-newtonian beta"),
+        notes=("Beta and gamma were fitted together. The paper prints the uncertainty as 3 sigma.",),
+    ),
+    _q(
+        "mercury.epm2011.gamma_minus_1",
+        "PPN parameter gamma minus one, EPM2011",
+        "gamma - 1",
+        "+0.00004",
+        "0.00006",
+        "",
+        kind="3 sigma",
+        source=PITJEVA_2013_SOURCE + " Eq. (3).",
+        edition=PITJEVA_2013_EDITION,
+        url=PITJEVA_2013_URL,
+        retrieved_from=PITJEVA_2013_PDF,
+        keys=("epm2011", "ppn"),
+        phrases=("ppn gamma", "post-newtonian gamma"),
+        notes=("Beta and gamma were fitted together. The paper prints the uncertainty as 3 sigma.",),
+    ),
+    _q(
+        "cassini.bertotti2003.gamma_minus_1",
+        "PPN parameter gamma minus one from the Cassini radio frequency shift",
+        "gamma - 1",
+        "2.1 e-5",
+        "2.3 e-5",
+        "",
+        kind="uncertainty as printed, level not stated",
+        source=BERTOTTI_2003_SOURCE + " Abstract.",
+        edition="Nature 425 (2003 September)",
+        url="https://doi.org/10.1038/nature01997",
+        retrieved_from="https://www.nature.com/articles/nature01997",
+        keys=("cassini", "ppn", "shapiro"),
+        phrases=("ppn gamma", "post-newtonian gamma"),
+        notes=(
+            "The abstract prints gamma = 1 + (2.1 +- 2.3) x 10^-5, from the frequency shift of radio photons to and from Cassini near solar conjunction in 2002.",
+            "The abstract does not name a confidence level for the uncertainty, so none is assigned here.",
+        ),
+    ),
+)
+
+QUANTITIES: tuple[Quantity, ...] = CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914
 
 
 @dataclass(frozen=True)

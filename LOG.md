@@ -694,3 +694,17 @@ The characteristic polynomial of a square rational matrix is `det(tI - A)`, moni
 The next mathematics, in GOAL order, is manifolds, then differential geometry, Hilbert space, and gauge theory. A modern Mercury reduction, the rest of the gravitational-wave catalogs, and atomic-clock comparisons are being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 169 tests, 0 failures, about 50.61 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — modern Mercury perihelion and PPN fits pgi-0.53.0
+
+The modern Mercury numbers are on the board beside Clemence's. Park et al., Astron. J. 153, 121 (2017), doi:10.3847/1538-3881/aa5be2, read from the IOP PDF: total perihelion rate `575.3100 ± 0.0015` arcsec per Julian century along Mercury's mean orbit plane, `β − 1 = (−2.7 ± 3.9) × 10^-5`, and solar `J2 = (2.25 ± 0.09) × 10^-7`. Table 1 of that paper prints `−2.6` for `β − 1`; the abstract value is stored and the difference is recorded. Pitjeva and Pitjev, MNRAS 432, 3431 (2013), EPM2011, from arXiv:1306.3043: Mercury's additional perihelion precession `−0.020 ± 0.030` mas/yr, and `β − 1 = −0.00002 ± 0.00003`, `γ − 1 = +0.00004 ± 0.00006` at 3σ. Bertotti, Iess, and Tortora, Nature 425, 374 (2003): `γ − 1 = (2.1 ± 2.3) × 10^-5`.
+
+The uncertainty kinds gain `uncertainty as printed, level not stated`, for Park and Bertotti, and `3 sigma`. A confidence level is not guessed. The computed relativistic contributions in Park's Table 3 are not stored. INPOP was not added in this slice.
+
+The EPM2011 residual sits inside its uncertainty. The two `β` intervals overlap, the Cassini and EPM2011 `γ` intervals overlap, and every `β − 1` and `γ − 1` interval contains zero. That is 7 new quantities and 7 new records.
+
+The publish step had been rewriting every copy of the old version string in GOAL.md, which moved the dates in two earlier entries. They are put back: PDG 2026 entered in `pgi-0.49.0`, and GW150914 with the GW170817 bound in `pgi-0.50.0`. Only the current-version lines change now.
+
+The next slice is cosmology: Planck 2018, SH0ES, DESI DR2, and the CMB temperature.
+
+`python -m unittest discover -s tests -v` finished 173 tests, 0 failures, about 52.20 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
