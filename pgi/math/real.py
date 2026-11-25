@@ -57,6 +57,10 @@ deeper, by `real_sqrt_unique`. Every further finite square root of one positive
 binomial nest is the same nested radical, one square root deeper, by the same
 rule. A sum of the two conjugate binomial nests from a denested two-radical
 square root has the difference of those nests as its inverse.
+A further finite square root of one positive binomial nest, a fold, has
+the inverse given by that fold times the inverse of its square.
+`1 / sqrt(sqrt(sqrt(2 + sqrt(2))))` is
+`sqrt(sqrt(2 * sqrt(676 + 478 * sqrt(2)))) - 1/2 * sqrt(2 * sqrt(2 * sqrt(676 + 478 * sqrt(2))))`.
 A radicand the kernel cannot see as nonnegative stays open.
 Division multiplies by the inverse.
 That inverse lies in the same span, and its product with the divisor is the
@@ -3211,6 +3215,25 @@ def _fold_times_term(
     return _sqrt_of_form(_scale(core, _ratio(extra[0] * other_rad, 1)))
 
 
+def _fold_times_deep(
+    extra: tuple[int, ...],
+    mult: int,
+    constant: int,
+    sqrt_coeff: int,
+    rad: int,
+    deep_mult: int,
+    deep_const: int,
+    deep_sqrt: int,
+    deep_rad: int,
+) -> RealForm:
+    if deep_rad != rad:
+        raise NotExact("this nested radical stays outside")
+    core = _fold_core(extra, mult, constant, sqrt_coeff, rad)
+    other = _deep_form(_ratio(1, 1), deep_mult, deep_const, deep_sqrt, deep_rad)
+    squared = _square_deep(other)
+    return _sqrt_of_form(_scale(_mul_forms(core, squared), _ratio(extra[0], 1)))
+
+
 def _fold_times_fold(
     extra: tuple[int, ...],
     mult: int,
@@ -3247,7 +3270,6 @@ def _mul_one_fold(
         other.towers
         or other.nests
         or other.pairs
-        or other.deeps
         or other.highs
         or other.peaks
         or other.crests
@@ -3256,6 +3278,19 @@ def _mul_one_fold(
         or other.shells
     ):
         raise NotExact("this nested radical stays outside")
+    for deep_coeff, deep_mult, deep_const, deep_sqrt, deep_rad in other.deeps:
+        scaled = _fold_times_deep(
+            extra,
+            mult,
+            constant,
+            sqrt_coeff,
+            rad,
+            deep_mult,
+            deep_const,
+            deep_sqrt,
+            deep_rad,
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, deep_coeff)))
     for (
         fold_coeff,
         other_extra,
@@ -3298,7 +3333,7 @@ def _invert_fold(form: RealForm) -> RealForm:
     ):
         raise NotExact("this quotient stays outside")
     try:
-        return _sqrt_of_form(_inverse_form(_square_fold(form)))
+        return _mul_forms(form, _inverse_form(_square_fold(form)))
     except NotExact as exc:
         raise NotExact("this quotient stays outside") from exc
 

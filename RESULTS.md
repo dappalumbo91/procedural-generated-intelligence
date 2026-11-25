@@ -1,8 +1,8 @@
-# Results through pgi-0.28.0
+# Results through pgi-0.29.0
 
 Procedural Generated Intelligence (PGI) unfolds answers from compact rules, seeds, and constraints. The store is generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and the kernel saturates the active packs, retracts contradictions, and renders the settled claims at the requested level of detail.
 
-This note records what the folder holds at rule version `pgi-0.28.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
+This note records what the folder holds at rule version `pgi-0.29.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
 
 ## What the kernel holds
 
@@ -21,7 +21,7 @@ In the kernel now:
 - Boolean connectives the kernel can settle: a conjunction of two comparisons, the complement of an order ray, and a disjunction of two closed equalities.
 - A link board of sourced records in `pgi/corpus/records.py`. Asking about a subject unfolds the record. The record is not a settled answer. Re-asserting a forbidden law contests that law against the record.
 - One domain pack: causal path risk from weather, cover, and light.
-- GNU Octave 11.3.0 cross-checks closed integers inside the exact range of an IEEE double. One test calls it. Octave is not used for rationals, reals, sets, or this root.
+- GNU Octave cross-checks closed integers inside the exact range of an IEEE double. One test calls it. The binary is taken from `PGI_OCTAVE`, then `octave-cli` on PATH, then the Windows 11.3.0 install path used on this project's machine. The test skips when none of those is found. Octave is not used for rationals, reals, sets, or this root.
 
 ## The goal
 
@@ -92,8 +92,9 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 | pgi-0.22.0 through pgi-0.26.0 | Five further named depths of the pair | 106 to 110 | about 1.59 s to about 3.60 s |
 | pgi-0.27.0 | Every further finite depth of the pair, as shells | 111 | about 5.22 s |
 | pgi-0.28.0 | Every further finite depth of the nested binomial, and the inverse of the denested sum | 112 | about 5.30 s |
+| pgi-0.29.0 | Inverse of a further square root of the nested binomial | 113 | about 5.60 s |
 
-`python -m unittest discover -s tests -v` at pgi-0.28.0 finished 112 tests, 0 failures, in 5.304 seconds, on Python 3.14. That is the about 5.30 seconds in the table. One test still calls GNU Octave 11.3.0.
+`python -m unittest discover -s tests -v` at pgi-0.29.0 finished 113 tests, 0 failures, in 5.595 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 5.60 seconds in the table. One test calls GNU Octave through the portable lookup.
 
 ### Why the two open radicals stayed open, and what closed them
 
@@ -101,8 +102,12 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 
 `1 / sqrt(sqrt(2) + sqrt(3))` stayed open because the inverse reader expected one nest plus its `sqrt(rad)` partner. The denesting is a sum of two nests, and the second nest is not that partner. Their squares differ by the rational 1, so the inverse is the conjugate difference already admitted by the denesting: `cauchy(-1/2 * sqrt(-2 + 2 * sqrt(3)) + 1/2 * sqrt(2 + 2 * sqrt(3)))`. It multiplies back to 1. The same rule gives the inverse of `sqrt(sqrt(6) + sqrt(2))` as `cauchy(-1/4 * sqrt(-4 + 2 * sqrt(6)) + 1/4 * sqrt(4 + 2 * sqrt(6)))`.
 
+### The inverse of a further fold
+
+The inverse of `sqrt(sqrt(sqrt(2 + sqrt(2))))` stayed outside because the fold inverse asked for the square root of the inverse of the deep, and that inverse is a difference of two deeps. pgi-0.29.0 uses the same field law as the inverse of a deep: the fold times the inverse of its square. A fold times a deep on the same square-free integer is the square root of the core times the square of that deep, by `real_sqrt_unique`. The product is a difference of two folds, and it multiplies back to 1 by `inverse_unique`. `1 / sqrt(sqrt(sqrt(2 + sqrt(2))))` is `cauchy(sqrt(sqrt(2 * sqrt(676 + 478 * sqrt(2)))) - 1/2 * sqrt(2 * sqrt(2 * sqrt(676 + 478 * sqrt(2)))))`. One more square root has the same rule, and it also multiplies back to 1.
+
 ### Still outside
 
-The inverse of `sqrt(sqrt(sqrt(2 + sqrt(2))))` stays outside: the inverse of the deep is a difference of two deeps, and that quotient has no rule yet. `sqrt(1 + sqrt(2) + sqrt(5))` stays outside. A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside, as does `1 / (1 + ...)` on the pair ladder. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
+`sqrt(1 + sqrt(2) + sqrt(5))` stays outside. A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside, as does `1 / (1 + ...)` on the pair ladder. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
 
 `primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.

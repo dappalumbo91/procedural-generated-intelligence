@@ -1270,7 +1270,53 @@ class ContinuumTests(unittest.TestCase):
         negative = run(Request(ask=f"what is sqrt(-{triple})", seed=1))
         self.assertIn("square root of a negative stays open", negative.text(lod=1))
 
+    def test_inverse_of_a_further_nested_binomial(self) -> None:
+        triple = "sqrt(sqrt(sqrt(2 + sqrt(2))))"
+        shown = (
+            "sqrt(sqrt(2 * sqrt(676 + 478 * sqrt(2)))) "
+            "- 1/2 * sqrt(2 * sqrt(2 * sqrt(676 + 478 * sqrt(2))))"
+        )
+        inverse = run(Request(ask=f"what is 1 / {triple}", seed=1))
+        self.assertEqual(inverse.claims[0].atom, f"cauchy({shown})")
+        self.assertIn("inverse_unique", inverse.text(lod=2))
+        self.assertEqual(inverse.open_gaps, ())
+        back = run(
+            Request(
+                ask=f"prove (1 / {triple}) * {triple} = 1",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            back.claims[0].atom,
+            f"identity(1 / {triple} * {triple} = 1)",
+        )
+        self.assertEqual(back.open_gaps, ())
+        fourth = f"sqrt({triple})"
+        deeper_shown = (
+            "sqrt(sqrt(2 * sqrt(2 * sqrt(780100 + 551614 * sqrt(2))))) "
+            "- 1/2 * sqrt(2 * sqrt(2 * sqrt(2 * sqrt(780100 + 551614 * sqrt(2)))))"
+        )
+        deeper = run(Request(ask=f"what is 1 / {fourth}", seed=1))
+        self.assertEqual(deeper.claims[0].atom, f"cauchy({deeper_shown})")
+        self.assertIn("inverse_unique", deeper.text(lod=2))
+        self.assertEqual(deeper.open_gaps, ())
+        deeper_back = run(
+            Request(
+                ask=f"prove (1 / {fourth}) * {fourth} = 1",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            deeper_back.claims[0].atom,
+            f"identity(1 / {fourth} * {fourth} = 1)",
+        )
+        self.assertEqual(deeper_back.open_gaps, ())
+        shifted = run(Request(ask=f"what is 1 / (1 + {triple})", seed=1))
+        self.assertIn("this quotient stays outside", shifted.text(lod=1))
+        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in shifted.claims))
+
     def test_integer_order_is_unchanged(self) -> None:
+
         held = run(Request(ask="prove 2 <= 5", seed=1))
         self.assertEqual(held.claims[0].atom, "le(2,5)")
         self.assertNotIn("cauchy", held.text(lod=2))

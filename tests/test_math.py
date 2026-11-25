@@ -5,7 +5,7 @@ import unittest
 from pgi.engine import unfold
 from pgi.math.axioms import AXIOMS, LOGIC
 from pgi.math.kernel import KernelError, Theorem, anchor, apply_axiom, refl
-from pgi.math.octave_check import octave_integers
+from pgi.math.octave_check import octave_cli, octave_integers
 from pgi.math.rational import Ratio, RatTheorem, rat_normalize
 from pgi.math.syntax import App, Eq, IntLit, Var, parse_term
 from pgi.model import Request
@@ -109,6 +109,8 @@ class MathKernelTests(unittest.TestCase):
         self.assertIn("Contested claims blocked a settled answer.", clash.open_gaps)
 
     def test_octave_agrees_on_exact_integers(self) -> None:
+        if octave_cli() is None:
+            self.skipTest("Octave was not found")
         expressions = ["17+13", "(2+3)*4", "2+3*4", "-5+3", "15-7", "999+1", "8/2", "(17+13)+1"]
         expected = []
         for expression in expressions:

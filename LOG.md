@@ -385,3 +385,20 @@ The inverse of `sqrt(sqrt(sqrt(2 + sqrt(2))))` stays outside. `sqrt(1 + sqrt(2) 
 The next gap is the inverse of `sqrt(sqrt(sqrt(2+sqrt(2))))`. `sqrt(1+sqrt(2)+sqrt(5))` stays outside. A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 112 tests, 0 failures, about 5.30 seconds, on Python 3.14. One test still calls GNU Octave 11.3.0.
+
+
+## 2026-11-25 — inverse of a further square root of the nested binomial pgi-0.29.0
+
+The inverse of a fold is the fold times the inverse of its square, the same field law the inverse of a deep already uses. The square of `sqrt(sqrt(sqrt(2 + sqrt(2))))` is the deep `sqrt(sqrt(2 + sqrt(2)))`. The inverse of that deep is the difference of two deeps already admitted. A fold times a deep on the same square-free integer is the square root of the core times the square of that deep, by `real_sqrt_unique`. The product is a difference of two folds, and it multiplies back to 1 by `inverse_unique`.
+
+`1 / sqrt(sqrt(sqrt(2 + sqrt(2))))` is `cauchy(sqrt(sqrt(2 * sqrt(676 + 478 * sqrt(2)))) - 1/2 * sqrt(2 * sqrt(2 * sqrt(676 + 478 * sqrt(2)))))`. One more square root has the same rule: `1 / sqrt(sqrt(sqrt(sqrt(2 + sqrt(2)))))` is `cauchy(sqrt(sqrt(2 * sqrt(2 * sqrt(780100 + 551614 * sqrt(2))))) - 1/2 * sqrt(2 * sqrt(2 * sqrt(2 * sqrt(780100 + 551614 * sqrt(2))))))`. Each multiplies back to 1.
+
+`sqrt(1 + sqrt(2) + sqrt(5))` stays outside. A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is `sqrt(1+sqrt(2)+sqrt(5))`. A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+The Octave cross-check finds `octave-cli` from `PGI_OCTAVE`, then PATH, then the Windows 11.3.0 install path, and the test skips when none is found. The folder carries the Apache License, Version 2.0.
+
+`python -m unittest discover -s tests -v` finished 113 tests, 0 failures, about 5.60 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
