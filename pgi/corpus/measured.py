@@ -26,9 +26,10 @@ UNCERTAINTY_KINDS = frozenset(
         "90% credible interval",
         "uncertainty as printed, level not stated",
         "3 sigma",
+        "68% interval",
     }
 )
-_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval"})
+_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval"})
 
 
 @dataclass(frozen=True)
@@ -566,7 +567,138 @@ MERCURY_MODERN: tuple[Quantity, ...] = (
     ),
 )
 
-QUANTITIES: tuple[Quantity, ...] = CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914
+PLANCK_2018_SOURCE = (
+    "Planck Collaboration, N. Aghanim et al., Planck 2018 results. VI. Cosmological parameters, "
+    "Astron. Astrophys. 641, A6 (2020), doi:10.1051/0004-6361/201833910, arXiv:1807.06209, Table 2."
+)
+PLANCK_2018_EDITION = "Planck 2018 VI, base-LCDM, TT,TE,EE+lowE+lensing"
+PLANCK_2018_URL = "https://doi.org/10.1051/0004-6361/201833910"
+PLANCK_2018_PDF = "https://arxiv.org/pdf/1807.06209"
+_PLANCK_NOTES = (
+    "Table 2 column TT,TE,EE+lowE+lensing, the paper's baseline, printed as a 68% interval.",
+    "The number is a fit of the base-LCDM model to Planck data. It is a measured anchor inside that model, not a model-free measurement.",
+)
+_PLANCK_KEYS = ("planck2018", "lcdm", "cosmology")
+
+
+def _planck(id: str, name: str, symbol: str, value_text: str, sigma: str, unit: str = "", *, phrases: tuple[str, ...] = (), notes: tuple[str, ...] = ()) -> Quantity:
+    return _q(
+        id, name, symbol, value_text, sigma, unit,
+        kind="68% interval",
+        source=PLANCK_2018_SOURCE,
+        edition=PLANCK_2018_EDITION,
+        url=PLANCK_2018_URL,
+        retrieved_from=PLANCK_2018_PDF,
+        keys=_PLANCK_KEYS,
+        phrases=phrases,
+        notes=notes + _PLANCK_NOTES,
+    )
+
+
+PLANCK_2018: tuple[Quantity, ...] = (
+    _planck("planck2018.h0", "Hubble constant", "H0", "67.36", "0.54", "km s^-1 Mpc^-1", phrases=("hubble constant", "hubble tension")),
+    _planck("planck2018.omega_b_h2", "physical baryon density", "Omega_b h^2", "0.02237", "0.00015", phrases=("baryon density",)),
+    _planck("planck2018.omega_c_h2", "physical cold dark matter density", "Omega_c h^2", "0.1200", "0.0012", phrases=("dark matter density",)),
+    _planck("planck2018.theta_mc", "approximate acoustic angular scale", "100 theta_MC", "1.04092", "0.00031"),
+    _planck("planck2018.tau", "reionization optical depth", "tau", "0.0544", "0.0073", phrases=("optical depth", "reionization")),
+    _planck("planck2018.ln_as", "primordial scalar amplitude", "ln(10^10 A_s)", "3.044", "0.014"),
+    _planck("planck2018.n_s", "scalar spectral index", "n_s", "0.9649", "0.0042", phrases=("spectral index",)),
+    _planck("planck2018.omega_lambda", "dark energy density parameter", "Omega_Lambda", "0.6847", "0.0073", phrases=("dark energy density",)),
+    _planck("planck2018.omega_m", "matter density parameter", "Omega_m", "0.3153", "0.0073", phrases=("matter density",)),
+    _planck("planck2018.omega_m_h2", "physical matter density", "Omega_m h^2", "0.1430", "0.0011"),
+    _planck("planck2018.sigma_8", "amplitude of matter fluctuations on 8 h^-1 Mpc", "sigma_8", "0.8111", "0.0060", phrases=("sigma8", "sigma_8")),
+    _planck("planck2018.s_8", "S8, defined as sigma_8 (Omega_m/0.3)^0.5", "S_8", "0.832", "0.013", phrases=("s8",)),
+)
+
+SH0ES_2022: tuple[Quantity, ...] = (
+    _q(
+        "sh0es2022.h0",
+        "Hubble constant from the Cepheid and type Ia supernova distance ladder",
+        "H0",
+        "73.04",
+        "1.04",
+        "km s^-1 Mpc^-1",
+        kind="uncertainty as printed, level not stated",
+        source=(
+            "A. G. Riess et al., A Comprehensive Measurement of the Local Value of the Hubble Constant with 1 km/s/Mpc Uncertainty "
+            "from the Hubble Space Telescope and the SH0ES Team, Astrophys. J. Lett. 934, L7 (2022), doi:10.3847/2041-8213/ac5c5b, "
+            "arXiv:2112.04510. Abstract, baseline result."
+        ),
+        edition="ApJL 934, L7 (2022)",
+        url="https://doi.org/10.3847/2041-8213/ac5c5b",
+        retrieved_from="https://arxiv.org/abs/2112.04510",
+        keys=("sh0es", "cepheid"),
+        phrases=("hubble constant", "hubble tension", "distance ladder"),
+        notes=(
+            "The abstract calls this the baseline Cepheid-SN result. It includes systematics and lies near the median of about 70 analysis variants.",
+            "The same abstract states a 5-sigma difference from H0 predicted by Planck+LCDM, and says the source of the discrepancy remains unknown.",
+            "The abstract does not name a confidence level for the uncertainty, so none is assigned here.",
+        ),
+    ),
+)
+
+DESI_DR2_SOURCE = (
+    "DESI Collaboration, M. Abdul-Karim et al., DESI DR2 Results II: Measurements of Baryon Acoustic Oscillations and "
+    "Cosmological Constraints, Phys. Rev. D 112, 083515 (2025), doi:10.1103/tr6y-kpc6, arXiv:2503.14738."
+)
+_DESI_NOTES = (
+    "Marginalized posterior in the w0waCDM model, w(a) = w0 + wa (1 - a), printed with 68% limits.",
+    "The value depends on which data are combined. Each combination is a separate record.",
+)
+
+
+def _desi(combo: str, label: str, eq: str, w0: str, w0_sigma: str, wa: str, wa_up: str, wa_low: str = "") -> tuple[Quantity, Quantity]:
+    common = dict(
+        kind="68% interval",
+        source=f"{DESI_DR2_SOURCE} Eq. ({eq}) and Table V, {label}.",
+        edition=f"DESI DR2 BAO, {label}",
+        url="https://doi.org/10.1103/tr6y-kpc6",
+        retrieved_from="https://arxiv.org/pdf/2503.14738",
+        keys=("desi",),
+        phrases=("dark energy equation of state", "dynamical dark energy", "w0wa"),
+        notes=_DESI_NOTES,
+    )
+    return (
+        _q(f"desi_dr2.{combo}.w0", f"dark energy w0, {label}", "w0", w0, w0_sigma, "", **common),
+        _q(f"desi_dr2.{combo}.wa", f"dark energy wa, {label}", "wa", wa, wa_up, "", lower_text=wa_low, **common),
+    )
+
+
+DESI_DR2: tuple[Quantity, ...] = (
+    *_desi("cmb", "DESI+CMB", "25", "-0.42", "0.21", "-1.75", "0.58"),
+    *_desi("cmb_pantheonplus", "DESI+CMB+Pantheon+", "26", "-0.838", "0.055", "-0.62", "0.22", "0.19"),
+    *_desi("cmb_union3", "DESI+CMB+Union3", "27", "-0.667", "0.088", "-1.09", "0.31", "0.27"),
+    *_desi("cmb_desy5", "DESI+CMB+DESY5", "28", "-0.752", "0.057", "-0.86", "0.23", "0.20"),
+)
+
+FIXSEN_2009: tuple[Quantity, ...] = (
+    _q(
+        "fixsen2009.t_cmb",
+        "temperature of the cosmic microwave background",
+        "T_0",
+        "2.72548",
+        "0.00057",
+        "K",
+        kind="uncertainty as printed, level not stated",
+        source=(
+            "D. J. Fixsen, The Temperature of the Cosmic Microwave Background, Astrophys. J. 707, 916-920 (2009), "
+            "doi:10.1088/0004-637X/707/2/916, arXiv:0911.1955. Abstract and Table 2 mean."
+        ),
+        edition="ApJ 707 (2009)",
+        url="https://doi.org/10.1088/0004-637X/707/2/916",
+        retrieved_from="https://arxiv.org/pdf/0911.1955",
+        keys=("cmb", "fixsen", "firas"),
+        phrases=("cmb temperature", "cosmic microwave background temperature", "temperature of the cosmic microwave background"),
+        notes=(
+            "This is the combination of the measurements reviewed in the paper. The FIRAS data recalibrated with WMAP alone give 2.7260 +- 0.0013 K, which is not stored separately.",
+            "The paper does not name a confidence level for the combined uncertainty, so none is assigned here.",
+        ),
+    ),
+)
+
+QUANTITIES: tuple[Quantity, ...] = (
+    CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
+)
 
 
 @dataclass(frozen=True)

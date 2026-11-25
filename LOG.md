@@ -708,3 +708,15 @@ The publish step had been rewriting every copy of the old version string in GOAL
 The next slice is cosmology: Planck 2018, SH0ES, DESI DR2, and the CMB temperature.
 
 `python -m unittest discover -s tests -v` finished 173 tests, 0 failures, about 52.20 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — cosmology: Planck 2018, SH0ES, DESI DR2, and the CMB temperature pgi-0.54.0
+
+The cosmology anchors are on the board. Planck 2018 VI, A&A 641, A6 (2020), arXiv:1807.06209, Table 2, the baseline TT,TE,EE+lowE+lensing column: `H0`, `Ω_b h^2`, `Ω_c h^2`, `100θ_MC`, `τ`, `ln(10^10 A_s)`, `n_s`, `Ω_Λ`, `Ω_m`, `Ω_m h^2`, `σ_8`, and `S_8`, each a 68% interval inside base-ΛCDM. SH0ES, Riess et al., ApJL 934, L7 (2022), arXiv:2112.04510: `H0 = 73.04 ± 1.04` km/s/Mpc, with the abstract's 5σ statement about Planck+ΛCDM written on the record. DESI DR2, Phys. Rev. D 112, 083515 (2025), arXiv:2503.14738: `w0` and `wa` for DESI+CMB and for DESI+CMB with Pantheon+, Union3, and DESY5, each combination its own record. Fixsen, ApJ 707, 916 (2009), arXiv:0911.1955: `T_0 = 2.72548 ± 0.00057 K`.
+
+The uncertainty kinds gain `68% interval`. A fitted parameter is labeled with its model and data combination. It is a measured anchor inside that model, not a model-free measurement.
+
+Planck's printed `Ω_m + Ω_Λ` is exactly 1. `Ω_m h^2` agrees with `Ω_m (H0/100)^2`, and `S_8` agrees with `σ_8 (Ω_m/0.3)^0.5`. The SH0ES and Planck H0 values differ by more than four combined uncertainties. Both stay on the board and neither is retracted: they are two measurements by different routes, not one name with two sources. DESI's `w0` is above −1 and `wa` below 0 in every combination. That is 22 new quantities and 22 new records.
+
+The next slice is precision particle measurements: the neutron lifetime, `g_A`, the muon and electron `g − 2`, and the proton charge radius.
+
+`python -m unittest discover -s tests -v` finished 177 tests, 0 failures, about 54.42 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

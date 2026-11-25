@@ -278,6 +278,48 @@ class MercuryModernTests(unittest.TestCase):
             self.assertLessEqual(0, item.value + item.uncertainty, id)
 
 
+class CosmologyTests(unittest.TestCase):
+    def test_planck_densities_close_and_h2_scales(self) -> None:
+        omega_m = quantity("planck2018.omega_m")
+        omega_l = quantity("planck2018.omega_lambda")
+        self.assertEqual(omega_m.value + omega_l.value, 1)
+        h0 = quantity("planck2018.h0")
+        omega_m_h2 = quantity("planck2018.omega_m_h2")
+        h = h0.value / 100
+        self.assertTrue(_agrees(omega_m_h2, omega_m.value * h**2, _rel2(omega_m) + 4 * _rel2(h0)))
+        sigma_8 = quantity("planck2018.sigma_8")
+        s_8 = quantity("planck2018.s_8")
+        derived = float(sigma_8.value) * (float(omega_m.value) / 0.3) ** 0.5
+        self.assertLess(abs(derived - float(s_8.value)), float(s_8.uncertainty))
+        for id in ("planck2018.h0", "planck2018.omega_b_h2", "planck2018.omega_c_h2", "planck2018.n_s", "planck2018.tau"):
+            self.assertEqual(quantity(id).uncertainty_kind, "68% interval")
+
+    def test_ladder_and_cmb_h0_disagree_and_both_stay(self) -> None:
+        planck, sh0es = quantity("planck2018.h0"), quantity("sh0es2022.h0")
+        gap2 = (sh0es.value - planck.value) ** 2
+        self.assertGreater(gap2, 16 * (planck.uncertainty**2 + sh0es.uncertainty**2))
+        session = unfold(Request(ask="what is the hubble constant", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        self.assertIn("record(planck2018.h0)", atoms)
+        self.assertIn("record(sh0es2022.h0)", atoms)
+        self.assertEqual(session.retracted, ())
+
+    def test_desi_w0_sits_above_minus_one_in_every_combination(self) -> None:
+        combos = ("cmb", "cmb_pantheonplus", "cmb_union3", "cmb_desy5")
+        for combo in combos:
+            w0 = quantity(f"desi_dr2.{combo}.w0")
+            wa = quantity(f"desi_dr2.{combo}.wa")
+            self.assertGreater(w0.value, -1, combo)
+            self.assertLess(wa.value, 0, combo)
+            self.assertEqual(w0.uncertainty_kind, "68% interval")
+        self.assertEqual(quantity("desi_dr2.cmb_desy5.wa").lower_uncertainty, Fraction(20, 100))
+
+    def test_cmb_temperature(self) -> None:
+        t0 = quantity("fixsen2009.t_cmb")
+        self.assertEqual(t0.value, Fraction(272548, 10**5))
+        self.assertEqual(t0.unit, "K")
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

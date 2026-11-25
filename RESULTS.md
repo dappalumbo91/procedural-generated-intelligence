@@ -264,9 +264,17 @@ Pitjeva and Pitjev, Mon. Not. R. Astron. Soc. 432, 3431 (2013), fitted EPM2011 t
 
 The tests check that the EPM2011 residual sits inside its own uncertainty, that the two `β` intervals overlap, that the Cassini and EPM2011 `γ` intervals overlap, and that each `β − 1` and `γ − 1` interval contains zero. That is 7 new quantities and 7 new records.
 
+### Cosmology: Planck 2018, SH0ES, DESI DR2, and the CMB temperature
+
+The cosmological numbers are on the board as measured anchors. Each one is a fit inside a named model or a named data combination, and the record says which.
+
+Planck 2018 VI, A&A 641, A6 (2020), Table 2, the baseline column TT,TE,EE+lowE+lensing, 68% intervals in base-ΛCDM: `H0 = 67.36 ± 0.54` km/s/Mpc, `Ω_b h^2 = 0.02237 ± 0.00015`, `Ω_c h^2 = 0.1200 ± 0.0012`, `100θ_MC = 1.04092 ± 0.00031`, `τ = 0.0544 ± 0.0073`, `ln(10^10 A_s) = 3.044 ± 0.014`, `n_s = 0.9649 ± 0.0042`, `Ω_Λ = 0.6847 ± 0.0073`, `Ω_m = 0.3153 ± 0.0073`, `Ω_m h^2 = 0.1430 ± 0.0011`, `σ_8 = 0.8111 ± 0.0060`, and `S_8 = 0.832 ± 0.013`. SH0ES, Riess et al., ApJL 934, L7 (2022), baseline Cepheid-SN result: `H0 = 73.04 ± 1.04` km/s/Mpc. DESI DR2, Phys. Rev. D 112, 083515 (2025), Eqs. (25)–(28): `w0 = −0.42 ± 0.21`, `wa = −1.75 ± 0.58` for DESI+CMB; `w0 = −0.838 ± 0.055`, `wa = −0.62 +0.22 −0.19` with Pantheon+; `w0 = −0.667 ± 0.088`, `wa = −1.09 +0.31 −0.27` with Union3; `w0 = −0.752 ± 0.057`, `wa = −0.86 +0.23 −0.20` with DESY5. Fixsen, ApJ 707, 916 (2009): `T_0 = 2.72548 ± 0.00057 K`. SH0ES and Fixsen do not name a confidence level in the text that was read, so none is assigned.
+
+The tests check that Planck's printed `Ω_m + Ω_Λ` is exactly 1, that `Ω_m h^2` agrees with `Ω_m (H0/100)^2`, and that `σ_8 (Ω_m/0.3)^0.5` agrees with `S_8`. The SH0ES and Planck H0 values differ by more than four combined uncertainties. Both records stay on the board and neither is retracted, because they are different measurements, not two sources for one name. In every DESI combination `w0` is above −1 and `wa` is below 0. No dark-energy model is stored as a claim. That is 22 new quantities and 22 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.53.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.54.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
