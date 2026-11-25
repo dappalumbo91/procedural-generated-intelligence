@@ -936,3 +936,11 @@ Blondel 2001's EA(F), 3.401 1895(25) eV, is now its own record beside the review
 That is 10 records.
 
 `python -m unittest discover -s tests -v` finished 284 tests, 0 failures, about 94.10 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — exotic QED: positronium, muonium, helium 2³P pgi-0.78.0
+
+Ps HFS from Ishida 2014, with stat and sys split, and from Ritter 1984; they disagree. o-Ps 7.0401(7) and p-Ps 7990.9(1.7) μs⁻¹. Mu HFS 4 463 302 765(53) Hz. The helium intervals come from Zelevinsky's thesis, which has all three and they close, plus George 2001, Kato 2018, and Heydarizadmotlagh 2024. The new ν01 is about 3.5 kHz above the old ones. APS abstracts were read through INSPIRE.
+
+That is 12 records.
+
+`python -m unittest discover -s tests -v` finished 290 tests, 0 failures, about 146.44 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

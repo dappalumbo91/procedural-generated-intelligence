@@ -2428,7 +2428,94 @@ EARLY_UNIVERSE: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE
+def _inspire(doi: str) -> str:
+    return f"https://inspirehep.net/api/literature?q=doi:{doi}"
+
+
+_PS_KEYS = ("positronium", "exotic atom", "bound-state qed")
+_HE_FS_KEYS = ("helium fine structure", "helium 2 3p")
+_HE_NOTE = "Measured interval of 4He 2 3P; QED theory values the paper compares it with are calculations and are not stored."
+_ZEL_SOURCE = "T. Zelevinsky, Helium 2 3P Fine Structure Measurement in a Discharge Cell, Ph.D. thesis, Harvard University (2004), abstract."
+_ZEL_URL = "https://cfp.physics.northwestern.edu/documents/2004_Zelevinsky_Tanya.pdf"
+
+
+def _zel(id: str, name: str, symbol: str, value: str, unc: str, printed: str, label: str) -> Quantity:
+    return _q(id, name, symbol, value, unc, "kHz", kind="uncertainty as printed, level not stated", printed=printed,
+              source=_ZEL_SOURCE, edition="Harvard Ph.D. thesis 2004", url=_ZEL_URL, retrieved_from=_ZEL_URL,
+              keys=_HE_FS_KEYS, phrases=(f"helium {label} interval", "helium fine structure", "helium 2 3p fine structure"),
+              notes=(f"Printed in the thesis abstract as {printed} kHz for the {label} interval, measured by saturation spectroscopy in a discharge cell.",
+                     "The thesis abstract says it is the only experiment to measure all three intervals directly at the 1 kHz level. The journal version, Phys. Rev. Lett. 95, 203001 (2005), and its erratum were not read (APS served a bot check).",
+                     _HE_NOTE))
+
+
+EXOTIC_QED: tuple[Quantity, ...] = (
+    _q("ishida2014.ps.hfs", "positronium ground-state hyperfine interval", "Delta_HFS(Ps)", "203.394 2", "0.001 6", "GHz",
+       kind=_SPLIT_KIND, systematic_text="0.001 3",
+       source="A. Ishida, T. Namba, S. Asai, T. Kobayashi, H. Saito, M. Yoshida, K. Tanaka, and A. Yamamoto, New precision measurement of hyperfine splitting of positronium, Phys. Lett. B 734, 338-344 (2014), doi:10.1016/j.physletb.2014.05.083, arXiv:1310.6923.",
+       edition="Phys. Lett. B 734 (2014)", url="https://doi.org/10.1016/j.physletb.2014.05.083", retrieved_from="https://export.arxiv.org/api/query?id_list=1310.6923",
+       keys=_PS_KEYS, phrases=("positronium hyperfine", "positronium hyperfine splitting", "positronium hyperfine interval"),
+       notes=("Printed in the abstract as 203.394 2 +- 0.001 6 (stat., 8.0 ppm) +- 0.001 3 (sys., 6.4 ppm) GHz, after a measured non-thermalization correction of 10 +- 2 ppm.",
+              "The abstract says the result disfavors the previous experimental average by 2.6 s.d. and favors the QED prediction within 1.2 s.d.; the prediction is not stored.", _SPLIT_NOTE)),
+    _q("ritter1984.ps.hfs", "positronium ground-state hyperfine interval", "Delta_nu(Ps)", "203.389 10", "0.000 74", "GHz",
+       kind="uncertainty as printed, level not stated", printed="203.389 10(74)",
+       source="M. W. Ritter, P. O. Egan, V. W. Hughes, and K. A. Woodle, Precision determination of the hyperfine-structure interval in the ground state of positronium. V, Phys. Rev. A 30, 1331 (1984), doi:10.1103/PhysRevA.30.1331.",
+       edition="Phys. Rev. A 30 (1984)", url="https://doi.org/10.1103/PhysRevA.30.1331", retrieved_from=_inspire("10.1103/PhysRevA.30.1331"),
+       keys=_PS_KEYS, phrases=("positronium hyperfine", "positronium hyperfine interval"),
+       notes=("Printed in the abstract as Delta nu = 203.38910(74) GHz (3.6 ppm), from the Yale gas-cell data.",
+              "Read from INSPIRE's copy of the APS abstract; the APS page served a bot check. The 1984 theory value in the abstract is not stored.")),
+    _q("kataoka2009.ops.decay_rate", "orthopositronium decay rate (combined with three earlier results)", "lambda(o-Ps)", "7.0401", "0.0007", "us^-1",
+       kind="uncertainty as printed, level not stated",
+       source="Y. Kataoka, S. Asai, and T. Kobayashi, First test of O(alpha^2) correction of the orthopositronium decay rate, Phys. Lett. B 671, 219-223 (2009), doi:10.1016/j.physletb.2008.12.008, arXiv:0809.1594.",
+       edition="Phys. Lett. B 671 (2009)", url="https://doi.org/10.1016/j.physletb.2008.12.008", retrieved_from="https://export.arxiv.org/api/query?id_list=0809.1594",
+       keys=_PS_KEYS, phrases=("orthopositronium decay rate", "orthopositronium lifetime", "positronium lifetimes", "ortho-positronium"),
+       notes=("Printed in the abstract as 7.0401 +- 0.0007 us^-1 (100 ppm): the paper's 150 ppm result combined with the last three results.",
+              "This is a combination made by the source, not here. Vallery et al., PRL 90, 203402 (2003), print 7.0404(10)(8) us^-1 with two unlabeled uncertainty terms; that record is not stored, since the abstract does not name the terms.")),
+    _q("alramadhan1994.pps.decay_rate", "parapositronium (singlet) decay rate", "lambda_S(p-Ps)", "7990.9", "1.7", "us^-1",
+       kind="uncertainty as printed, level not stated",
+       source="A. H. Al-Ramadhan and D. W. Gidley, New precision measurement of the decay rate of singlet positronium, Phys. Rev. Lett. 72, 1632 (1994), doi:10.1103/PhysRevLett.72.1632.",
+       edition="Phys. Rev. Lett. 72 (1994)", url="https://doi.org/10.1103/PhysRevLett.72.1632", retrieved_from=_inspire("10.1103/PhysRevLett.72.1632"),
+       keys=_PS_KEYS, phrases=("parapositronium decay rate", "parapositronium lifetime", "positronium lifetimes", "para-positronium"),
+       notes=("Printed in the abstract as lambda_s = 7990.9 +- 1.7 us^-1 (215 ppm), using magnetic singlet-triplet mixing in a N2-isobutane gas mixture.",
+              "Read from INSPIRE's copy of the APS abstract; the APS page served a bot check.")),
+    _q("liu1999.mu.hfs", "muonium ground-state hyperfine interval", "Delta_nu(Mu)", "4 463 302 765", "53", "Hz",
+       kind="uncertainty as printed, level not stated", printed="4 463 302 765(53)",
+       source="W. Liu et al., High precision measurements of the ground state hyperfine structure interval of muonium and of the muon magnetic moment, Phys. Rev. Lett. 82, 711 (1999), doi:10.1103/PhysRevLett.82.711.",
+       edition="Phys. Rev. Lett. 82 (1999)", url="https://doi.org/10.1103/PhysRevLett.82.711", retrieved_from=_inspire("10.1103/PhysRevLett.82.711"),
+       keys=("muonium", "exotic atom", "bound-state qed"), phrases=("muonium hyperfine", "muonium hyperfine interval", "muonium hyperfine splitting"),
+       notes=("Printed in the abstract as Delta nu = 4463302765(53) Hz (12 ppb), from two Zeeman hyperfine transitions in a strong field at LAMPF.",
+              "Read from INSPIRE's copy of the APS abstract; the APS page served a bot check.")),
+    _q("liu1999.mu_moment_ratio", "muon-to-proton magnetic moment ratio", "mu_mu/mu_p", "3.183 345 13", "0.000 000 39", "",
+       kind="uncertainty as printed, level not stated", printed="3.183 345 13(39)",
+       source="W. Liu et al., High precision measurements of the ground state hyperfine structure interval of muonium and of the muon magnetic moment, Phys. Rev. Lett. 82, 711 (1999), doi:10.1103/PhysRevLett.82.711.",
+       edition="Phys. Rev. Lett. 82 (1999)", url="https://doi.org/10.1103/PhysRevLett.82.711", retrieved_from=_inspire("10.1103/PhysRevLett.82.711"),
+       keys=("muonium",), phrases=("muon to proton magnetic moment ratio",),
+       notes=("Printed in the abstract as mu_mu/mu_p = 3.18334513(39) (120 ppb). The m_mu/m_e and alpha values the abstract derives from it are not stored.",)),
+    _zel("zelevinsky2004.he.f12", "helium 2 3P1 - 2 3P2 interval", "nu_12(He)", "2 291 175.4", "0.6", "2 291 175.4(6)", "2 3P1 - 2 3P2"),
+    _zel("zelevinsky2004.he.f01", "helium 2 3P0 - 2 3P1 interval", "nu_01(He)", "29 616 951.5", "0.8", "29 616 951.5(8)", "2 3P0 - 2 3P1"),
+    _zel("zelevinsky2004.he.f02", "helium 2 3P0 - 2 3P2 interval", "nu_02(He)", "31 908 126.6", "1.0", "31 908 126.6(1.0)", "2 3P0 - 2 3P2"),
+    _q("george2001.he.f01", "helium 2 3P0 - 2 3P1 interval", "nu_01(He)", "29616950.9", "0.9", "kHz",
+       kind="uncertainty as printed, level not stated",
+       source="M. C. George, L. D. Lombardi, and E. A. Hessels, Precision microwave measurement of the 2 3P1-2 3P0 interval in atomic helium: a determination of the fine-structure constant, Phys. Rev. Lett. 87, 173002 (2001), doi:10.1103/PhysRevLett.87.173002.",
+       edition="Phys. Rev. Lett. 87 (2001)", url="https://doi.org/10.1103/PhysRevLett.87.173002", retrieved_from=_inspire("10.1103/PhysRevLett.87.173002"),
+       keys=_HE_FS_KEYS, phrases=("helium 2 3P0 - 2 3P1 interval", "helium fine structure"),
+       notes=("Printed in the abstract as 29616950.9+-0.9 kHz, microwave spectroscopy in a thermal metastable beam.",
+              "The alpha value the abstract derives from it is not stored. Read from INSPIRE's copy of the APS abstract.", _HE_NOTE)),
+    _q("kato2018.he.f12", "helium 2 3P1 - 2 3P2 interval", "nu_12(He)", "2 291 176 590", "25", "Hz",
+       kind="uncertainty as printed, level not stated", printed="2 291 176 590(25)",
+       source="K. Kato, T. D. G. Skinner, and E. A. Hessels, Ultrahigh-precision measurement of the n=2 triplet P fine structure of atomic helium using frequency-offset separated oscillatory fields, Phys. Rev. Lett. 121, 143002 (2018), doi:10.1103/PhysRevLett.121.143002, arXiv:1807.07923.",
+       edition="Phys. Rev. Lett. 121 (2018)", url="https://doi.org/10.1103/PhysRevLett.121.143002", retrieved_from="https://export.arxiv.org/api/query?id_list=1807.07923",
+       keys=_HE_FS_KEYS, phrases=("helium 2 3P1 - 2 3P2 interval", "helium fine structure", "helium 2 3p fine structure"),
+       notes=("Printed in the abstract as 2 291 176 590(25) Hz for the 2 3P2 -> 2 3P1 interval, by frequency-offset separated oscillatory fields (FOSOF).", _HE_NOTE)),
+    _q("heydarizadmotlagh2024.he.f01", "helium 2 3P0 - 2 3P1 interval", "nu_01(He)", "29 616 955 018", "60", "Hz",
+       kind="uncertainty as printed, level not stated", printed="29 616 955 018(60)",
+       source="F. Heydarizadmotlagh, T. D. G. Skinner, K. Kato, M. C. George, and E. A. Hessels, Precision measurement of the n=2 triplet P J=1-to-J=0 fine structure of atomic helium using frequency-offset separated oscillatory fields, Phys. Rev. Lett. 132, 163001 (2024), doi:10.1103/PhysRevLett.132.163001, arXiv:2310.17040.",
+       edition="Phys. Rev. Lett. 132 (2024)", url="https://doi.org/10.1103/PhysRevLett.132.163001", retrieved_from="https://export.arxiv.org/api/query?id_list=2310.17040",
+       keys=_HE_FS_KEYS, phrases=("helium 2 3P0 - 2 3P1 interval", "helium fine structure", "helium 2 3p fine structure"),
+       notes=("Printed in the abstract as 29 616 955 018(60) Hz (2 ppb) for the J=1-to-J=0 interval, by FOSOF.", _HE_NOTE)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS
 
 

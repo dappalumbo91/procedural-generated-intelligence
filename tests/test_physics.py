@@ -1139,6 +1139,49 @@ class EarlyUniverseTests(unittest.TestCase):
         self.assertTrue({"rk2002.ea.f", "blondel2001.ea.f"} <= linked)
 
 
+class ExoticQedTests(unittest.TestCase):
+    def test_positronium_hyperfine_records_disagree_as_printed(self) -> None:
+        new, old = quantity("ishida2014.ps.hfs"), quantity("ritter1984.ps.hfs")
+        self.assertEqual(new.uncertainty_kind, "statistical and systematic, printed separately")
+        self.assertEqual((new.uncertainty, new.systematic), (Fraction(16, 10000), Fraction(13, 10000)))
+        self.assertEqual(old.printed, "203.389 10(74)")
+        self.assertGreater(new.value - old.value, new.uncertainty + new.systematic + old.uncertainty)
+
+    def test_positronium_decay_rates(self) -> None:
+        para, ortho = quantity("alramadhan1994.pps.decay_rate"), quantity("kataoka2009.ops.decay_rate")
+        self.assertEqual(para.unit, ortho.unit)
+        self.assertGreater(para.value / ortho.value, 1000)
+
+    def test_muonium_as_printed(self) -> None:
+        item = quantity("liu1999.mu.hfs")
+        self.assertEqual((item.value, item.uncertainty, item.unit), (4463302765, 53, "Hz"))
+        self.assertEqual(quantity("liu1999.mu_moment_ratio").uncertainty, Fraction(39, 10**8))
+
+    def test_helium_thesis_intervals_close(self) -> None:
+        f12, f01, f02 = (quantity(f"zelevinsky2004.he.{k}") for k in ("f12", "f01", "f02"))
+        self.assertLessEqual(abs(f01.value + f12.value - f02.value), f01.uncertainty + f12.uncertainty + f02.uncertainty)
+
+    def test_helium_interval_records_side_by_side(self) -> None:
+        khz = Fraction(1000)
+        f01_new = quantity("heydarizadmotlagh2024.he.f01")
+        f01_old = quantity("zelevinsky2004.he.f01")
+        self.assertGreater(f01_new.value / khz - f01_old.value, 3 * (f01_new.uncertainty / khz + f01_old.uncertainty))
+        self.assertLess(abs(quantity("george2001.he.f01").value - f01_old.value), quantity("george2001.he.f01").uncertainty + f01_old.uncertainty)
+        f12_new, f12_old = quantity("kato2018.he.f12"), quantity("zelevinsky2004.he.f12")
+        self.assertLess(abs(f12_new.value / khz - f12_old.value), 3 * (f12_new.uncertainty / khz + f12_old.uncertainty))
+
+    def test_exotic_asks_link(self) -> None:
+        session = unfold(Request(ask="what is the positronium hyperfine interval", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"ishida2014.ps.hfs", "ritter1984.ps.hfs"} <= linked)
+        session = unfold(Request(ask="list the helium fine structure intervals", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"zelevinsky2004.he.f12", "kato2018.he.f12", "heydarizadmotlagh2024.he.f01"} <= linked)
+        session = unfold(Request(ask="what is the muonium hyperfine interval", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertIn("liu1999.mu.hfs", linked)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

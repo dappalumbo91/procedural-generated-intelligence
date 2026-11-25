@@ -449,9 +449,19 @@ The early-universe numbers come from the PDG 2026 BBN review (Fields, Molaro, Sa
 
 The tests are data-only. The fluorine gap is wider than ten combined uncertainties. Aver agrees with PDG on Y_p, and Cooke agrees with PDG on D/H. The printed numbers reproduce the review's own 3.3 and 4.4σ. The 68% N_eff interval sits inside the 95% one. The asks link the right records. This adds 10 records.
 
+### Exotic QED systems: positronium, muonium, helium 2³P
+
+Positronium's ground-state hyperfine interval has two records. Ishida et al. 2014 print `203.394 2 ± 0.001 6 (stat) ± 0.001 3 (sys)` GHz, and Ritter et al. 1984 print `203.389 10(74)` GHz. The gap between them, 0.0051 GHz, is larger than all their printed uncertainty terms added together. Ishida's abstract says it disfavors the earlier experimental average by 2.6 s.d. Both records stay. The decay rates are Kataoka 2009's orthopositronium `7.0401 ± 0.0007` μs⁻¹, which is the source's own combination with three earlier results, and Al-Ramadhan and Gidley 1994's parapositronium `7990.9 ± 1.7` μs⁻¹. Vallery 2003 prints 7.0404(10)(8) with two uncertainty terms its abstract does not name, so it is noted but not stored. Muonium comes from Liu et al. 1999: Δν = `4 463 302 765(53)` Hz, and μ_μ/μ_p = `3.183 345 13(39)`.
+
+The helium 2³P intervals come from four sources. Zelevinsky's 2004 Harvard thesis measured all three in a discharge cell: ν12 `2 291 175.4(6)`, ν01 `29 616 951.5(8)`, and ν02 `31 908 126.6(1.0)` kHz. George et al. 2001 give ν01 `29616950.9 ± 0.9` kHz. The Hessels group's FOSOF measurements give ν12 `2 291 176 590(25)` Hz (Kato 2018) and ν01 `29 616 955 018(60)` Hz (Heydarizadmotlagh 2024). The newer ν01 sits about 3.5 kHz above both older values, far outside their uncertainties, and the board shows that without picking a side.
+
+APS abstracts were behind a bot check, so Ritter, Al-Ramadhan, Liu, and George were read from INSPIRE's copies of the APS abstracts. The others came from arXiv. Zelevinsky's PRL 95, 203001 (2005) and its erratum were not read.
+
+The tests are data-only. The thesis's three intervals close, with ν01 + ν12 = ν02 within the printed uncertainties. The para rate is more than 1000 times the ortho rate. The disagreements are visible. The asks link the right records. This adds 12 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.77.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.78.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
