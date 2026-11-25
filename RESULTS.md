@@ -204,11 +204,15 @@ A polynomial whose resultant would exceed the kernel's degree limit stays outsid
 
 A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring. The square is formed in the tower, the nonnegative square root is taken, and the identity is kept only when the candidate multiplies back to that square and `real_sqrt_unique` applies. When the numbers are algebraic, an exact algebraic comparison is required as well. `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is `sqrt(4 + 2 * sqrt(2))`. `sqrt(2 + sqrt(2)) - sqrt(2 - sqrt(2))` is `sqrt(4 - 2 * sqrt(2))`. `sqrt(3 + 2 * sqrt(2)) + sqrt(3 - 2 * sqrt(2))` is `2 * sqrt(2)`.
 
+### Exact signs for nonnegativity and nonzero divisors
+
+A sign that an isolating enclosure cannot decide is settled by a Sturm or algebraic sign when the form is a rational, a tower element, or a real algebraic number. A radicand whose sign is certified positive has a square root, stored as a nested radical when one can be formed, otherwise as a checked real algebraic number. A divisor whose sign is certified nonzero has an inverse, checked by multiplying back to 1. `0 <= -2 + sqrt(sqrt(2)) + sqrt(sqrt(3))` holds. `sqrt(sqrt(sqrt(2)) + sqrt(sqrt(3)))` is `root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 4)`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.44.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.45.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
-- A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside.
+- A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel can now settle individually, such as `{x. x * x <= 2 and 0 <= x}`, stays outside the connective rule until those sides are composed.
 - A polynomial whose resultant would exceed the kernel's degree limit stays outside.
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.

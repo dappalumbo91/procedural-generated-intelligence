@@ -1136,6 +1136,41 @@ def _widen(value: Ratio) -> Ratio:
     return value
 
 
+
+def vanishing_poly_inverse(poly: Poly) -> Poly:
+    """Integer polynomial vanishing at the reciprocal of every nonzero root of poly."""
+
+    if not poly or poly[0] == 0:
+        raise NotExact("this algebraic inverse stays outside")
+    flipped = primitive(tuple(reversed(poly)))
+    if not flipped or degree(flipped) < 1:
+        raise NotExact("this algebraic inverse stays outside")
+    if leading(flipped) < 0:
+        flipped = _scale_int(flipped, -1)
+    return flipped
+
+
+def algebraic_inv(number: Alg) -> Alg:
+    """The reciprocal of a certified nonzero algebraic number."""
+
+    if isinstance(number, Ratio):
+        if number.num == 0:
+            raise NotExact("division by zero")
+        return _q(number.den, number.num)
+    if algebraic_sign(number) == 0:
+        raise NotExact("division by zero")
+    poly = vanishing_poly_inverse(number.coeffs)
+    low, high = interval_of(number, 16)
+    if _qcmp(low, _ZERO) <= 0 <= _qcmp(high, _ZERO):
+        low, high = interval_of(number, 48)
+        if _qcmp(low, _ZERO) <= 0 <= _qcmp(high, _ZERO):
+            raise NotExact("a divisor the kernel cannot see as nonzero stays open")
+    left, right = _qdiv(_ONE, high), _qdiv(_ONE, low)
+    if _qcmp(left, right) > 0:
+        left, right = right, left
+    return pick_algebraic(poly, left, right)
+
+
 def algebraic_add(left: Alg, right: Alg) -> Alg:
     if isinstance(left, Ratio) and isinstance(right, Ratio):
         return _qadd(left, right)
@@ -1212,6 +1247,30 @@ def algebraic_pow(number: Alg, exponent: int) -> Alg:
     return pick_algebraic(poly, acc[0], acc[1])
 
 
+def _rational_sqrt_bounds(value: Ratio) -> tuple[Ratio, Ratio]:
+    """Rational bounds (low, high) with low >= 0, low^2 <= value <= high^2."""
+
+    if value.num < 0:
+        raise NotExact("square root of a negative stays open")
+    if value.num == 0:
+        return _ZERO, _ZERO
+    den = 1
+    for _ in range(12):
+        scaled = value.num * den * den
+        floor_sq = scaled // value.den
+        root = isqrt(floor_sq)
+        low = _q(root, den)
+        # high is the least integer over den whose square is at least value
+        high_n = root if root * root * value.den >= scaled else root + 1
+        while high_n * high_n * value.den < scaled:
+            high_n += 1
+        high = _q(high_n, den)
+        if _qcmp(low, high) < 0 or low == high:
+            return low, high
+        den *= 2
+    return _ZERO, _qadd(_ONE, value)
+
+
 def algebraic_sqrt(number: Alg, nonnegative: bool = True) -> Alg:
     """The real square root of a nonnegative algebraic number."""
 
@@ -1220,24 +1279,31 @@ def algebraic_sqrt(number: Alg, nonnegative: bool = True) -> Alg:
             raise NotExact("square root of a negative stays open")
         if number.num == 0:
             return _ZERO
-        # x^2 - p/q = 0 => q x^2 - p
         poly = from_ratio_coeffs((_qneg(number), _ZERO, _ONE))
-        # Isolate the positive (or negative) root.
+        low, high = _rational_sqrt_bounds(number)
         if nonnegative:
-            return pick_algebraic(poly, _ZERO, _qadd(_q(1, 1), _q(max(number.num, number.den), 1)))
+            # Widen slightly so the open isolating interval contains the root.
+            if low == high:
+                return low
+            return pick_algebraic(poly, low if _qcmp(low, _ZERO) > 0 else _ZERO, high)
         return algebraic_neg(algebraic_sqrt(number, True))
-    # Must be >= 0
-    low, high = interval_of(number, 24)
-    if _qcmp(high, _ZERO) < 0:
+    if algebraic_sign(number) < 0:
         raise NotExact("square root of a negative stays open")
+    if algebraic_sign(number) == 0:
+        return _ZERO
     poly = vanishing_poly_root(number.coeffs, 2)
-    # Enclosure of the sqrt: [0, or sqrt of high bound]
-    # A crude rational upper bound for sqrt(high) is 1 + high.
-    upper = _qadd(_ONE, high if _qcmp(high, _ZERO) > 0 else _ONE)
-    lower = _ZERO if nonnegative else _qneg(upper)
+    low, high = interval_of(number, 16)
+    if _qcmp(low, _ZERO) <= 0:
+        low, high = interval_of(number, 48)
+        if _qcmp(low, _ZERO) <= 0:
+            low = _q(1, 1 << 16)
+    lower, _ = _rational_sqrt_bounds(low)
+    _, upper = _rational_sqrt_bounds(high)
+    if _qcmp(lower, upper) >= 0:
+        upper = _qadd(upper, _q(1, 1 << 16))
     if nonnegative:
-        return pick_algebraic(poly, _ZERO, upper)
-    return pick_algebraic(poly, lower, _ZERO)
+        return pick_algebraic(poly, lower, upper)
+    return pick_algebraic(poly, _qneg(upper), _ZERO)
 
 
 

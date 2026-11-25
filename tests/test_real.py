@@ -413,6 +413,36 @@ class ContinuumTests(unittest.TestCase):
         self.assertEqual(other.claims[0].atom, "cauchy(sqrt(3 + sqrt(2)))")
         self.assertEqual(other.open_gaps, ())
 
+    def test_signs_decide_nonnegativity_and_nonzero(self) -> None:
+        positive = run(
+            Request(ask="prove 0 <= -2 + sqrt(sqrt(2)) + sqrt(sqrt(3))", seed=1)
+        )
+        self.assertEqual(
+            positive.claims[0].atom,
+            "le(0,-2 + sqrt(sqrt(2)) + sqrt(sqrt(3)))",
+        )
+        self.assertEqual(positive.open_gaps, ())
+        refused = run(
+            Request(ask="prove -2 + sqrt(sqrt(2)) + sqrt(sqrt(3)) <= 0", seed=1)
+        )
+        self.assertEqual(
+            refused.claims[0].atom,
+            "not_le(-2 + sqrt(sqrt(2)) + sqrt(sqrt(3)),0)",
+        )
+        self.assertEqual(refused.open_gaps, ())
+        root = run(Request(ask="what is sqrt(sqrt(sqrt(2)) + sqrt(sqrt(3)))", seed=1))
+        self.assertEqual(
+            root.claims[0].atom,
+            "cauchy(root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 4))",
+        )
+        self.assertEqual(root.open_gaps, ())
+        negative = run(Request(ask="what is sqrt(-2)", seed=1))
+        self.assertIn("square root of a negative stays open", negative.text(lod=1))
+        self.assertTrue(negative.open_gaps)
+        zero = run(Request(ask="what is 1 / 0", seed=1))
+        self.assertIn("division by zero", zero.text(lod=1))
+        self.assertTrue(zero.open_gaps)
+
     def test_sum_of_conjugate_nested_binomials(self) -> None:
         summed = run(Request(ask="what is sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))", seed=1))
         self.assertEqual(summed.claims[0].atom, "cauchy(sqrt(4 + 2 * sqrt(2)))")

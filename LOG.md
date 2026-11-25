@@ -608,3 +608,13 @@ A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot se
 The next gap is nonnegativity and nonzero visibility by the exact sign machinery, and boolean sides that are now settleable. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 129 tests, 0 failures, about 32.06 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — exact signs for nonnegativity and nonzero divisors pgi-0.45.0
+
+A sign that an isolating enclosure cannot decide is settled by a Sturm or algebraic sign when the form is a rational, a tower element, or a real algebraic number. A radicand whose sign is certified positive has a square root, stored as a nested radical when one can be formed, otherwise as a checked real algebraic number. A divisor whose sign is certified nonzero has an inverse, checked by multiplying back to 1. `0 <= -2 + sqrt(sqrt(2)) + sqrt(sqrt(3))` holds. `sqrt(sqrt(sqrt(2)) + sqrt(sqrt(3)))` is `root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 4)`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a boolean connective whose sides the kernel can now settle individually. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A polynomial whose resultant would exceed the kernel's degree limit stays outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 130 tests, 0 failures, about 48.97 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

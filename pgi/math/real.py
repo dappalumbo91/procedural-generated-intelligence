@@ -1157,9 +1157,54 @@ def _term_form(coeff: Ratio, rad: int) -> RealForm:
     return RealForm(_ratio(0, 1), ((coeff, rad),))
 
 
+
+def _form_from_algebraic(number) -> RealForm:
+    from pgi.math.algebraic import AlgebraicReal
+
+    if isinstance(number, Ratio):
+        return real_of_rat(number).form
+    if not isinstance(number, AlgebraicReal):
+        raise NotExact("this algebraic number stays outside")
+    radical = try_radical_form(number.coeffs, number.index)
+    if radical is not None:
+        return radical
+    return form_of_algebraic(number.coeffs, number.index)
+
+
+def _sqrt_algebraic(form: RealForm) -> RealForm:
+    from pgi.math.algfield import algebraic_equal, algebraic_mul, algebraic_sign, algebraic_sqrt
+
+    number = algebraic_of_form(form)
+    sign = algebraic_sign(number)
+    if sign < 0:
+        raise NotExact("square root of a negative stays open")
+    if sign == 0:
+        return RealForm(_ratio(0, 1), ())
+    root = algebraic_sqrt(number, True)
+    result = _form_from_algebraic(root)
+    reconstructed = algebraic_of_form(result)
+    if not algebraic_equal(algebraic_mul(reconstructed, reconstructed), number):
+        raise KernelError("an algebraic square root did not square back to the radicand")
+    if _classify(result) not in {"gt", "eq"}:
+        raise KernelError("an algebraic square root was not nonnegative")
+    return result
+
+
+def _inverse_algebraic(form: RealForm) -> RealForm:
+    from pgi.math.algfield import algebraic_equal, algebraic_inv, algebraic_mul, algebraic_sign
+
+    number = algebraic_of_form(form)
+    if algebraic_sign(number) == 0:
+        raise NotExact("division by zero")
+    inverse = algebraic_inv(number)
+    result = _form_from_algebraic(inverse)
+    reconstructed = algebraic_of_form(result)
+    if not algebraic_equal(algebraic_mul(reconstructed, number), _ratio(1, 1)):
+        raise KernelError("an algebraic inverse did not multiply back to 1")
+    return result
+
+
 def _sqrt_of_form(form: RealForm) -> RealForm:
-    if form.algebras:
-        raise NotExact("a radicand the kernel cannot see as nonnegative stays open")
     if _is_rational(form):
         if form.constant.num < 0:
             raise NotExact("square root of a negative stays open")
@@ -1382,7 +1427,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and _as_biquadratic(form) is not None
     ):
         return _quad_sqrt(form)
-    raise NotExact("this nested radical stays outside")
+    return _sqrt_algebraic(form)
 
 
 def _sqrt_lines(operand: RealForm, result: RealForm) -> tuple[str, ...]:
@@ -7108,7 +7153,17 @@ def _classify(form: RealForm) -> str:
             return "lt"
         if lower.num >= 0:
             return "gt"
-    return "open"
+    try:
+        from pgi.math.algfield import algebraic_sign
+
+        sign = algebraic_sign(algebraic_of_form(form))
+    except (NotExact, KernelError):
+        return "open"
+    if sign < 0:
+        return "lt"
+    if sign > 0:
+        return "gt"
+    return "eq"
 
 
 def compare_reals(left: RealForm, right: RealForm) -> str:
@@ -7197,7 +7252,9 @@ def _direction_sentence(direction: str) -> str:
 
 
 def _is_zero(form: RealForm) -> bool:
-    return _is_rational(form) and form.constant.num == 0
+    if _is_rational(form):
+        return form.constant.num == 0
+    return _classify(form) == "eq"
 
 
 def _is_rational(form: RealForm) -> bool:
@@ -7917,8 +7974,6 @@ def _div_lines(divisor: RealForm) -> tuple[str, ...]:
 
 
 def _div_form(left: RealForm, right: RealForm) -> RealForm:
-    if left.algebras or right.algebras:
-        raise NotExact("this algebraic quotient stays outside")
     if _is_zero(right):
         raise NotExact("division by zero")
     if not _apart(right):
@@ -7928,10 +7983,27 @@ def _div_form(left: RealForm, right: RealForm) -> RealForm:
             towered = _div_forms_tower(left, right)
         if towered is not None:
             return towered
-    inverse = _inverse_form(right)
-    if _mul_forms(inverse, right) != RealForm(_ratio(1, 1), ()):
-        raise KernelError("constructed inverse did not multiply back to 1")
-    return _mul_forms(left, inverse)
+    try:
+        inverse = _inverse_form(right)
+        if _mul_forms(inverse, right) != RealForm(_ratio(1, 1), ()):
+            raise KernelError("constructed inverse did not multiply back to 1")
+        return _mul_forms(left, inverse)
+    except (NotExact, KernelError) as exc:
+        if str(exc) == "division by zero":
+            raise
+        inverse = _inverse_algebraic(right)
+        from pgi.math.algfield import algebraic_equal, algebraic_mul
+
+        if not algebraic_equal(algebraic_mul(algebraic_of_form(inverse), algebraic_of_form(right)), _ratio(1, 1)):
+            raise KernelError("constructed inverse did not multiply back to 1") from exc
+        if _is_rational(left) and left.constant == _ratio(1, 1):
+            return inverse
+        try:
+            return _mul_forms(left, inverse)
+        except (NotExact, KernelError):
+            from pgi.math.algfield import algebraic_mul as _alg_mul
+
+            return _form_from_algebraic(_alg_mul(algebraic_of_form(left), algebraic_of_form(inverse)))
 
 
 def _as_shifted_radical(form: RealForm) -> tuple[Ratio, RealForm] | None:
@@ -7991,6 +8063,8 @@ def _invert_shifted_radical(form: RealForm) -> RealForm:
 def _inverse_form(form: RealForm) -> RealForm:
     if _is_rational(form):
         return RealForm(_inverse(form.constant), ())
+    if form.algebras:
+        return _inverse_algebraic(form)
     if _TOWER_GUARD == 0:
         with _tower_guard():
             towered = _inverse_form_tower(form)
