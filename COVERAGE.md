@@ -19,14 +19,14 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | particle | 88 |
 | condensed matter | 35 |
 | fluids | 27 |
-| gravitation | 59 |
+| gravitation | 68 |
 | astrophysics | 33 |
 | cosmology | 30 |
 | QED and precision | 37 |
 | null results and bounds | 18 |
 | SI defining constants | 7 |
 | foundations and status | 9 |
-| **total** | **681** |
+| **total** | **690** |
 <!-- counts:end -->
 
 ## Audit at pgi-0.79.0 (482 records)
@@ -70,7 +70,7 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 | particle | the Z lineshape from the 2006 LEP combination and PDG 2026 (Gamma_Z, sigma_had0, R_l0, A_FB0l, N_nu, sin^2 theta_eff; batch 9); PDG's R_l; the heavy-flavour asymmetries and A_l from SLD; heavier meson and baryon masses; branching ratios; the top width; measured cross sections |
 | condensed matter | elastic constants of Si, Cu, diamond, and Al, elastic Debye temperatures of Al and diamond, MgB2 and H3S T_c, graphene's white-light transmittance, and QHE universality (batch 10); calorimetric Debye temperatures (Cu and Si have no reachable primary source yet); thermal conductivities; lattice constants beyond silicon; magnetic moments |
 | fluids | water properties and air sound speed (batch 8); air, nitrogen, and oxygen viscosity and air thermal conductivity (Lemmon-Jacobsen), and liquid helium-4 densities, superfluid fraction, and first and second sound (Donnelly-Barenghi) (batch 9 gap, filled in batch 10); measured (not correlated) air transport data; the noble gases' transport properties; seawater (TEOS-10); diffusion coefficients; helium-4 viscosity and mutual friction |
-| gravitation | gravitational redshift from Galileo 5/6 (Delva 2018, Herrmann 2018), Pound-Snider 1965, and the Gravity Probe A agreement level (batch 9); Pound-Rebka 1960 itself (abstract not reachable); optical-clock height tests (e.g. Takamoto 2020 Tokyo Skytree); Lense-Thirring from LAGEOS/LARES; the LLR Nordtvedt parameter; Gdot/G; more GW events |
+| gravitation | gravitational redshift from Galileo 5/6 (Delva 2018, Herrmann 2018), Pound-Snider 1965, and the Gravity Probe A agreement level (batch 9); Chou 2010 Al+ clock 33 cm height shift, Bothwell 2022 millimetre-scale redshift gradient (arXiv text), LAGEOS/LARES frame dragging (Ciufolini 2016), and LLR Nordtvedt eta and Gdot/G (Williams 2004, Hofmann-Mueller 2018) (batch 10); Pound-Rebka 1960 itself (abstract not reachable); Takamoto 2020 Tokyo Skytree clock test; the Bothwell published-version numbers; more GW events |
 | astrophysics | solar neutrino fluxes (Borexino); Sgr A* mass and distance (GRAVITY); the M87* and Sgr A* shadow sizes; eclipsing-binary masses; the solar abundance scale |
 | cosmology | BAO distances (DESI); the baryon-to-photon ratio; weak-lensing S8 (KiDS, DES); Omega_k; the age of the universe; the reionization redshift |
 | QED and precision | the electron mass in u (Penning trap); He+ and HD+ spectroscopy; positronium and muonium 1S-2S; the 3He-4He isotope shift; the antiproton-to-proton charge-to-mass ratio |

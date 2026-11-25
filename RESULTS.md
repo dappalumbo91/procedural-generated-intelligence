@@ -557,9 +557,19 @@ Superfluid helium-4 comes from Donnelly and Barenghi's 1998 review of liquid hel
 
 This adds 15 records.
 
+### Gravitation: clocks, frame dragging, and lunar laser ranging
+
+Clocks can now see gravity at everyday scales. Chou and colleagues raised one of two Al⁺ clocks by 33 cm and measured a fractional frequency change of `(4.1 ± 1.6)×10⁻¹⁷`. Read as a height, that's `37 ± 15` cm. Bothwell and colleagues resolved the redshift inside a single millimetre-scale strontium sample, with a final gradient of `−9.8(2.3)×10⁻²⁰` per mm, and `−1.28(27)×10⁻¹⁹` per mm from a synchronous comparison of two regions. Those numbers are from the arXiv text, since the published version wasn't reachable. The paper's expected value (`−1.09×10⁻¹⁹`/mm) stays in a note, not in a record, because it's a prediction.
+
+LAGEOS, LAGEOS 2, and LARES measure Earth's frame dragging at μ = `0.994 ± 0.002 ± 0.05` of the general-relativity value. The 0.002 is the formal error and the 0.05 is systematic, stored separately as printed. That now sits next to Gravity Probe B's frame-dragging record, and a test checks that one ask links both.
+
+Lunar laser ranging adds the Nordtvedt parameter and Ġ/G from two analyses. Williams, Turyshev, and Boggs (2004) give η = `(4.4 ± 4.5)×10⁻⁴` and Ġ/G = `(4 ± 9)×10⁻¹³` yr⁻¹. Hofmann and Müller (2018) give η = `(−0.2 ± 1.1)×10⁻⁴` and Ġ/G₀ = `(7.1 ± 7.6)×10⁻¹⁴` yr⁻¹. The tests check only that the later uncertainties are the smaller ones.
+
+This adds 9 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.88.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.89.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

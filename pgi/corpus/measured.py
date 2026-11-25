@@ -3310,7 +3310,57 @@ FLUIDS_HELIUM: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM
+_CHOU_SOURCE = "C. W. Chou, D. B. Hume, T. Rosenband, and D. J. Wineland, Optical clocks and relativity, Science 329, 1630-1633 (2010), doi:10.1126/science.1192720"
+_BOTHWELL_SOURCE = "T. Bothwell, C. J. Kennedy, A. Aeppli, D. Kedar, J. M. Robinson, E. Oelker, A. Staron, and J. Ye, Resolving the gravitational redshift across a millimetre-scale atomic sample, Nature 602, 420-424 (2022), doi:10.1038/s41586-021-04349-7"
+_WTB_SOURCE = "J. G. Williams, S. G. Turyshev, and D. H. Boggs, Progress in lunar laser ranging tests of relativistic gravity, Phys. Rev. Lett. 93, 261101 (2004), doi:10.1103/PhysRevLett.93.261101"
+_HM_SOURCE = "F. Hofmann and J. Mueller, Relativistic tests with lunar laser ranging, Class. Quantum Grav. 35, 035015 (2018), doi:10.1088/1361-6382/aa8f7a"
+_LEVEL = "uncertainty as printed, level not stated"
+
+CLOCKS_FRAME_LLR: tuple[Quantity, ...] = (
+    _q("chou2010.height_shift", "fractional frequency change of an Al+ optical clock raised by 33 cm, relative to a second Al+ clock", "df/f0", "4.1 e-17", "1.6 e-17", "",
+       kind=_LEVEL, source=_CHOU_SOURCE, edition="Science 329 (2010), NIST copy", url="https://doi.org/10.1126/science.1192720", retrieved_from="https://tf.nist.gov/general/pdf/2447.pdf",
+       keys=("gravitational redshift", "optical clock"), phrases=("gravitational redshift", "optical clock height", "clock height test", "time dilation at 33 cm", "redshift test"),
+       notes=("The text prints 'a fractional frequency change of (4.1 +- 1.6) x 10^-17' between about 100,000 s of low-height and 40,000 s of high-height data; the 33 cm rise is from an original height difference of -17 cm measured with a laser level.",
+              "The Fig. 3 caption says the vertical error bars represent statistical uncertainties; the text does not name the level of the 1.6.")),
+    _q("chou2010.inferred_height", "height change of the Al-Mg clock inferred from its frequency shift", "Delta h", "37", "15", "cm",
+       kind=_LEVEL, source=_CHOU_SOURCE, edition="Science 329 (2010), NIST copy", url="https://doi.org/10.1126/science.1192720", retrieved_from="https://tf.nist.gov/general/pdf/2447.pdf",
+       keys=("gravitational redshift", "optical clock"), phrases=("optical clock height", "clock height test", "chronometric levelling"),
+       notes=("The text prints 'the result of 37 +- 15 cm agrees well with the known value of 33 cm'.",)),
+    _q("bothwell2022.redshift_gradient", "fractional frequency gradient measured vertically across a millimetre-scale Sr lattice clock sample, after systematic corrections", "d(df/f)/dz", "-9.8 e-20", "2.3 e-20", "mm^-1",
+       kind=_LEVEL, source=_BOTHWELL_SOURCE, edition="arXiv:2109.12238 v1 (published as Nature 602, 420)", url="https://doi.org/10.1038/s41586-021-04349-7", retrieved_from="https://arxiv.org/pdf/2109.12238",
+       keys=("gravitational redshift", "optical clock"), phrases=("gravitational redshift", "redshift within a millimeter", "millimetre redshift", "clock height test", "redshift test"),
+       notes=("The preprint prints a weighted-mean gradient of -1.00(12)x10^-19/mm (standard error of the weighted mean) over 14 datasets, and 'a final frequency gradient of -9.8(2.3)x10-20/mm, consistent with the predicted redshift'.",
+              "It states the expected redshift gradient at Earth's surface as -1.09x10^-19/mm in the coordinate system of its Fig. 1a. Values are from the arXiv v1 text; the published version was not reachable.")),
+    _q("bothwell2022.redshift_gradient_synchronous", "fractional frequency gradient from the synchronous comparison of two regions of the same Sr sample, after systematic corrections", "d(df/f)/dz", "-1.28 e-19", "0.27 e-19", "mm^-1",
+       kind=_LEVEL, source=_BOTHWELL_SOURCE, edition="arXiv:2109.12238 v1 (published as Nature 602, 420)", url="https://doi.org/10.1038/s41586-021-04349-7", retrieved_from="https://arxiv.org/pdf/2109.12238",
+       keys=("gravitational redshift", "optical clock"), phrases=("redshift within a millimeter", "millimetre redshift", "synchronous clock comparison"),
+       notes=("The preprint prints -1.30(18)x10^-19/mm before and 'a gradient of -1.28(27)x10-19/mm' after the additional systematic corrections, from 92 hours of data at a fractional frequency uncertainty of 7.6x10^-21.",)),
+    _q("ciufolini2016.frame_dragging_mu", "Earth's frame dragging from LARES, LAGEOS and LAGEOS 2 with the GGM05S gravity model, normalised to its general-relativity value", "mu", "0.994", "0.002", "",
+       kind=_SPLIT_KIND, systematic_text="0.05",
+       source="I. Ciufolini, A. Paolozzi, E. C. Pavlis, R. Koenig, J. Ries, V. Gurzadyan, R. Matzner, R. Penrose, G. Sindoni, C. Paris, H. Khachatryan, and S. Mirzoyan, A test of general relativity using the LARES and LAGEOS satellites and a GRACE Earth gravity model, Eur. Phys. J. C 76, 120 (2016), doi:10.1140/epjc/s10052-016-3961-8",
+       edition="Eur. Phys. J. C 76 (2016); arXiv abstract", url="https://doi.org/10.1140/epjc/s10052-016-3961-8", retrieved_from="https://arxiv.org/abs/1603.09674",
+       keys=("frame dragging", "lageos", "lares"), phrases=("frame dragging", "frame-dragging", "lense-thirring", "lageos", "lares"),
+       notes=("The abstract prints 'mu = (0.994 +- 0.002) +- 0.05', where 0.002 is the 1-sigma formal error and 0.05 the estimated systematic error, mainly from the GGM05S gravity model.", _SPLIT_NOTE)),
+    _q("williams2004.nordtvedt_eta", "strong-equivalence-principle violation parameter from lunar laser ranging", "eta", "4.4 e-4", "4.5 e-4", "",
+       kind=_LEVEL, source=_WTB_SOURCE, edition="Phys. Rev. Lett. 93 (2004); arXiv abstract", url="https://doi.org/10.1103/PhysRevLett.93.261101", retrieved_from="https://arxiv.org/abs/gr-qc/0411113",
+       keys=("lunar laser ranging", "nordtvedt"), phrases=("nordtvedt parameter", "nordtvedt effect", "lunar laser ranging", "strong equivalence principle"),
+       notes=("The abstract prints 'the corresponding SEP violation parameter eta is (4.4 +/- 4.5) x 10^{-4}, where eta=4beta-gamma-3'.",)),
+    _q("williams2004.g_dot_over_g", "time variation of the gravitational constant from lunar laser ranging", "Gdot/G", "4 e-13", "9 e-13", "yr^-1",
+       kind=_LEVEL, source=_WTB_SOURCE, edition="Phys. Rev. Lett. 93 (2004); arXiv abstract", url="https://doi.org/10.1103/PhysRevLett.93.261101", retrieved_from="https://arxiv.org/abs/gr-qc/0411113",
+       keys=("lunar laser ranging", "varying g"), phrases=("gdot/g", "g dot over g", "time variation of g", "variation of the gravitational constant", "lunar laser ranging"),
+       notes=("The abstract prints '\\dot G/G=(4 +/- 9) x 10^{-13} yr^{-1}'.",)),
+    _q("hofmann2018.nordtvedt_eta", "Nordtvedt parameter from lunar laser ranging, 1970 to January 2015", "eta", "-0.2 e-4", "1.1 e-4", "",
+       kind=_LEVEL, source=_HM_SOURCE, edition="Class. Quantum Grav. 35 (2018); publisher abstract", url="https://doi.org/10.1088/1361-6382/aa8f7a", retrieved_from="https://api.crossref.org/works/10.1088/1361-6382/aa8f7a",
+       keys=("lunar laser ranging", "nordtvedt"), phrases=("nordtvedt parameter", "nordtvedt effect", "lunar laser ranging", "strong equivalence principle"),
+       notes=("The abstract prints 'the Nordtvedt parameter eta = (-0.2 +- 1.1) x 10^-4'.",)),
+    _q("hofmann2018.g_dot_over_g", "relative time variation of the gravitational constant from lunar laser ranging, 1970 to January 2015", "Gdot/G0", "7.1 e-14", "7.6 e-14", "yr^-1",
+       kind=_LEVEL, source=_HM_SOURCE, edition="Class. Quantum Grav. 35 (2018); publisher abstract", url="https://doi.org/10.1088/1361-6382/aa8f7a", retrieved_from="https://api.crossref.org/works/10.1088/1361-6382/aa8f7a",
+       keys=("lunar laser ranging", "varying g"), phrases=("gdot/g", "g dot over g", "time variation of g", "variation of the gravitational constant", "lunar laser ranging"),
+       notes=("The abstract prints 'Gdot/G0 = (7.1 +- 7.6) x 10^-14 yr^-1', estimated with the station coordinates and the initial core rotation vector constrained.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

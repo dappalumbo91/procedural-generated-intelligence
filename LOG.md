@@ -1024,3 +1024,11 @@ Added Lemmon–Jacobsen viscosity and thermal conductivity values for air (with 
 That is 15 records.
 
 `python -m unittest discover -s tests -v` finished 336 tests, 0 failures, about 115.25 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — gravitation pgi-0.89.0
+
+Added the Chou 2010 optical-clock height test, the Bothwell 2022 millimetre redshift gradient (from arXiv v1), Ciufolini 2016 LAGEOS/LARES frame dragging with its systematic stored separately, and lunar-laser-ranging η and Ġ/G from Williams 2004 and Hofmann–Müller 2018. COVERAGE.md's gravitation row is updated.
+
+That is 9 records.
+
+`python -m unittest discover -s tests -v` finished 338 tests, 0 failures, about 111.62 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

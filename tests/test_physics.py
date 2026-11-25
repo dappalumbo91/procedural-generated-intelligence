@@ -1597,6 +1597,26 @@ class FluidsHeliumTests(unittest.TestCase):
         self.assertTrue({"db1998.he4.u2_1_5k", "db1998.he4.rho_s_1_5k"} <= self._linked("list the superfluid helium properties"))
 
 
+class ClocksFrameLlrTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_records_as_printed(self) -> None:
+        mu = quantity("ciufolini2016.frame_dragging_mu")
+        self.assertEqual((mu.value, mu.uncertainty, mu.systematic), (Fraction(994, 1000), Fraction(2, 1000), Fraction(5, 100)))
+        self.assertEqual(quantity("hofmann2018.g_dot_over_g").unit, "yr^-1")
+        self.assertLess(quantity("hofmann2018.nordtvedt_eta").uncertainty, quantity("williams2004.nordtvedt_eta").uncertainty)
+        self.assertLess(quantity("hofmann2018.g_dot_over_g").uncertainty, quantity("williams2004.g_dot_over_g").uncertainty)
+        self.assertLess(quantity("bothwell2022.redshift_gradient").value, 0)
+
+    def test_asks_link(self) -> None:
+        self.assertTrue({"ciufolini2016.frame_dragging_mu", "gpb.frame_dragging"} <= self._linked("what is the measured frame dragging"))
+        self.assertTrue({"williams2004.nordtvedt_eta", "hofmann2018.nordtvedt_eta"} <= self._linked("what is the nordtvedt parameter"))
+        self.assertIn("hofmann2018.g_dot_over_g", self._linked("what is the time variation of g from lunar laser ranging"))
+        self.assertIn("chou2010.height_shift", self._linked("what did the optical clock height test measure"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
