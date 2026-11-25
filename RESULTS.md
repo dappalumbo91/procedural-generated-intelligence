@@ -286,9 +286,17 @@ Axial coupling. PDG 2026 (S017AV): `λ = g_A/g_V = −1.2753 ± 0.0013` with sca
 
 The tests check the following. PDG's lifetime agrees with UCNτ 2025. The beam and UCNτ 2025 lifetimes differ by more than four combined uncertainties, and all four lifetime records stay linked with none retracted. The Fermilab, PDG, and CODATA muon anomalies agree with the world average. Fan's `g/2 − 1` agrees with the CODATA and PDG `a_e`. The CODATA radius in metres matches PDG's in femtometres. No Standard Model prediction is stored. That is 11 new particle quantities and 3 new CODATA constants, 14 new records in all.
 
+### NIST ASD first ionization energies, H to Ne
+
+The first ionization energies of the ten neutral atoms from hydrogen to neon are on the board as measured anchors. They come from the NIST Atomic Spectra Database, version 5.12 (7 November 2024), Kramida, Ralchenko, Reader, and NIST ASD Team, doi:10.18434/T4W30F, served by the Ionization Energies form in eV with the uncertainty column on. The values are H `13.598434599702 ± 0.000000000012`, He `24.587389011 ± 0.000000025`, Li `5.391714996 ± 0.000000022`, Be `9.322699 ± 0.000007`, B `8.298019 ± 0.000003`, C `11.2602880 ± 0.0000011`, N `14.53413 ± 0.00004`, O `13.618055 ± 0.000007`, F `17.42282 ± 0.00005`, and Ne `21.564541 ± 0.000007` eV.
+
+Each row keeps its ASD bibliography codes, ground shells, ground level, and ionized level. ASD prints the hydrogen value in parentheses. Its help page says that marks an energy from an ab-initio calculation, or otherwise not derived from evaluated experimental data, and the record says so. ASD stores these energies in cm^-1 and folds the CODATA conversion uncertainty into eV output. The help page names no confidence level for the uncertainty column, so the rows are labelled `uncertainty as printed, level not stated`. CODATA 2022 `R_∞ hc = 13.605 693 122 990(15) eV` is added beside them.
+
+The tests check every row's value and uncertainty, that helium is the largest and lithium the smallest of the ten, and that hydrogen's energy lies below `R_∞ hc` and within `α^2` of the reduced-mass ratio `m_p/(m_p + m_e)`. That window is loose on purpose. It is a test, not a stored relation. That is 11 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.56.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.57.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

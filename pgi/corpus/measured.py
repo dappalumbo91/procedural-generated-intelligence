@@ -184,6 +184,7 @@ CODATA_2022: tuple[Quantity, ...] = (
     _codata('codata2022.a_e', 'electron magnetic moment anomaly', 'a_e', '1.159 652 180 46 e-3', '0.000 000 000 18 e-3', '', 'ae', keys=(), phrases=('electron magnetic moment anomaly', 'electron anomaly')),
     _codata('codata2022.a_mu', 'muon magnetic moment anomaly', 'a_mu', '1.165 920 62 e-3', '0.000 000 41 e-3', '', 'amu', keys=(), phrases=('muon magnetic moment anomaly', 'muon anomaly'), notes=("CODATA 2022 has a cutoff of 31 December 2022. It predates the 2023 and 2025 Fermilab results.",)),
     _codata('codata2022.r_p', 'proton rms charge radius', 'r_p', '8.4075 e-16', '0.0064 e-16', 'm', 'rp', keys=(), phrases=('proton charge radius', 'proton radius', 'proton rms charge radius')),
+    _codata('codata2022.ryd_hc_ev', 'Rydberg constant times hc in eV', 'R_inf hc', '13.605 693 122 990', '0.000 000 000 015', 'eV', 'rydhcev', keys=(), phrases=('rydberg energy', 'rydberg constant times hc')),
     _codata('codata2022.mu_0', 'vacuum magnetic permeability', 'mu_0', '1.256 637 061 27 e-6', '0.000 000 000 20 e-6', 'N A^-2', 'mu0', keys=('permeability',), phrases=('vacuum magnetic permeability', 'magnetic constant'), notes=("Since the 2019 SI, mu_0 is measured. It is no longer fixed at 4 pi x 10^-7 N A^-2.",)),
     _codata('codata2022.epsilon_0', 'vacuum electric permittivity', 'epsilon_0', '8.854 187 8188 e-12', '0.000 000 0014 e-12', 'F m^-1', 'ep0', keys=('permittivity',), phrases=('vacuum electric permittivity', 'electric constant'), notes=("Since the 2019 SI, epsilon_0 is measured. It is no longer exact.",)),
     _codata('codata2022.g_f', 'Fermi coupling constant', 'G_F/(hbar c)^3', '1.166 3787 e-5', '0.000 0006 e-5', 'GeV^-2', 'gf', keys=(), phrases=('fermi coupling constant', 'fermi constant')),
@@ -832,9 +833,111 @@ PARTICLE_PRECISION: tuple[Quantity, ...] = (
     _pdg("pdg2026.proton_radius", "proton charge radius", "r_p", "0.8407", "0.0006", "fm", node="S016CR", phrases=("proton charge radius", "proton radius"), notes=("The only entry PDG uses in this average is the CODATA 2022 value, 0.84075 +- 0.00064 fm. PDG prints the average as 0.8407 +- 0.0006 fm.", _API_NOTE)),
 )
 
+ASD_SOURCE = (
+    "A. Kramida, Yu. Ralchenko, J. Reader, and NIST ASD Team, NIST Atomic Spectra Database (version 5.12), "
+    "National Institute of Standards and Technology, Gaithersburg, MD (2024), doi:10.18434/T4W30F, "
+    "Ionization Energies Data."
+)
+ASD_EDITION = "NIST ASD version 5.12 (7 November 2024)"
+ASD_QUERY = (
+    "https://physics.nist.gov/cgi-bin/ASD/ie.pl?spectra=H-Ne&submit=Retrieve+Data&units=1&format=2&order=0"
+    "&at_num_out=on&sp_name_out=on&ion_charge_out=on&el_name_out=on&seq_out=on&shells_out=on&level_out=on"
+    "&ion_conf_out=on&e_out=0&unc_out=on&biblio=on"
+)
+_ASD_EV = (
+    "ASD stores ionization energies in cm^-1. In eV output, ASD combines the uncertainty of the CODATA conversion factor "
+    "in quadrature with the stored uncertainty and rounds the value to the combined uncertainty. The value and uncertainty "
+    "here are the eV output as served. The ASD help does not state a confidence level for the uncertainty column."
+)
+
+
+def _asd(id: str, z: int, element: str, spectrum: str, value_text: str, uncertainty_text: str, *, notes: tuple[str, ...]) -> Quantity:
+    lower = element.lower()
+    return _q(
+        id,
+        f"first ionization energy of {lower} ({spectrum}, Z = {z})",
+        f"E_i({spectrum})",
+        value_text,
+        uncertainty_text,
+        "eV",
+        kind="uncertainty as printed, level not stated",
+        source=ASD_SOURCE,
+        edition=ASD_EDITION,
+        url=ASD_QUERY,
+        retrieved_from=ASD_QUERY,
+        keys=("ionization",),
+        phrases=(f"ionization energy of {lower}", f"{lower} ionization energy", f"ionisation energy of {lower}"),
+        notes=notes,
+    )
+
+
+ASD_IONIZATION: tuple[Quantity, ...] = (
+    _asd("asd512.ie.h", 1, "Hydrogen", "H I", "13.598434599702", "0.000000000012",
+         notes=(
+            'ASD ground shells 1s, ground level 2S<1/2>.',
+            'ASD bibliography codes: HDEL.',
+            'ASD prints this energy in parentheses. The ASD help says parentheses mark energies from an ab-initio calculation, or otherwise not derived from evaluated experimental data.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.he", 2, "Helium", "He I", "24.587389011", "0.000000025",
+         notes=(
+            'ASD ground shells 1s2, ground level 1S0, ionized level 1s 2S<1/2>.',
+            'ASD bibliography codes: L17714.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.li", 3, "Lithium", "Li I", "5.391714996", "0.000000022",
+         notes=(
+            'ASD ground shells 1s2.2s, ground level 2S<1/2>, ionized level 1s2 1S<0>.',
+            'ASD bibliography codes: L12261.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.be", 4, "Beryllium", "Be I", "9.322699", "0.000007",
+         notes=(
+            'ASD ground shells 1s2.2s2, ground level 1S0, ionized level 2s 2S<1/2>.',
+            'ASD bibliography codes: L5964.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.b", 5, "Boron", "B I", "8.298019", "0.000003",
+         notes=(
+            'ASD ground shells 1s2.2s2.2p, ground level 2P*<1/2>, ionized level 2s2 1S<0>.',
+            'ASD bibliography codes: L12312.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.c", 6, "Carbon", "C I", "11.2602880", "0.0000011",
+         notes=(
+            'ASD ground shells 1s2.2s2.2p2, ground level 3P0, ionized level 2s2.2p 2P*<1/2>.',
+            'ASD bibliography codes: L20057.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.n", 7, "Nitrogen", "N I", "14.53413", "0.00004",
+         notes=(
+            'ASD ground shells 1s2.2s2.2p3, ground level 4S*<3/2>, ionized level 2p2 3P<0>.',
+            'ASD bibliography codes: L1411.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.o", 8, "Oxygen", "O I", "13.618055", "0.000007",
+         notes=(
+            'ASD ground shells 1s2.2s2.2p4, ground level 3P<2>, ionized level 2p3 4S*<3/2>.',
+            'ASD bibliography codes: L74,L3760.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.f", 9, "Fluorine", "F I", "17.42282", "0.00005",
+         notes=(
+            'ASD ground shells 1s2.2s2.2p5, ground level 2P*<3/2>, ionized level 2p4 3P<2>.',
+            'ASD bibliography codes: L7481,L526.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.ne", 10, "Neon", "Ne I", "21.564541", "0.000007",
+         notes=(
+            'ASD ground shells 1s2.2s2.2p6, ground level 1S0, ionized level 2p5 2P*<3/2>.',
+            'ASD bibliography codes: L8826,L1407.',
+            _ASD_EV,
+         )),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION
+    + PARTICLE_PRECISION + ASD_IONIZATION
 )
 
 

@@ -388,6 +388,45 @@ class ParticlePrecisionTests(unittest.TestCase):
         self.assertIn("record(pdg2026.proton_radius)", atoms)
 
 
+class AsdIonizationTests(unittest.TestCase):
+    SYMBOLS = ("h", "he", "li", "be", "b", "c", "n", "o", "f", "ne")
+
+    def test_rows_load_with_their_uncertainties(self) -> None:
+        energies = {}
+        for symbol in self.SYMBOLS:
+            item = quantity(f"asd512.ie.{symbol}")
+            self.assertEqual(item.unit, "eV")
+            self.assertEqual(item.uncertainty_kind, "uncertainty as printed, level not stated")
+            self.assertGreater(item.uncertainty, 0)
+            self.assertIn("version 5.12", item.edition)
+            energies[symbol] = item.value
+        self.assertEqual(energies["he"], Fraction(24587389011, 10**9))
+        self.assertEqual(quantity("asd512.ie.ne").uncertainty, Fraction(7, 10**6))
+        self.assertEqual(max(energies, key=energies.get), "he")
+        self.assertEqual(min(energies, key=energies.get), "li")
+        self.assertIn("parentheses", " ".join(quantity("asd512.ie.h").notes))
+        self.assertNotIn("parentheses", " ".join(quantity("asd512.ie.he").notes))
+
+    def test_hydrogen_sits_just_below_the_rydberg_energy(self) -> None:
+        hydrogen = quantity("asd512.ie.h").value
+        rydberg = quantity("codata2022.ryd_hc_ev").value
+        mass_ratio = quantity("codata2022.m_p_over_m_e").value
+        alpha = quantity("codata2022.alpha").value
+        ratio = hydrogen / rydberg
+        self.assertLess(ratio, 1)
+        reduced = mass_ratio / (1 + mass_ratio)
+        # A loose window only: the gap from the reduced-mass ratio is far below alpha^2.
+        self.assertLess(abs(ratio - reduced), alpha**2)
+
+    def test_an_ask_links_the_row(self) -> None:
+        session = unfold(Request(ask="what is the ionization energy of neon", seed=1))
+        text = session.text(lod=2)
+        self.assertIn("record(asd512.ie.ne)", text)
+        self.assertIn("21.564541", text)
+        self.assertIn("0.000007", text)
+        self.assertNotIn("value(", text)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

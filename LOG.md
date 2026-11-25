@@ -740,3 +740,15 @@ PDG's lifetime agrees with UCNτ 2025. Beam and bottle differ by more than four 
 The next slice is the NIST ASD first ionization energies, H to Ne.
 
 `python -m unittest discover -s tests -v` finished 187 tests, 0 failures, about 49.01 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — NIST ASD first ionization energies, H to Ne pgi-0.57.0
+
+The first ionization energies H I to Ne I are on the board as measured anchors. They come from NIST ASD version 5.12, doi:10.18434/T4W30F, Ionization Energies Data, queried in eV with the uncertainty, level, configuration, and bibliography columns. The full query URL is on every record. Values and uncertainties are kept as the CSV served them: H `13.598434599702(12)` through Ne `21.564541(7)` eV. Each row carries its ASD reference codes and its ground and ionized levels.
+
+ASD prints the hydrogen value in parentheses, its mark for a theoretical value, and the record carries the help page's wording. The help page says eV output includes the CODATA conversion uncertainty and names no confidence level. The rows are labelled `uncertainty as printed, level not stated`. CODATA 2022 `R_∞ hc` in eV is added.
+
+The tests check that each row loads with its uncertainty, that helium is highest and lithium lowest, and that hydrogen sits below `R_∞ hc` and within `α^2` of the reduced-mass ratio. That window is a loose test, not a stored relation. That is 11 new records.
+
+The second physics batch is done. The open items are INPOP ephemeris numbers and the levels Park, Bertotti, Riess, and Fixsen leave unstated.
+
+`python -m unittest discover -s tests -v` finished 190 tests, 0 failures, about 48.84 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
