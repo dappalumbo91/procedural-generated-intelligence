@@ -51,7 +51,7 @@ for _domain, _names in {
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84"),
     "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971"),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025"),
-    "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987"),
+    "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998"),
     "thermodynamics and statistical": ("iapws1992", "iapws2011", "its90", "formula"),
     "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1965"),
     "astrophysics": ("bond2017", "joyce2018", "fonseca2021", "riley2021", "miller2021", "salmi2024", "dittmann2024", "haberreiter2008",

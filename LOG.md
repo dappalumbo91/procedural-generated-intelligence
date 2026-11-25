@@ -1016,3 +1016,11 @@ Added cubic elastic constants for Si, Cu, diamond, and Al, three elastic Debye t
 That is 24 records.
 
 `python -m unittest discover -s tests -v` finished 333 tests, 0 failures, about 112.35 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — fluids pgi-0.88.0
+
+Added Lemmon–Jacobsen viscosity and thermal conductivity values for air (with N₂ and O₂ viscosities), and Donnelly–Barenghi liquid helium-4 densities, superfluid and normal densities, and first and second sound. COVERAGE.md's fluids row is updated.
+
+That is 15 records.
+
+`python -m unittest discover -s tests -v` finished 336 tests, 0 failures, about 115.25 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -1571,6 +1571,32 @@ class CondensedExtrasTests(unittest.TestCase):
         self.assertIn("ribeiropalau2015.qhe.graphene_gaas", self._linked("what is the quantum hall plateau precision"))
 
 
+class FluidsHeliumTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_air_transport_values(self) -> None:
+        air, n2, o2 = (quantity(f"lemmon2004.{f}.viscosity_300k_dilute").value for f in ("air", "n2", "o2"))
+        self.assertTrue(n2 < air < o2)
+        self.assertLess(air, quantity("lemmon2004.air.viscosity_300k_5mol").value)
+        self.assertLess(quantity("lemmon2004.air.thermal_conductivity_300k_dilute").value, quantity("lemmon2004.air.thermal_conductivity_300k_5mol").value)
+
+    def test_two_fluid_densities_add_up(self) -> None:
+        # rho = rho_s + rho_n is the two-fluid model's own definition; the two tables agree to their printed digits.
+        total = quantity("db1998.he4.rho_s_1_5k").value + quantity("db1998.he4.rho_n_1_5k").value
+        self.assertLessEqual(abs(total - quantity("db1998.he4.rho_1_5k").value), Fraction(1, 10**5))
+        self.assertLess(quantity("db1998.he4.rho_0k").value, quantity("db1998.he4.rho_lambda").value)
+        self.assertLess(quantity("db1998.he4.u2_1_5k").value * 10, quantity("db1998.he4.u1_1_5k").value)
+        u = [quantity(f"db1998.he4.u2_{k}").value for k in ("1_0k", "1_5k", "2_0k")]
+        self.assertTrue(u[2] < u[0] < u[1])
+
+    def test_fluids_asks_link(self) -> None:
+        self.assertTrue({"lemmon2004.air.viscosity_300k_dilute"} <= self._linked("what is the viscosity of air"))
+        self.assertIn("lemmon2004.air.thermal_conductivity_300k_dilute", self._linked("what is the thermal conductivity of air"))
+        self.assertTrue({"db1998.he4.u2_1_5k", "db1998.he4.rho_s_1_5k"} <= self._linked("list the superfluid helium properties"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

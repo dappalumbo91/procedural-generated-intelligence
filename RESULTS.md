@@ -549,9 +549,17 @@ The superconductor ask now links MgB₂ and H₃S as well, and the old test's ex
 
 This adds 24 records.
 
+### Fluids: air transport properties and superfluid helium
+
+Air now has transport properties. Lemmon and Jacobsen's 2004 equations give the dilute-gas viscosity at 300 K as `18.5230` µPa s and the thermal conductivity as `26.3529` mW m⁻¹ K⁻¹. At 5.0 mol/dm³ they're `21.3241` and `32.6062`. These are the paper's program-verification values, whose extra digits 'do not reflect the accuracy of the equations'. The notes keep the paper's own uncertainty statement: 1% for dilute-gas air viscosity, and within 5% overall for air. The PDF prints the viscosity unit in a symbol font that comes out as 'mPa s', but the values are in µPa s, and that's how they're stored, with a note saying why. Nitrogen (`17.8771`) and oxygen (`20.6307`) are included too, and a test checks that air falls between them.
+
+Superfluid helium-4 comes from Donnelly and Barenghi's 1998 review of liquid helium at saturated vapour pressure. It gives density at 0 K (`0.1451397` g cm⁻³) and at 1.5 K (`0.1451646`), the λ-point density used in their fit (`0.1461087`), and the superfluid and normal densities at 1.5 K, `0.12900` and `0.01617`. The two-fluid split adds back to the total density within the printed digits, and a test checks that. First sound at 1.5 K is `235.5` m/s, and second sound is `18.93`, `20.03`, and `16.78` m/s at 1.0, 1.5, and 2.0 K. So second sound rises and then falls toward the λ point, and it runs more than ten times slower than first sound.
+
+This adds 15 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.87.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.88.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

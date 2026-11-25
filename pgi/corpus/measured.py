@@ -3263,7 +3263,54 @@ CONDENSED_EXTRAS: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS
+_LEMMON_SOURCE = "E. W. Lemmon and R. T. Jacobsen, Viscosity and thermal conductivity equations for nitrogen, oxygen, argon, and air, Int. J. Thermophys. 25, 21-69 (2004), doi:10.1023/B:IJOT.0000022327.04529.f3, Table V"
+_LEMMON_URL = "https://trc.nist.gov/refprop/FAQ/NAO.PDF"
+_LEMMON_NOTES = ("Table V lists values 'calculated from the equations' for program verification; 'the additional digits do not reflect the accuracy of the equations'.",
+                 "For air the paper puts the uncertainty of viscosity at 1% in the dilute gas and about 2% between 270 and 300 K elsewhere, and the overall uncertainty within 5% for oxygen and air.",
+                 "The PDF renders the viscosity unit as 'mPa s' in a symbol font; the values are in micropascal seconds (air at 300 K is 18.5 uPa s), and are stored in uPa s.")
+
+
+def _lemmon(key: str, fluid: str, what: str, t: str, rho: str, value: str) -> Quantity:
+    unit = "uPa s" if what == "viscosity" else "mW m^-1 K^-1"
+    state = "dilute gas (zero density)" if rho == "0" else f"{rho} mol/dm^3"
+    return _q(f"lemmon2004.{key}", f"{what} of {fluid} at {t} K, {state}", f"{'eta' if what == 'viscosity' else 'lambda'}({fluid}, {t} K)", value, "", unit,
+              kind="no uncertainty printed", source=_LEMMON_SOURCE, edition="Int. J. Thermophys. 25 (2004), NIST copy", url="https://doi.org/10.1023/B:IJOT.0000022327.04529.f3",
+              retrieved_from=_LEMMON_URL, keys=("transport properties",), phrases=(f"{what} of {fluid}", f"{fluid} {what}", "transport properties of air"),
+              notes=(f"Table V prints {value} at T = {t} K, density {rho} mol/dm^3.",) + _LEMMON_NOTES)
+
+
+_DB98_SOURCE = "R. J. Donnelly and C. F. Barenghi, The observed properties of liquid helium at the saturated vapor pressure, J. Phys. Chem. Ref. Data 27, 1217-1274 (1998), doi:10.1063/1.556028"
+_DB98_URL = "https://srd.nist.gov/jpcrdreprint/1.556028.pdf"
+
+
+def _db98(key: str, name: str, symbol: str, value: str, unit: str, where: str, printed: str, phrases: tuple[str, ...]) -> Quantity:
+    return _q(f"db1998.he4.{key}", f"liquid helium-4 at saturated vapour pressure: {name}", symbol, value, "", unit, kind="no uncertainty printed",
+              source=f"{_DB98_SOURCE}, {where}", edition="J. Phys. Chem. Ref. Data 27 (1998)", url="https://doi.org/10.1063/1.556028", retrieved_from=_DB98_URL,
+              keys=("helium-4", "superfluid helium"), phrases=phrases + ("superfluid helium", "helium ii", "liquid helium properties"),
+              notes=(f"{where} prints {printed}. These are recommended values from spline fits to an adopted database; the tables print no uncertainty for them.",))
+
+
+FLUIDS_HELIUM: tuple[Quantity, ...] = (
+    _lemmon("air.viscosity_300k_dilute", "air", "viscosity", "300.0", "0", "18.5230"),
+    _lemmon("air.thermal_conductivity_300k_dilute", "air", "thermal conductivity", "300.0", "0", "26.3529"),
+    _lemmon("air.viscosity_300k_5mol", "air", "viscosity", "300.0", "5.0", "21.3241"),
+    _lemmon("air.thermal_conductivity_300k_5mol", "air", "thermal conductivity", "300.0", "5.0", "32.6062"),
+    _lemmon("n2.viscosity_300k_dilute", "nitrogen", "viscosity", "300.0", "0", "17.8771"),
+    _lemmon("o2.viscosity_300k_dilute", "oxygen", "viscosity", "300.0", "0", "20.6307"),
+    _db98("rho_0k", "density at 0 K", "rho(0 K)", "0.1451397", "g cm^-3", "Table 1.2", "1.451 397E-1 g/cm3", ("helium density",)),
+    _db98("rho_1_5k", "density at 1.50 K", "rho(1.5 K)", "0.1451646", "g cm^-3", "Table 1.2", "1.451 646E-1 g/cm3", ("helium density",)),
+    _db98("rho_lambda", "density at the lambda point (fit parameter)", "rho_lambda", "0.1461087", "g cm^-3", "Sect. 1, text to Eq. (1.4)",
+          "'Here, T_lambda = 2.1768 K and rho_lambda = 0.146 108 7 g/cm3'", ("helium density", "lambda point")),
+    _db98("rho_s_1_5k", "superfluid density at 1.5 K", "rho_s(1.5 K)", "0.12900", "g cm^-3", "Table 2.3", "0.129 00 g/cm3", ("superfluid density", "two-fluid model")),
+    _db98("rho_n_1_5k", "normal-fluid density at 1.5 K", "rho_n(1.5 K)", "0.01617", "g cm^-3", "Table 2.3", "0.016 17 g/cm3", ("normal fluid density", "two-fluid model")),
+    _db98("u1_1_5k", "first sound velocity at 1.5000 K", "u_1(1.5 K)", "235.5", "m s^-1", "Table 3.3", "2.355E+2 m/s", ("first sound", "speed of sound in helium")),
+    _db98("u2_1_0k", "second sound velocity at 1.0000 K", "u_2(1.0 K)", "18.93", "m s^-1", "Table 4.3", "1.893E+1 m/s", ("second sound",)),
+    _db98("u2_1_5k", "second sound velocity at 1.5000 K", "u_2(1.5 K)", "20.03", "m s^-1", "Table 4.3", "2.003E+1 m/s", ("second sound",)),
+    _db98("u2_2_0k", "second sound velocity at 2.0000 K", "u_2(2.0 K)", "16.78", "m s^-1", "Table 4.3", "1.678E+1 m/s", ("second sound",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 
