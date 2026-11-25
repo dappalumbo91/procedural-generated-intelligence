@@ -236,7 +236,8 @@ class UnfoldTests(unittest.TestCase):
     def test_chained_addition_is_exact(self) -> None:
         session = run(Request(ask="17 + 13 + 1", seed=1))
         self.assertEqual(session.claims[0].atom, "value(31)")
-        self.assertNotIn("31", session.text(lod=0))
+        outline_body = "\n".join(session.text(lod=0).splitlines()[1:])
+        self.assertNotIn("31", outline_body)
         detail = session.text(lod=2)
         self.assertIn("Int.add: 17 + 13 = 30", detail)
         self.assertIn("Int.add: 30 + 1 = 31", detail)

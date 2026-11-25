@@ -176,6 +176,9 @@ def demo_text() -> str:
         "=== square root of one plus sqrt(2) plus sqrt(5) ===",
         unfold(Request(ask="what is sqrt(1 + sqrt(2) + sqrt(5))", lod=2, seed=1)).text(lod=2),
         "",
+        "=== a nest times the pair ===",
+        unfold(Request(ask="what is sqrt(2 + sqrt(2)) * sqrt(sqrt(2) + sqrt(5))", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]

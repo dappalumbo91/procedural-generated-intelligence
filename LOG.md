@@ -419,3 +419,18 @@ A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` s
 The next gap is a nest times the pair, `sqrt(2 + sqrt(2)) * sqrt(sqrt(2) + sqrt(5))`. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 114 tests, 0 failures, about 6.97 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+
+## 2026-11-25 — a nest times the pair pgi-0.31.0
+
+For nonnegative insides, a binomial nest times a two-radical pair is the square root of the product of those insides, by `real_sqrt_mult`. `(2 + sqrt(2)) * (sqrt(2) + sqrt(5))` is the two-prime biquadratic `2 + 2 * sqrt(2) + 2 * sqrt(5) + sqrt(10)`. The field norm of that radicand is 36, a rational square, but both relative norms fail to be squares in the intermediate fields, so the number is not a square in `Q(sqrt(2), sqrt(5))`. The nonnegative root is the nested radical itself, by `real_sqrt_unique`. A field norm that is a rational square is therefore not enough, by itself, to stay outside or to denest: when both relative norms are decided and are not squares, the root is stored as a quad.
+
+`sqrt(2 + sqrt(2)) * sqrt(sqrt(2) + sqrt(5))` is `cauchy(sqrt(2 + 2 * sqrt(2) + 2 * sqrt(5) + sqrt(10)))`, and its square is `2 + 2 * sqrt(2) + 2 * sqrt(5) + sqrt(10)`. The product in the other order is the same class. The inverse is the root times the inverse of that square, which already lies in the field, and it multiplies back to 1 by `inverse_unique`.
+
+`1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside. `1 / (1 + ...)` on the pair ladder stays outside. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))`, and `1 / (1 + ...)` on the pair ladder. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 115 tests, 0 failures, about 7.89 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

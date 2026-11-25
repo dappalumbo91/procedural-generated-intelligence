@@ -1,8 +1,8 @@
-# Results through pgi-0.30.0
+# Results through pgi-0.31.0
 
 Procedural Generated Intelligence (PGI) unfolds answers from compact rules, seeds, and constraints. The store is generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and the kernel saturates the active packs, retracts contradictions, and renders the settled claims at the requested level of detail.
 
-This note records what the folder holds at rule version `pgi-0.30.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
+This note records what the folder holds at rule version `pgi-0.31.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
 
 ## What the kernel holds
 
@@ -14,7 +14,7 @@ In the kernel now:
 - Integer order: reflexivity, transitivity, antisymmetry, addition on the left, `Int.le_of_eq`, a true numeral comparison, and the negation of a false one. A compound side is compared after the equality rules reduce it.
 - Closed rationals: a reduced fraction, positive denominator, sign on the numerator. Field operations cite the Lean `Rat` operations and the Isabelle `Rat.thy` lemmas. Division by zero stays open.
 - A Cauchy continuum for the sequences this kernel can check, from Isabelle `Real.thy`. Constant sequences are the rationals. A positive square root is a bisection sequence with a checked modulus. Order is a strict rational enclosure. Core Lean 4.36 has no `Real`.
-- Nested radicals the rules below can see: a tower `base^(odd/2^k)`, a binomial nest, a two-radical sum that denests, the pair `sqrt(sqrt(2) + sqrt(5))` through every further finite outer square root, the nested binomial `sqrt(2 + sqrt(2))` through every further finite outer square root, and a two-prime biquadratic under one square root when it does not denest.
+- Nested radicals the rules below can see: a tower `base^(odd/2^k)`, a binomial nest, a two-radical sum that denests, the pair `sqrt(sqrt(2) + sqrt(5))` through every further finite outer square root, the nested binomial `sqrt(2 + sqrt(2))` through every further finite outer square root, a two-prime biquadratic under one square root when it does not denest, and a nest times a pair as the square root of the product of those insides.
 - Inverses inside the admitted span, including `1 / sqrt(sqrt(2) + sqrt(3))`, which is the conjugate difference of the two nests that denesting already produced.
 - Finite sets of those reals. The least upper bound of a nonempty finite set is its maximum.
 - Quantifiers over a finite enumeration. Separation over a finite enumeration. Order rays, the set of every real, and two-sided intervals. The supremum of a down-ray is the bound it contains. The supremum of an open upper end is built by the Archimedean bisection in the proof of `complete_real`.
@@ -95,8 +95,9 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 | pgi-0.28.0 | Every further finite depth of the nested binomial, and the inverse of the denested sum | 112 | about 5.30 s |
 | pgi-0.29.0 | Inverse of a further square root of the nested binomial | 113 | about 5.60 s |
 | pgi-0.30.0 | `sqrt(1 + sqrt(2) + sqrt(5))` as itself | 114 | about 6.97 s |
+| pgi-0.31.0 | A nest times the pair | 115 | about 7.89 s |
 
-`python -m unittest discover -s tests -v` at pgi-0.30.0 finished 114 tests, 0 failures, in 6.972 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 6.97 seconds in the table. One test calls GNU Octave through the portable lookup.
+`python -m unittest discover -s tests -v` at pgi-0.31.0 finished 115 tests, 0 failures, in 7.888 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 7.89 seconds in the table. One test calls GNU Octave through the portable lookup.
 
 ### Why the two open radicals stayed open, and what closed them
 
@@ -112,8 +113,12 @@ The inverse of `sqrt(sqrt(sqrt(2 + sqrt(2))))` stayed outside because the fold i
 
 `sqrt(1 + sqrt(2) + sqrt(5))` stayed outside because the square-root rule had a branch for a binomial, a branch for a two-radical sum, and no branch for a constant plus two distinct primes. The number is not a square in `Q(sqrt(2), sqrt(5))`: the field norm is -4, which is not a rational square. pgi-0.30.0 stores that nonnegative root as itself, by `real_sqrt_unique`, and its square is `1 + sqrt(2) + sqrt(5)`. The inverse is the root times the inverse of that square, which already lies in the field, and it multiplies back to 1 by `inverse_unique`. When the field norm is a rational square and the relative denesting succeeds, the root is written in the field: `sqrt(8 + 2 * sqrt(2) + 2 * sqrt(5) + 2 * sqrt(10))` is `1 + sqrt(2) + sqrt(5)`. The same family closes `sqrt(1 + sqrt(2) + sqrt(3))`. A rational square factor in the radicand moves into the coefficient: `sqrt(4 + 4 * sqrt(2) + 4 * sqrt(5))` is `2 * sqrt(1 + sqrt(2) + sqrt(5))`.
 
+### A nest times the pair
+
+A nest times a pair stayed outside because multiplication had a rule for two nests on the same radicand and a rule for two pairs on the same pair of radicands, and no rule that mixed a binomial nest with a two-radical pair. For nonnegative insides, `real_sqrt_mult` writes the product as the square root of the product of those insides. `sqrt(2 + sqrt(2)) * sqrt(sqrt(2) + sqrt(5))` is `cauchy(sqrt(2 + 2 * sqrt(2) + 2 * sqrt(5) + sqrt(10)))`. That biquadratic has field norm 36, a rational square, but both relative norms fail to be squares in the intermediate fields, so it does not denest, and pgi-0.31.0 stores the root as itself by `real_sqrt_unique`. The inverse is the root times the inverse of that square, and it multiplies back to 1 by `inverse_unique`.
+
 ### Still outside
 
-A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside, as does `1 / (1 + ...)` on the pair ladder. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
+`1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside, as does `1 / (1 + ...)` on the pair ladder. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
 
 `primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.

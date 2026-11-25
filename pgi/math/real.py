@@ -69,6 +69,14 @@ obstruction. `sqrt(1 + sqrt(2) + sqrt(5))` is that root, and its square is
 relative denesting succeeds, the root is written in the field. The inverse
 of such a root is the root times the inverse of its square, which already
 lies in that field.
+A nest times a pair is the square root of the product of those insides,
+by `real_sqrt_mult`. When that product is a two-prime biquadratic that is
+not a square in the field, the product is that nested radical itself.
+`sqrt(2 + sqrt(2)) * sqrt(sqrt(2) + sqrt(5))` is
+`sqrt(2 + 2 * sqrt(2) + 2 * sqrt(5) + sqrt(10))`. A field norm that is a
+rational square is not enough to denest: both relative norms must be
+squares in the intermediate field. When they are not, and that fact is
+decided, the root stays the biquadratic radical.
 A radicand the kernel cannot see as nonnegative stays open.
 Division multiplies by the inverse.
 That inverse lies in the same span, and its product with the divisor is the
@@ -1372,6 +1380,20 @@ def _nest_form(coeff: Ratio, constant: Ratio, sqrt_coeff: Ratio, rad: int) -> Re
     return RealForm(_ratio(0, 1), (), (), ((coeff, constant, sqrt_coeff, rad),))
 
 
+def _nest_times_pair(
+    constant: Ratio,
+    sqrt_coeff: Ratio,
+    rad: int,
+    left_c: int,
+    left_r: int,
+    right_c: int,
+    right_r: int,
+) -> RealForm:
+    nest_inside = RealForm(constant, ((sqrt_coeff, rad),) if sqrt_coeff.num != 0 else ())
+    pair_inside = _pair_inside(left_c, left_r, right_c, right_r)
+    return _sqrt_of_form(_mul_forms(nest_inside, pair_inside))
+
+
 def _mul_nest(coeff: Ratio, constant: Ratio, sqrt_coeff: Ratio, rad: int, other: RealForm) -> RealForm:
     piece = _nest_form(coeff, constant, sqrt_coeff, rad)
     product = _scale(piece, other.constant) if other.constant.num != 0 else RealForm(_ratio(0, 1), ())
@@ -1416,7 +1438,10 @@ def _mul_nest(coeff: Ratio, constant: Ratio, sqrt_coeff: Ratio, rad: int, other:
             rad,
         )
         product = _add_forms(product, _scale(piece, _qmul(coeff, deep_coeff)))
-    if other.pairs or other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
+    for pair_coeff, left_c, left_r, right_c, right_r in other.pairs:
+        piece = _nest_times_pair(constant, sqrt_coeff, rad, left_c, left_r, right_c, right_r)
+        product = _add_forms(product, _scale(piece, _qmul(coeff, pair_coeff)))
+    if other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -1666,7 +1691,10 @@ def _mul_pair(
             right_r,
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, other_coeff)))
-    if other.towers or other.nests or other.deeps:
+    for nest_coeff, nest_const, nest_sqrt, nest_rad in other.nests:
+        piece = _nest_times_pair(nest_const, nest_sqrt, nest_rad, left_c, left_r, right_c, right_r)
+        product = _add_forms(product, _scale(piece, _qmul(coeff, nest_coeff)))
+    if other.towers or other.deeps:
         raise NotExact("this nested radical stays outside")
     for other_coeff, other_left, other_left_rad, other_right, other_right_rad in other.pairs:
         if other_left_rad != left_r or other_right_rad != right_r:
@@ -3626,6 +3654,65 @@ def _try_denest_biquadratic(
     return _try_denest_over(swapped_left, swapped_right, second, first, inside)
 
 
+
+def _biquadratic_groupings(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> tuple[
+    tuple[RealForm, RealForm, int, int],
+    tuple[RealForm, RealForm, int, int],
+]:
+    left = _quad_inside(constant, first_coeff, first, _ratio(0, 1), second, _ratio(0, 1))
+    right = _quad_inside(second_coeff, product_coeff, first, _ratio(0, 1), second, _ratio(0, 1))
+    swapped_left = _quad_inside(constant, second_coeff, second, _ratio(0, 1), first, _ratio(0, 1))
+    swapped_right = _quad_inside(first_coeff, product_coeff, second, _ratio(0, 1), first, _ratio(0, 1))
+    return (
+        (left, right, first, second),
+        (swapped_left, swapped_right, second, first),
+    )
+
+
+def _biquadratic_denest_decided(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> bool:
+    for left, right, base, other in _biquadratic_groupings(
+        constant, first_coeff, first, second_coeff, second, product_coeff
+    ):
+        delta = _sub_forms(_mul_forms(left, left), _scale(_mul_forms(right, right), _ratio(other, 1)))
+        if not _in_quadratic(delta, base):
+            return False
+        if _classify(delta) == "open":
+            return False
+    return True
+
+
+def _biquadratic_not_a_field_square(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> bool:
+    if _try_denest_biquadratic(constant, first_coeff, first, second_coeff, second, product_coeff) is not None:
+        return False
+    if _rational_square_root(
+        _biquadratic_norm(constant, first_coeff, first, second_coeff, second, product_coeff)
+    ) is None:
+        return True
+    return _biquadratic_denest_decided(constant, first_coeff, first, second_coeff, second, product_coeff)
+
+
+
 def _lcm(left: int, right: int) -> int:
     if left == 0 or right == 0:
         return 0
@@ -3721,15 +3808,14 @@ def _quad_sqrt(form: RealForm) -> RealForm:
         return _scale(_sqrt_form(reduced.constant) if _is_rational(reduced) else reduced, outer)
     if _as_biquadratic(reduced) is None:
         return _scale(_sqrt_of_form(reduced), outer)
-    norm = _biquadratic_norm(
+    denested = _try_denest_biquadratic(
         reduced_const, reduced_first, first, reduced_second, second, reduced_product
     )
-    if _rational_square_root(norm) is not None:
-        denested = _try_denest_biquadratic(
-            reduced_const, reduced_first, first, reduced_second, second, reduced_product
-        )
-        if denested is not None:
-            return _scale(denested, outer)
+    if denested is not None:
+        return _scale(denested, outer)
+    if not _biquadratic_not_a_field_square(
+        reduced_const, reduced_first, first, reduced_second, second, reduced_product
+    ):
         raise NotExact("this nested radical stays outside")
     result = _quad_form(
         outer, reduced_const, reduced_first, first, reduced_second, second, reduced_product
@@ -8040,9 +8126,9 @@ def _canonical(form: RealForm) -> bool:
             return False
         if _try_denest_biquadratic(constant, first_coeff, first, second_coeff, second, product_coeff) is not None:
             return False
-        if _rational_square_root(
-            _biquadratic_norm(constant, first_coeff, first, second_coeff, second, product_coeff)
-        ) is not None:
+        if not _biquadratic_not_a_field_square(
+            constant, first_coeff, first, second_coeff, second, product_coeff
+        ):
             return False
         key = (
             first,
