@@ -1065,6 +1065,38 @@ class NuclearParticleBatchSixTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class AtomicMolecularBatchSixTests(unittest.TestCase):
+    SYMBOLS = ("he", "li", "be", "b", "c", "n", "o", "f", "ne")
+
+    def test_second_ionization_energies_exceed_the_first(self) -> None:
+        for sym in self.SYMBOLS:
+            second, first = quantity(f"asd512.ie2.{sym}"), quantity(f"asd512.ie.{sym}")
+            self.assertGreater(second.value - second.uncertainty, first.value + first.uncertainty, sym)
+        self.assertNotIn("asd512.ie2.h", {item.id for item in QUANTITIES})
+        self.assertTrue(any("square brackets" in note for note in quantity("asd512.ie2.n").notes))
+
+    def test_electron_affinities_as_printed(self) -> None:
+        ea = {sym: quantity(f"rk2002.ea.{sym}") for sym in ("h", "c", "o", "f", "cl")}
+        self.assertEqual(sorted(ea, key=lambda sym: ea[sym].value), ["h", "c", "o", "f", "cl"])
+        self.assertEqual(ea["f"].value_text, "3.401290")
+        for sym, item in ea.items():
+            self.assertLess(item.value, quantity(f"asd512.ie.{sym}").value, sym)
+
+    def test_h2_dissociation_energy(self) -> None:
+        item = quantity("holsch2019.h2.d0_ortho")
+        self.assertEqual(item.printed, "35 999.582 834(11)")
+        self.assertEqual(item.uncertainty, Fraction(11, 10**6))
+
+    def test_atomic_asks_link(self) -> None:
+        session = unfold(Request(ask="list the second ionization energies", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertEqual({id for id in linked if id.startswith("asd512.ie2.")}, {f"asd512.ie2.{sym}" for sym in self.SYMBOLS})
+        session = unfold(Request(ask="what are the electron affinities", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({f"rk2002.ea.{sym}" for sym in ("h", "c", "o", "f", "cl")} <= linked)
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

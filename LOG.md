@@ -920,3 +920,11 @@ AME2020 rows went in for ten more stable light nuclides, plus the neutron's beta
 The tests check AME's own definitions (Δ = (M − A)u and Q = Δ(n) − Δ(1H)), the B/A extremes, the lifetime ordering, and MuLan against PDG. That is 38 records.
 
 `python -m unittest discover -s tests -v` finished 275 tests, 0 failures, about 132.12 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — atomic and molecular: second ionization energies, electron affinities, H2 D0 pgi-0.76.0
+
+Added the ASD 5.12 second ionization energies for He to Ne, with the parenthesis and bracket flags noted, and the Rienstra-Kiracofe Table 10 electron affinities for H, C, O, F, and Cl. F is kept as printed, 3.401290, and its note points to Blondel's 3.4011895(25). Hölsch 2019 gives the ortho-H2 D0 as 35 999.582 834(11) cm⁻¹. The theory value is not stored.
+
+That is 15 records, and batch 6 is done.
+
+`python -m unittest discover -s tests -v` finished 279 tests, 0 failures, about 143.58 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

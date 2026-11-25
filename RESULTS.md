@@ -431,9 +431,19 @@ The PDG 2026 lifetimes are stored as the summary table prints them. τ(π±) `(2
 
 The tests are data-only. Each AME row's mass, excess, and A agree under AME's own definition Δ = (M − A)·u, using AME's u. ¹⁶O has the highest B/A among the light set and ⁶Li the lowest. The neutron Q equals Δ(n) − Δ(¹H) to its printed digit. The lifetimes order as π0 < K_S < K± < π± < K_L < μ. MuLan agrees with the PDG average. This adds 38 records.
 
+### Atomic and molecular: second ionization energies, electron affinities, H2 dissociation
+
+The second ionization energies from NIST ASD 5.12 for He through Ne are on the board, each with ASD's own uncertainty. Hydrogen has no second ionization energy, so the H to Ne range starts at He II. The values are He II `54.4177655282`, Li II `75.6400970`, Be II `18.21115`, B II `25.15483`, C II `24.383143`, N II `29.60125`, O II `35.12112`, F II `34.97081`, and Ne II `40.96297` eV. ASD prints He II and Li II in parentheses, which marks them as theoretical, and N II in square brackets, which marks it as semi-empirical. Notes on those records say so.
+
+The electron affinities come from Rienstra-Kiracofe et al., Chem. Rev. 102 (2002), Table 10: H `0.75419 ± 0.00002`, C `1.262119 ± 0.000020`, O `1.4611100 ± 0.00000007`, F `3.401290 ± 0.000003`, and Cl `3.612724 ± 0.00003` eV. The live repository served a bot check, so the review was read from the authors' institutional copy in the Internet Archive. The F value is kept exactly as printed. The NIST WebBook shows the underlying Blondel 2001 value as 3.4011895(25) eV, and the note records that difference without resolving it.
+
+H2: Hölsch et al. 2019 measured D_0^{N=1} of ortho-H2 as `35 999.582 834(11)` cm⁻¹. Puchalski's theoretical value from the same abstract is a calculation, so it is not stored. This is the ortho (N = 1) quantity and is not compared with CCCBDB's 0 K value.
+
+The tests are data-only. Every second ionization energy exceeds the first. The EAs order H < C < O < F < Cl, and each sits below its atom's first ionization energy. The asks link exactly their records. This adds 15 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.75.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.76.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

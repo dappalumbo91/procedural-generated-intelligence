@@ -2293,7 +2293,71 @@ NUCLEAR_PARTICLE_B6: tuple[Quantity, ...] = tuple(q for row in _AME_LIGHT for q 
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6
+ASD_QUERY_IE2 = (
+    "https://physics.nist.gov/cgi-bin/ASD/ie.pl?spectra=He-Ne+II&submit=Retrieve+Data&units=1&format=2&order=0"
+    "&at_num_out=on&sp_name_out=on&ion_charge_out=on&el_name_out=on&seq_out=on&shells_out=on&level_out=on"
+    "&ion_conf_out=on&e_out=0&unc_out=on&biblio=on"
+)
+
+
+def _asd2(id: str, z: int, element: str, spectrum: str, value_text: str, uncertainty_text: str, *, notes: tuple[str, ...]) -> Quantity:
+    lower = element.lower()
+    return _q(
+        id, f"second ionization energy of {lower} ({spectrum}, Z = {z})", f"E_i({spectrum})", value_text, uncertainty_text, "eV",
+        kind="uncertainty as printed, level not stated", source=ASD_SOURCE, edition=ASD_EDITION, url=ASD_QUERY_IE2, retrieved_from=ASD_QUERY_IE2,
+        keys=("second ionization energy",), phrases=(f"second ionization energy of {lower}", "second ionization energies", f"{lower} second ionization energy"),
+        notes=("Ionization energy of the singly charged ion (ASD ion charge +1).", *notes),
+    )
+
+
+_RK2002_SOURCE = (
+    "J. C. Rienstra-Kiracofe, G. S. Tschumper, H. F. Schaefer III, S. Nandi, and G. B. Ellison, Atomic and Molecular Electron Affinities: "
+    "Photoelectron Experiments and Theoretical Computations, Chem. Rev. 102, 231-282 (2002), doi:10.1021/cr990044u, Table 10."
+)
+_RK_COPY = (
+    "https://web.archive.org/web/20250708031823/https://scholarsmine.mst.edu/cgi/viewcontent.cgi?article=4920&context=chem_facwork"
+)
+_RK_NOTE = "Table 10 lists photoelectron and threshold-detachment values reviewed through January 2000. The review does not state a confidence level for the +- column."
+
+
+def _rk(sym: str, name: str, value: str, unc: str, ref: str, extra: tuple[str, ...] = ()) -> Quantity:
+    return _q(
+        f"rk2002.ea.{sym.lower()}", f"electron affinity of {name}", f"EA({sym})", value, unc, "eV", kind="uncertainty as printed, level not stated",
+        source=_RK2002_SOURCE, edition="Chem. Rev. 102 (2002), Table 10", url="https://doi.org/10.1021/cr990044u", retrieved_from=_RK_COPY,
+        keys=("electron affinity",), phrases=(f"electron affinity of {name}", "electron affinities", f"{name} electron affinity"),
+        notes=(f"Printed in Table 10 as {value} +- {unc} eV, method ThD, Table 10 reference {ref}.", _RK_NOTE,
+               "Read from the authors' institutional repository copy (Missouri S&T Scholars' Mine) through the Internet Archive, since the live repository served a bot check.", *extra),
+    )
+
+
+ATOMIC_MOLECULAR_B6: tuple[Quantity, ...] = (
+    _asd2("asd512.ie2.he", 2, "Helium", "He II", "54.4177655282", "0.0000000010", notes=('ASD ground shells 1s, ground level 2S<1/2>.', 'ASD bibliography codes: L19200.', 'ASD prints this energy in parentheses. The ASD help says parentheses mark energies from an ab-initio calculation, or otherwise not derived from evaluated experimental data.', _ASD_EV)),
+    _asd2("asd512.ie2.li", 3, "Lithium", "Li II", "75.6400970", "0.0000012", notes=('ASD ground shells 1s2, ground level 1S0, ionized level 1s 2S<1/2>.', 'ASD bibliography codes: L10054.', 'ASD prints this energy in parentheses. The ASD help says parentheses mark energies from an ab-initio calculation, or otherwise not derived from evaluated experimental data.', _ASD_EV)),
+    _asd2("asd512.ie2.be", 4, "Beryllium", "Be II", "18.21115", "0.00004", notes=('ASD ground shells 1s2.2s, ground level 2S<1/2>, ionized level 1s2 1S<0>.', 'ASD bibliography codes: L12158.', _ASD_EV)),
+    _asd2("asd512.ie2.b", 5, "Boron", "B II", "25.15483", "0.00005", notes=('ASD ground shells 1s2.2s2, ground level 1S0, ionized level 2s 2S<1/2>.', 'ASD bibliography codes: L12120.', _ASD_EV)),
+    _asd2("asd512.ie2.c", 6, "Carbon", "C II", "24.383143", "0.000012", notes=('ASD ground shells 1s2.2s2.2p, ground level 2P*<1/2>, ionized level 2s2 1S<0>.', 'ASD bibliography codes: L22145.', _ASD_EV)),
+    _asd2("asd512.ie2.n", 7, "Nitrogen", "N II", "29.60125", "0.00009", notes=('ASD ground shells 1s2.2s2.2p2, ground level 3P0, ionized level 2p 2P*<1/2>.', 'ASD bibliography codes: L11770.', 'ASD prints this energy in square brackets. The ASD help says brackets mark energies determined by interpolation, extrapolation, or another semi-empirical procedure relying on some known experimental values.', _ASD_EV)),
+    _asd2("asd512.ie2.o", 8, "Oxygen", "O II", "35.12112", "0.00006", notes=('ASD ground shells 1s2.2s2.2p3, ground level 4S*<3/2>, ionized level 2p2 3P<0>.', 'ASD bibliography codes: L11267,L10621.', _ASD_EV)),
+    _asd2("asd512.ie2.f", 9, "Fluorine", "F II", "34.97081", "0.00012", notes=('ASD ground shells 1s2.2s2.2p4, ground level 3P<2>, ionized level 2p3 4S*<3/2>.', 'ASD bibliography codes: L369.', _ASD_EV)),
+    _asd2("asd512.ie2.ne", 10, "Neon", "Ne II", "40.96297", "0.00004", notes=('ASD ground shells 1s2.2s2.2p5, ground level 2P*<3/2>, ionized level 2p4 3P<2>.', 'ASD bibliography codes: L1406.', _ASD_EV)),
+    _rk("H", "hydrogen", "0.75419", "0.00002", "47"),
+    _rk("C", "carbon", "1.262119", "0.000020", "286"),
+    _rk("O", "oxygen", "1.4611100", "0.00000007", "40"),
+    _rk("F", "fluorine", "3.401290", "0.000003", "40",
+        ("Kept as printed. The NIST Chemistry WebBook lists Blondel, Delsart, et al. (2001) as 'Given: 3.4011895(25) eV', which differs from the printed 3.401290 in the fourth decimal; the difference is not resolved here.",)),
+    _rk("Cl", "chlorine", "3.612724", "0.00003", "305"),
+    _q("holsch2019.h2.d0_ortho", "dissociation energy of ortho-H2 (N = 1)", "D_0^{N=1}(H2)", "35 999.582 834", "0.000 011", "cm^-1",
+       kind="uncertainty as printed, level not stated", printed="35 999.582 834(11)",
+       source="N. Hoelsch, M. Beyer, E. J. Salumbides, K. S. E. Eikema, W. Ubachs, C. Jungen, and F. Merkt, Benchmarking Theory with an Improved Measurement of the Ionization and Dissociation Energies of H2, Phys. Rev. Lett. 122, 103002 (2019), doi:10.1103/PhysRevLett.122.103002, arXiv:1902.09471.",
+       edition="Phys. Rev. Lett. 122 (2019)", url="https://doi.org/10.1103/PhysRevLett.122.103002", retrieved_from="https://export.arxiv.org/api/query?id_list=1902.09471",
+       keys=("h2", "hydrogen molecule"), phrases=("h2 dissociation energy", "dissociation energy of h2", "hydrogen molecule dissociation"),
+       notes=("Printed in the abstract as 35 999.582 834(11) cm-1 for D_0^{N=1} of ortho-H2; the paper gives the uncertainty as 340 kHz.",
+              "This is the measured value. The theoretical value the abstract compares it with (Puchalski et al. 2019) is a calculation and is not stored.",
+              "It is ortho-H2 (N = 1), so it is not the same quantity as the para-H2 ground-state D0, and it is not compared with the CCCBDB 0 K value on the board.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS
 
 
