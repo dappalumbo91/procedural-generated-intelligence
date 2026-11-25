@@ -1008,3 +1008,11 @@ Added the conductance quantum and its inverse, the International Annealed Copper
 That is 12 records.
 
 `python -m unittest discover -s tests -v` finished 329 tests, 0 failures, about 98.63 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — condensed matter pgi-0.87.0
+
+Added cubic elastic constants for Si, Cu, diamond, and Al, three elastic Debye temperatures, MgB₂ and H₃S T_c, graphene's transmittance and dynamic conductivity, and two QHE universality results. COVERAGE.md's condensed-matter row is updated.
+
+That is 24 records.
+
+`python -m unittest discover -s tests -v` finished 333 tests, 0 failures, about 112.35 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

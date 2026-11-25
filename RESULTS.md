@@ -537,9 +537,21 @@ Coulomb's law has two tests. Williams, Faller, and Hill (1971) found q = `(2.7 �
 
 This adds 12 records.
 
+### Condensed matter: elastic constants, Debye temperatures, superconductors, graphene, QHE
+
+Condensed matter was the thinnest domain, and this slice fills it out. The elastic stiffnesses are c₁₁, c₁₂, c₄₄ = `165.7, 63.9, 79.6` GPa for silicon and `168.4, 121.4, 75.4` GPa for copper, from Knowles's 2017 compilation, and `1078.6, 126.6, 577.6` GPa for diamond, Migliori's resonant-ultrasound values as quoted by Tanigaki et al. Aluminium comes straight from two 1964 abstracts. Kamm and Alers extrapolate to 0 K (`11.430, 6.192, 3.162` × 10¹¹ dyn cm⁻²), and Vallin et al. measure at 4 K (`11.63, 6.48, 3.09` × 10¹⁰ N m⁻², the same unit). They differ by up to about 5% in c₁₂, and both are kept. A test checks that Knowles's own anisotropy ratio 2c₄₄/(c₁₁ − c₁₂) reproduces his printed 1.56 for Si and 3.21 for Cu.
+
+The Debye temperatures here come from elastic constants: aluminium `430.3` K (Kamm–Alers) and `425` K (Vallin), and diamond `2244` K (Migliori). The calorimetric values for copper and silicon had no primary source I could reach, so they're left as a gap rather than taken from a textbook table.
+
+MgB₂ superconducts at `39` K (Nagamatsu 2001), and sulfur hydride at `203` K at 155 GPa (Drozdov 2015), which brackets the YBCO entry already on the board. Graphene's white-light transmittance is `97.7 ± 0.1`% (Nair 2008), so its opacity is 2.3%. The paper ties that to πα, but the board leaves that step alone. Finally, the quantum Hall resistance in graphene matches GaAs/AlGaAs to `(−0.9 ± 8.2) × 10⁻¹¹`, or `(−2.7 ± 6.0) × 10⁻¹¹` combined with Janssen et al. (Ribeiro-Palau 2015). Both are null within their standard uncertainty.
+
+The superconductor ask now links MgB₂ and H₃S as well, and the old test's expected set is widened to match.
+
+This adds 24 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.86.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.87.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

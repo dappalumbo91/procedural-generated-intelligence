@@ -913,7 +913,7 @@ class CondensedMatterTests(unittest.TestCase):
     def test_condensed_matter_asks_link(self) -> None:
         session = unfold(Request(ask="list the superconducting transition temperatures", seed=1))
         linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
-        self.assertEqual(linked, {"srm767a.niobium.tc", "srm767a.lead.tc", "srm767a.aluminum.tc", "wu1987.ybco.tc"})
+        self.assertEqual(linked, {"srm767a.niobium.tc", "srm767a.lead.tc", "srm767a.aluminum.tc", "wu1987.ybco.tc", "nagamatsu2001.mgb2.tc", "drozdov2015.h3s.tc"})
         session = unfold(Request(ask="what is the critical point of water", seed=1))
         linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
         self.assertEqual(linked, {"iapws1992.h2o.t_c", "iapws1992.h2o.p_c", "iapws1992.h2o.rho_c"})
@@ -1525,6 +1525,50 @@ class EmExtrasTests(unittest.TestCase):
         self.assertIn("nbs1966.iacs_volume_resistivity", self._linked("what is the resistivity of copper"))
         self.assertTrue({"iapwsr897.h2o.eps_300k", "iapwsr897.h2o.eps_323k"} <= self._linked("what is the static permittivity of water"))
         self.assertIn("williams1971.coulomb_q", self._linked("list the coulomb's law tests"))
+
+
+class CondensedExtrasTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def _c(self, prefix: str) -> tuple[Fraction, Fraction, Fraction]:
+        return tuple(quantity(f"{prefix}.c{ij}").value for ij in ("11", "12", "44"))
+
+    def test_cubic_stiffness_orderings(self) -> None:
+        si, cu, dia = self._c("knowles2017.si"), self._c("knowles2017.cu"), self._c("migliori2008.diamond")
+        for c11, c12, c44 in (si, cu, dia):
+            self.assertGreater(c11, c12)
+            self.assertGreater(c11, c44)
+        # Zener anisotropy 2 c44 / (c11 - c12), as Knowles's Table 1 defines A: copper is far more anisotropic than silicon.
+        zener = lambda c: 2 * c[2] / (c[0] - c[1])
+        self.assertEqual(round(zener(si), 2), Fraction("1.56"))
+        self.assertEqual(round(zener(cu), 2), Fraction("3.21"))
+        self.assertTrue(all(d > max(a, b) for d, a, b in zip(dia, si, cu)))
+
+    def test_aluminium_sources_share_a_unit(self) -> None:
+        # 10^11 dyn/cm^2 and 10^10 N/m^2 are the same unit (1 N/m^2 = 10 dyn/cm^2).
+        kamm = [quantity(f"kamm1964.al.c{ij}_0k") for ij in ("11", "12", "44")]
+        vallin = [quantity(f"vallin1964.al.c{ij}_4k") for ij in ("11", "12", "44")]
+        for k, v in zip(kamm, vallin):
+            self.assertLess(abs(k.value - v.value) / k.value, Fraction(1, 10))
+        self.assertLess(abs(quantity("kamm1964.al.theta_d").value - quantity("vallin1964.al.theta_d").value), 10)
+        self.assertGreater(quantity("migliori2008.diamond.theta_d").value, 5 * quantity("kamm1964.al.theta_d").value)
+
+    def test_superconductors_and_qhe(self) -> None:
+        self.assertLess(quantity("nagamatsu2001.mgb2.tc").value, quantity("wu1987.ybco.tc").value)
+        self.assertLess(quantity("wu1987.ybco.tc").value, quantity("drozdov2015.h3s.tc").value)
+        for id in ("ribeiropalau2015.qhe.graphene_gaas", "ribeiropalau2015.qhe.combined_with_janssen"):
+            item = quantity(id)
+            self.assertLessEqual(abs(item.value), item.uncertainty, id)
+        opacity = 100 - quantity("nair2008.graphene.transmittance").value
+        self.assertEqual(opacity, Fraction("2.3"))
+
+    def test_condensed_asks_link(self) -> None:
+        self.assertTrue({"knowles2017.cu.c11", "knowles2017.si.c44", "migliori2008.diamond.c11"} <= self._linked("list the elastic constants"))
+        self.assertTrue({"kamm1964.al.theta_d", "migliori2008.diamond.theta_d"} <= self._linked("list the debye temperatures"))
+        self.assertIn("nair2008.graphene.transmittance", self._linked("what is graphene's opacity"))
+        self.assertIn("ribeiropalau2015.qhe.graphene_gaas", self._linked("what is the quantum hall plateau precision"))
 
 
 class Gw150914Tests(unittest.TestCase):

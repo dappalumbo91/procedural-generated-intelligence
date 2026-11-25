@@ -3177,7 +3177,93 @@ COULOMB_BOUNDS: tuple[Bound, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS
+_KNOWLES_SOURCE = "K. M. Knowles, The plane strain Young's modulus in cubic materials, J. Elast. 128, 147-173 (2017), doi:10.1007/s10659-017-9621-x, Table 1 (data for Si and Cu from Table 6.1 of A. Kelly and K. M. Knowles, Crystallography and Crystal Defects, 2nd edn., Wiley, 2012)"
+_KNOWLES_COPY = "https://api.repository.cam.ac.uk/server/api/core/bitstreams/8827434c-079f-47a8-a5c5-1e3597416a22/content"
+_TANIGAKI_SOURCE = "T. Tanigaki et al., Observation of higher stiffness in nanopolycrystal diamond than monocrystal diamond, Nat. Commun. 4, 2343 (2013), doi:10.1038/ncomms3343, quoting A. Migliori, H. Ledbetter, R. G. Leisure et al., Diamond's elastic stiffnesses from 322 K to 10 K, J. Appl. Phys. 104, 053512 (2008), doi:10.1063/1.2975190"
+_KAMM_SOURCE = "G. N. Kamm and G. A. Alers, Low-temperature elastic moduli of aluminum, J. Appl. Phys. 35, 327-330 (1964), doi:10.1063/1.1713309, abstract"
+_VALLIN_SOURCE = "J. Vallin, M. Mongy, K. Salama, and O. Beckman, Elastic constants of aluminum, J. Appl. Phys. 35, 1825-1826 (1964), doi:10.1063/1.1713749, abstract"
+_ELASTIC = ("elastic constants", "elastic constant")
+
+
+def _cij(id: str, material: str, ij: str, value: str, unit: str, *, source: str, edition: str, url: str, retrieved_from: str, where: str, extra: tuple[str, ...] = ()) -> Quantity:
+    return _q(id, f"elastic stiffness c{ij} of {material}", f"c{ij}({material})", value, "", unit, kind="no uncertainty printed", source=source, edition=edition,
+              url=url, retrieved_from=retrieved_from, keys=_ELASTIC, phrases=("elastic constants", "elastic stiffness", f"elastic constants of {material.split(' ')[0].lower()}"),
+              notes=(f"{where} prints c{ij} = {value}" + (f" {unit}" if unit else "") + " with no uncertainty.",) + extra)
+
+
+def _knowles(mat: str, material: str, c11: str, c12: str, c44: str) -> tuple[Quantity, ...]:
+    return tuple(_cij(f"knowles2017.{mat}.c{ij}", material, ij, v, "GPa", source=_KNOWLES_SOURCE, edition="J. Elast. 128 (2017), open-access copy",
+                      url="https://doi.org/10.1007/s10659-017-9621-x", retrieved_from=_KNOWLES_COPY, where="Table 1",
+                      extra=("Table 1's caption gives no temperature for Si and Cu; the values are a textbook compilation, not a single measurement.",))
+                 for ij, v in (("11", c11), ("12", c12), ("44", c44)))
+
+
+CONDENSED_EXTRAS: tuple[Quantity, ...] = (
+    *_knowles("si", "silicon", "165.7", "63.9", "79.6"),
+    *_knowles("cu", "copper", "168.4", "121.4", "75.4"),
+    *(_cij(f"migliori2008.diamond.c{ij}", "diamond", ij, v, "GPa", source=_TANIGAKI_SOURCE, edition="Nat. Commun. 4 (2013), quoting J. Appl. Phys. 104 (2008)",
+           url="https://doi.org/10.1063/1.2975190", retrieved_from="https://www.nature.com/articles/ncomms3343.pdf",
+           where="Tanigaki et al. (2013), quoting Migliori et al.'s room-temperature resonant-ultrasound values,",
+           extra=("The Migliori paper itself was not read; its abstract (Crossref) confirms the method and the 322-10 K range.",))
+      for ij, v in (("11", "1078.6"), ("12", "126.6"), ("44", "577.6"))),
+    *(_cij(f"kamm1964.al.c{ij}_0k", "aluminium (extrapolated to 0 K)", ij, v, "10^11 dyn cm^-2", source=_KAMM_SOURCE, edition="J. Appl. Phys. 35 (1964)",
+           url="https://doi.org/10.1063/1.1713309", retrieved_from="https://api.crossref.org/works/10.1063/1.1713309", where="The abstract",
+           extra=("Measured by ultrasonic pulse echo from 4.2 K to 300 K and extrapolated to 0 K.",))
+      for ij, v in (("11", "11.430"), ("12", "6.192"), ("44", "3.162"))),
+    *(_cij(f"vallin1964.al.c{ij}_4k", "aluminium (4 K)", ij, v, "10^10 N m^-2", source=_VALLIN_SOURCE, edition="J. Appl. Phys. 35 (1964)",
+           url="https://doi.org/10.1063/1.1713749", retrieved_from="https://api.crossref.org/works/10.1063/1.1713749", where="The abstract")
+      for ij, v in (("11", "11.63"), ("12", "6.48"), ("44", "3.09"))),
+    _q("kamm1964.al.theta_d", "Debye temperature of aluminium from the 0 K elastic moduli", "theta_D(Al)", "430.3", "", "K", kind="no uncertainty printed",
+       source=_KAMM_SOURCE, edition="J. Appl. Phys. 35 (1964)", url="https://doi.org/10.1063/1.1713309", retrieved_from="https://api.crossref.org/works/10.1063/1.1713309",
+       keys=("debye temperature",), phrases=("debye temperatures", "debye temperature"),
+       notes=("The abstract: 'The Debye temperature obtained from the 0 K modulus values is 430.3 K, in excellent agreement with the value from heat-capacity measurements.' The heat-capacity value is not stored.",)),
+    _q("vallin1964.al.theta_d", "Debye temperature of aluminium from the 4 K elastic constants", "theta_D(Al)", "425", "", "K", kind="no uncertainty printed",
+       source=_VALLIN_SOURCE, edition="J. Appl. Phys. 35 (1964)", url="https://doi.org/10.1063/1.1713749", retrieved_from="https://api.crossref.org/works/10.1063/1.1713749",
+       keys=("debye temperature",), phrases=("debye temperatures", "debye temperature"), notes=("The abstract prints theta = 425 K, calculated from its 4 K elastic constants.",)),
+    _q("migliori2008.diamond.theta_d", "Debye temperature of diamond from the zero-temperature elastic stiffnesses", "theta_D(C)", "2244", "", "K", kind="no uncertainty printed",
+       source="A. Migliori, H. Ledbetter, R. G. Leisure et al., Diamond's elastic stiffnesses from 322 K to 10 K, J. Appl. Phys. 104, 053512 (2008), doi:10.1063/1.2975190, abstract",
+       edition="J. Appl. Phys. 104 (2008)", url="https://doi.org/10.1063/1.2975190", retrieved_from="https://api.crossref.org/works/10.1063/1.2975190",
+       keys=("debye temperature",), phrases=("debye temperatures", "debye temperature"), notes=("The abstract: 'Zero-temperature Cij correspond to a 2244-K Debye characteristic temperature.'",)),
+    _q("nagamatsu2001.mgb2.tc", "superconducting transition temperature of MgB2", "T_c(MgB2)", "39", "", "K", kind="no uncertainty printed",
+       source="J. Nagamatsu, N. Nakagawa, T. Muranaka, Y. Zenitani, and J. Akimitsu, Superconductivity at 39 K in magnesium diboride, Nature 410, 63-64 (2001), doi:10.1038/35065039, abstract",
+       edition="Nature 410 (2001)", url="https://doi.org/10.1038/35065039", retrieved_from="https://www.nature.com/articles/35065039",
+       keys=("superconductor", "mgb2"), phrases=("superconductors", "superconducting transition", "mgb2"),
+       notes=("The abstract: 'Magnetization and resistivity measurements establish a transition temperature of 39 K.'",)),
+    _q("drozdov2015.h3s.tc", "superconducting transition temperature of sulfur hydride (H3S) at 155 GPa", "T_c(H3S)", "203", "", "K", kind="no uncertainty printed",
+       source="A. P. Drozdov, M. I. Eremets, I. A. Troyan, V. Ksenofontov, and S. I. Shylin, Conventional superconductivity at 203 kelvin at high pressures in the sulfur hydride system, Nature 525, 73-76 (2015), doi:10.1038/nature14964, arXiv:1506.08190",
+       edition="Nature 525 (2015); arXiv v1", url="https://doi.org/10.1038/nature14964", retrieved_from="https://arxiv.org/pdf/1506.08190",
+       keys=("superconductor", "h3s"), phrases=("superconductors", "superconducting transition", "h3s", "hydride superconductor"),
+       notes=("The abstract says superconductivity 'has been confirmed by magnetic susceptibility measurements with Tc=203 K'; the magnetization figure is at 155 GPa.",
+              "The abstract attributes it 'most likely' to H3S formed from H2S under pressure.")),
+    _q("nair2008.graphene.transmittance", "white-light transmittance of suspended single-layer graphene", "T(graphene)", "97.7", "0.1", "%",
+       kind="uncertainty as printed, level not stated",
+       source="R. R. Nair, P. Blake, A. N. Grigorenko, K. S. Novoselov, T. J. Booth, T. Stauber, N. M. R. Peres, and A. K. Geim, Fine structure constant defines visual transparency of graphene, Science 320, 1308 (2008), doi:10.1126/science.1156965, arXiv:0803.3718",
+       edition="Science 320 (2008); arXiv v1", url="https://doi.org/10.1126/science.1156965", retrieved_from="https://arxiv.org/pdf/0803.3718",
+       keys=("graphene", "opacity"), phrases=("graphene opacity", "graphene transparency", "graphene fine structure"),
+       notes=("The text: 'we have found T = 97.7% with an accuracy of +-0.1%'. The abstract says graphene absorbs 'pi times alpha = 2.3%' of white light; the board does not compute pi alpha.",)),
+    _q("nair2008.graphene.g_over_g0", "dynamic conductivity of graphene over e^2/4hbar, white light", "G/G_0", "1.01", "0.04", "",
+       kind="relative standard uncertainty",
+       source="R. R. Nair et al., Fine structure constant defines visual transparency of graphene, Science 320, 1308 (2008), doi:10.1126/science.1156965, arXiv:0803.3718",
+       edition="Science 320 (2008); arXiv v1", url="https://doi.org/10.1126/science.1156965", retrieved_from="https://arxiv.org/pdf/0803.3718",
+       keys=("graphene",), phrases=("graphene opacity", "graphene conductivity"),
+       notes=("The text: 'G = 1.01 G0 over the white-light region (450 nm < lambda < 800 nm) and the standard error of +-4%'; stored as a relative standard uncertainty of 0.04.",)),
+    _q("ribeiropalau2015.qhe.graphene_gaas", "relative deviation of the quantized Hall resistance in graphene from GaAs/AlGaAs", "(R_H-G - R_H-GaAs)/R_H", "-0.9 e-11", "8.2 e-11", "",
+       kind="standard uncertainty",
+       source="R. Ribeiro-Palau, F. Lafont, J. Brun-Picard, D. Kazazis et al., Quantum Hall resistance standard in graphene devices under relaxed experimental conditions, Nat. Nanotechnol. 10, 965-971 (2015), doi:10.1038/nnano.2015.192, arXiv:1504.06511",
+       edition="Nat. Nanotechnol. 10 (2015); arXiv v1", url="https://doi.org/10.1038/nnano.2015.192", retrieved_from="https://arxiv.org/pdf/1504.06511",
+       keys=("quantum hall", "qhe universality"), phrases=("quantum hall plateau precision", "quantum hall universality", "quantized hall resistance"),
+       notes=("The text: the weighted mean of 28 measurements 'shows an agreement between RH-G and RH-GaAs to -0.9x10^-11 within uc=8.2x10^-11', uc being the combined standard uncertainty.",
+              "The same paper says the Hall resistance is quantized 'within 1x10^-9' over a 10 T range in this device; that is not stored separately.")),
+    _q("ribeiropalau2015.qhe.combined_with_janssen", "QHE universality, graphene versus GaAs, combined with Janssen et al.", "(R_H-G - R_H-GaAs)/R_H", "-2.7 e-11", "6.0 e-11", "",
+       kind="standard uncertainty",
+       source="R. Ribeiro-Palau et al., Nat. Nanotechnol. 10, 965-971 (2015), doi:10.1038/nnano.2015.192, arXiv:1504.06511",
+       edition="Nat. Nanotechnol. 10 (2015); arXiv v1", url="https://doi.org/10.1038/nnano.2015.192", retrieved_from="https://arxiv.org/pdf/1504.06511",
+       keys=("quantum hall", "qhe universality"), phrases=("quantum hall plateau precision", "quantum hall universality"),
+       notes=("The text combines this result with Janssen et al.'s 8.7x10^-11 test: 'agreement between RH-G and RH-GaAs to -2.7x10^-11 within uc=6.0x10^-11'.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

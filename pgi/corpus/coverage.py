@@ -47,7 +47,7 @@ for _domain, _names in {
     "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024"),
     "nuclear": ("ame2020", "ddep", "ensdf", "am2013"),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005"),
-    "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987"),
+    "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84"),
     "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971"),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025"),
