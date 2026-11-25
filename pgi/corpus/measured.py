@@ -2834,7 +2834,77 @@ OPTICS: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS
+_GRS80_SOURCE = "H. Moritz, Geodetic Reference System 1980, J. Geodesy 74, 128-133 (2000), doi:10.1007/s001900050278 (The Geodesist's Handbook), Sect. 4, Numerical values."
+_GRS80_COPY = "https://ciencias.ulisboa.pt/sites/default/files/fcul/dep/dqb/doc/GRS80_Moritz.pdf"
+_GRS80_DERIVED = "Sect. 4 lists this as a derived constant, 'accurate to the number of decimal places given'; it is computed from the four defining constants, and is stored as printed."
+
+
+def _grs80(key: str, name: str, symbol: str, value: str, unit: str, *, defining: bool, phrases: tuple[str, ...]) -> Quantity:
+    return _q(f"grs80.{key}", f"GRS80 {name}", symbol, value, "", unit, kind="exact" if defining else "no uncertainty printed",
+              source=_GRS80_SOURCE, edition="GRS80 (IUGG 1979), Moritz 2000", url="https://doi.org/10.1007/s001900050278", retrieved_from=_GRS80_COPY,
+              keys=("grs80", "earth figure", "geodesy"), phrases=phrases + ("geodetic reference system", "grs80 constants"),
+              notes=(("Listed under 'Defining Constants (exact)'. It is a conventional value adopted by the IUGG, not a measurement." if defining else _GRS80_DERIVED),))
+
+
+_IGRF_URL = "https://www.ngdc.noaa.gov/IAGA/vmod/coeffs/igrf14coeffs.txt"
+_IGRF_SOURCE = "IAGA Division V-MOD, International Geomagnetic Reference Field, 14th generation (IGRF-14), Schmidt semi-normalised spherical harmonic coefficients, coefficient file igrf14coeffs.txt."
+
+
+def _igrf(key: str, coefficient: str, epoch: str, label: str, value: str, unit: str = "nT", extra: str = "") -> Quantity:
+    return _q(f"igrf14.{key}", f"IGRF-14 Gauss coefficient {coefficient}, {epoch} ({label})", coefficient, value, "", unit, kind="no uncertainty printed",
+              source=_IGRF_SOURCE, edition=f"IGRF-14, {label} {epoch}", url=_IGRF_URL, retrieved_from=_IGRF_URL,
+              keys=("geomagnetic field", "igrf"), phrases=("earth's magnetic field", "earth magnetic dipole", "geomagnetic dipole", "igrf coefficients"),
+              notes=(f"The file prints {value} for {coefficient} in the {epoch} column, headed {label}. The file prints no uncertainties.",
+                     "The degree-1 coefficients describe the dipole part of the main field. The board does not compute a dipole moment or tilt from them.") + ((extra,) if extra else ()))
+
+
+_LEAMAN_SOURCE = "E. J. Leaman, D. Haddad, F. Seifert, L. S. Chao, A. Cao, J. R. Pratt et al., A determination of the local acceleration of gravity for the NIST-4 watt balance, IEEE Trans. Instrum. Meas., doi:10.1109/TIM.2014.2383111, arXiv:1412.4143, Sect. VII."
+_LIU_SOURCE = "W. Liu, N. Li, Y. Ma, R. Hu, S. Wu, W. Zhao et al., A determination of the local gravitational acceleration for the Tsinghua tabletop Kibble balance, arXiv:2405.08541 (2024), Sect. III."
+
+MECHANICS_EM: tuple[Quantity, ...] = (
+    _codata("codata2022.g_n", "standard acceleration of gravity", "g_n", "9.806 65", "(exact)", "m s^-2", "gn",
+            keys=("gravity",), phrases=("standard gravity", "standard acceleration of gravity", "acceleration of gravity"),
+            notes=("CODATA lists this adopted value as exact. It is an adopted conventional value, not a measured local g.",)),
+    _grs80("a", "semimajor axis", "a", "6378 137", "m", defining=True, phrases=("earth equatorial radius", "semimajor axis of the earth")),
+    _grs80("gm", "geocentric gravitational constant", "GM", "3 986 005 e8", "m^3 s^-2", defining=True, phrases=("geocentric gravitational constant",)),
+    _grs80("j2", "dynamic form factor", "J_2", "108 263 e-8", "", defining=True, phrases=("earth j2", "dynamic form factor")),
+    _grs80("omega", "angular velocity", "omega", "7 292 115 e-11", "rad s^-1", defining=True, phrases=("earth rotation rate", "angular velocity of the earth")),
+    _grs80("inv_f", "reciprocal flattening", "1/f", "298.257 222 101", "", defining=False, phrases=("earth flattening", "reciprocal flattening")),
+    _grs80("gamma_e", "normal gravity at the equator", "gamma_e", "9.780 326 7715", "m s^-2", defining=False, phrases=("normal gravity", "gravity at the equator")),
+    _grs80("gamma_p", "normal gravity at the pole", "gamma_p", "9.832 186 3685", "m s^-2", defining=False, phrases=("normal gravity", "gravity at the pole")),
+    _q("leaman2015.nist4.g", "local acceleration of gravity at the NIST-4 watt balance test mass (Gaithersburg)", "g(NIST-4)", "980103140.2", "4.3", "uGal",
+       kind="uncertainty as printed, level not stated", printed="980103140.2(4.3)", source=_LEAMAN_SOURCE, edition="IEEE Trans. Instrum. Meas. (doi:10.1109/TIM.2014.2383111); arXiv:1412.4143",
+       url="https://doi.org/10.1109/TIM.2014.2383111", retrieved_from="https://arxiv.org/pdf/1412.4143",
+       keys=("local gravity", "absolute gravimetry"), phrases=("measured local g", "local acceleration of gravity", "measured gravity at sites"),
+       notes=("Sect. VII prints the best estimate as 980103140.2(4.3) uGal (4.4 x 10^-9 relative uncertainty), tied from absolute gravimeter measurements to the test-mass position.",
+              "1 uGal = 10^-8 m s^-2; the value is stored in the paper's unit.")),
+    _q("liu2024.nim_changping.g_r", "absolute gravity at the NIM Changping key-comparison site (as quoted)", "g_r(NIM)", "980 122 922.8", "1.0", "uGal",
+       kind="standard uncertainty", source=_LIU_SOURCE, edition="arXiv:2405.08541 (2024)", url="https://arxiv.org/abs/2405.08541", retrieved_from="https://arxiv.org/pdf/2405.08541",
+       keys=("local gravity", "absolute gravimetry"), phrases=("measured local g", "measured gravity at sites"),
+       notes=("The paper says the reference value at the Changping CCM.G-K2.2017 key-comparison point 'is recorded as 980 122 922.8 uGal with a standard uncertainty of 1.0 uGal'. The key-comparison report itself was not read.",)),
+    _q("liu2024.thu.g0", "absolute gravity at the Tsinghua Kibble balance reference point (tide-correction transfer)", "g_0(THU)", "980 139 581.2", "2.3", "uGal",
+       kind="standard uncertainty", source=_LIU_SOURCE, edition="arXiv:2405.08541 (2024)", url="https://arxiv.org/abs/2405.08541", retrieved_from="https://arxiv.org/pdf/2405.08541",
+       keys=("local gravity", "absolute gravimetry"), phrases=("measured local g", "measured gravity at sites"),
+       notes=("Printed as g0 = (980 139 581.2 +- 2.3) uGal (k = 1), from the NIM value plus a CG6 relative-gravimeter transfer with tide correction.",
+              "The paper's blind polynomial-fit transfer gives (980 139 580.4 +- 1.6) uGal (k = 1); that alternative is not stored separately.")),
+    _codata("codata2022.f_faraday", "Faraday constant", "F", "96 485.332 12...", "(exact)", "C mol^-1", "f",
+            keys=("faraday",), phrases=("faraday constant",), notes=(_EXACT_DERIVED[0].replace("h, c, and k", "N_A and e"),)),
+    _codata("codata2022.z_0", "characteristic impedance of vacuum", "Z_0", "376.730 313 412", "0.000 000 059", "ohm", "z0",
+            keys=("vacuum impedance",), phrases=("impedance of free space", "characteristic impedance of vacuum")),
+    _codata("codata2022.phi_0", "magnetic flux quantum", "Phi_0", "2.067 833 848... e-15", "(exact)", "Wb", "flxquhs2e",
+            keys=("flux quantum",), phrases=("magnetic flux quantum", "flux quantum"), notes=(_EXACT_DERIVED[0].replace("h, c, and k", "h and e"),)),
+    _codata("codata2022.mu_b", "Bohr magneton", "mu_B", "9.274 010 0657 e-24", "0.000 000 0029 e-24", "J T^-1", "mub",
+            keys=("magneton",), phrases=("bohr magneton",)),
+    _igrf("g10_2025", "g_1^0", "2025.0", "IGRF", "-29350.0"),
+    _igrf("g11_2025", "g_1^1", "2025.0", "IGRF", "-1410.3"),
+    _igrf("h11_2025", "h_1^1", "2025.0", "IGRF", "4545.5"),
+    _igrf("g10_2020", "g_1^0", "2020.0", "DGRF", "-29403.41", extra="DGRF marks a definitive model for that epoch."),
+    _igrf("g10_1900", "g_1^0", "1900.0", "IGRF", "-31543", extra="The 1900 model is an IGRF (non-definitive) column in the file."),
+    _igrf("g10_sv_2025", "dg_1^0/dt", "2025-30", "secular variation", "12.6", "nT/yr", extra="The secular-variation column is a forecast for 2025-2030."),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS
 
 

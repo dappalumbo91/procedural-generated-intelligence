@@ -1338,6 +1338,53 @@ class OpticsTests(unittest.TestCase):
         self.assertTrue({"bipm2025.sr87.frequency", "bipm2025.yb171.frequency"} <= linked)
 
 
+class MechanicsEmTests(unittest.TestCase):
+    SITES = ("leaman2015.nist4.g", "liu2024.nim_changping.g_r", "liu2024.thu.g0")
+
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_standard_gravity_and_grs80_are_stored_exact(self) -> None:
+        self.assertEqual(quantity("codata2022.g_n").value, Fraction("9.80665"))
+        self.assertIsNone(quantity("codata2022.g_n").uncertainty)
+        self.assertEqual(quantity("grs80.a").value, 6378137)
+        self.assertEqual(quantity("grs80.gm").value, 3986005 * 10**8)
+        self.assertEqual(quantity("grs80.j2").value, Fraction(108263, 10**8))
+        self.assertEqual(quantity("grs80.omega").value, Fraction(7292115, 10**11))
+
+    def test_measured_sites_lie_between_grs80_equator_and_pole(self) -> None:
+        gamma_e, gamma_p = quantity("grs80.gamma_e").value, quantity("grs80.gamma_p").value
+        self.assertLess(gamma_e, quantity("codata2022.g_n").value)
+        self.assertLess(quantity("codata2022.g_n").value, gamma_p)
+        for id in self.SITES:
+            item = quantity(id)
+            self.assertEqual(item.unit, "uGal")
+            self.assertTrue(gamma_e < item.value / 10**8 < gamma_p, id)
+
+    def test_codata_definitional_relations(self) -> None:
+        n_a, e, h = (quantity(f"codata2022.{k}").value for k in ("n_a", "e", "h"))
+        low, high = quantity("codata2022.f_faraday").truncation_bounds
+        self.assertTrue(low <= n_a * e < high)
+        low, high = quantity("codata2022.phi_0").truncation_bounds
+        self.assertTrue(low <= h / (2 * e) < high)
+        mu_0, z_0, c = quantity("codata2022.mu_0"), quantity("codata2022.z_0"), quantity("codata2022.c").value
+        self.assertLessEqual(abs(mu_0.value * c - z_0.value), mu_0.uncertainty * c + z_0.uncertainty)
+
+    def test_igrf_axial_dipole_coefficient_shrinks(self) -> None:
+        values = [quantity(f"igrf14.g10_{epoch}").value for epoch in ("1900", "2020", "2025")]
+        self.assertTrue(all(v < 0 for v in values))
+        self.assertEqual([abs(v) for v in values], sorted((abs(v) for v in values), reverse=True))
+        self.assertGreater(quantity("igrf14.g10_sv_2025").value, 0)
+
+    def test_mechanics_em_asks_link(self) -> None:
+        self.assertIn("codata2022.g_n", self._linked("what is standard gravity"))
+        self.assertTrue({"grs80.gamma_e", "grs80.gamma_p"} <= self._linked("what is the normal gravity in grs80"))
+        self.assertTrue(set(self.SITES) <= self._linked("list the measured local g at sites"))
+        self.assertTrue({"igrf14.g10_2025", "igrf14.g11_2025", "igrf14.h11_2025"} <= self._linked("what are the igrf coefficients of the earth magnetic dipole"))
+        self.assertIn("codata2022.mu_b", self._linked("what is the bohr magneton"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

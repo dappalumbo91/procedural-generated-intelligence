@@ -968,3 +968,11 @@ Added the ASD reference lines behind the glass letters, N-BK7's indices, Abbe nu
 That is 25 records.
 
 `python -m unittest discover -s tests -v` finished 306 tests, 0 failures, about 95.02 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — mechanics and electromagnetism pgi-0.82.0
+
+Added standard gravity, the GRS80 defining and derived constants, measured g at three Kibble-balance sites, CODATA's Faraday constant, vacuum impedance, flux quantum, and Bohr magneton, and six IGRF-14 degree-1 coefficients. COVERAGE.md's mechanics, electromagnetism, and optics rows are updated.
+
+That is 21 records.
+
+`python -m unittest discover -s tests -v` finished 311 tests, 0 failures, about 96.68 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

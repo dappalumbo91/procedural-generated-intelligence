@@ -9,9 +9,9 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 <!-- counts:start -->
 | Domain | Records |
 |---|---:|
-| mechanics | 0 |
+| mechanics | 11 |
 | thermodynamics and statistical | 34 |
-| electromagnetism | 7 |
+| electromagnetism | 17 |
 | optics | 25 |
 | atomic | 54 |
 | molecular and chemistry | 55 |
@@ -26,7 +26,7 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | null results and bounds | 16 |
 | SI defining constants | 7 |
 | foundations and status | 9 |
-| **total** | **542** |
+| **total** | **563** |
 <!-- counts:end -->
 
 ## Audit at pgi-0.79.0 (482 records)
@@ -38,7 +38,7 @@ This was the board when the audit was taken, before the batch 8 fills:
 | mechanics | 0 |
 | thermodynamics and statistical | 11 |
 | electromagnetism | 7 |
-| optics | reference lines, N-BK7 and water indices, and the I₂ 633 nm, ⁸⁷Sr, and ¹⁷¹Yb standard frequencies (batch 8); fused-silica (Malitson 1965) and air (Ciddor 1996) indices; Verdet and thermo-optic constants; the rest of the CIPM frequency list |
+| optics | 0 |
 | atomic | 54 |
 | molecular and chemistry | 55 |
 | nuclear | 79 |
@@ -60,10 +60,10 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 
 | Domain | Missing observables |
 |---|---|
-| mechanics | standard gravity g_n (exact); measured local g at named sites; Earth's rotation rate and length of day; Earth's figure (GRS80/WGS84 a, f, J2); the precession constant; the lunar and solar tidal parameters |
+| mechanics | standard gravity, GRS80's defining and derived constants, and measured g at three Kibble-balance sites (batch 8); a wider set of absolute-gravity sites (the CCM key comparisons themselves); Earth's rotation rate and length of day (IERS); WGS84; the precession constant; the lunar and solar tidal parameters |
 | thermodynamics and statistical | ITS-90 fixed points and the gas-constant family (batch 8); the pre-2019 Boltzmann-constant determinations (acoustic gas thermometry, DCGT, Johnson noise); heat-capacity ratios and second virial coefficients of common gases; latent heats; critical points beyond water |
-| electromagnetism | Faraday constant, vacuum impedance, flux quantum, conductance quantum, and Bohr magneton from CODATA; Earth's main field (IGRF-14 Gauss coefficients); Coulomb's-law tests; resistivity of copper and other standard materials; static permittivity of water |
-| optics | spectral reference lines (Na D, Hg, Cd, He, H Fraunhofer lines); refractive indices of water, air, and standard glasses; CIPM recommended standard frequencies (I2-stabilised He-Ne, Sr and Yb clocks); dispersion and Verdet constants |
+| electromagnetism | Faraday constant, vacuum impedance, flux quantum, Bohr magneton, and IGRF-14 degree-1 Gauss coefficients (batch 8); the conductance quantum (NIST page code not found); Coulomb's-law tests; resistivity of copper and other standard materials; static permittivity of water |
+| optics | reference lines, N-BK7 and water indices, and the I₂ 633 nm, ⁸⁷Sr, and ¹⁷¹Yb standard frequencies (batch 8); fused-silica (Malitson 1965) and air (Ciddor 1996) indices; Verdet and thermo-optic constants; the rest of the CIPM frequency list |
 | atomic | excited-state lifetimes and oscillator strengths; polarizabilities; alkali D-line frequencies; ionization energies above krypton; isotope shifts |
 | molecular and chemistry | vibrational frequencies and rotational constants; dipole moments; standard electrode potentials; solubility products; enthalpies of combustion; more pKa values |
 | nuclear | half-lives (3H, 14C, 40K, 238U); charge radii (Angeli-Marinova); thermal neutron cross sections; nuclear spins and quadrupole moments; fission and fusion Q-values |

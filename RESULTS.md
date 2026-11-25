@@ -489,9 +489,19 @@ The standard frequencies come from the CIPM list. The I₂-stabilised He-Ne lase
 
 This adds 25 records.
 
+### Mechanics and electromagnetism: standard gravity, GRS80, local g, IGRF-14
+
+Mechanics had no records. It now has CODATA's standard acceleration of gravity, g_n = `9.806 65` m s⁻², stored exact as an adopted value, and the Geodetic Reference System 1980 from Moritz's Geodesist's Handbook text. Its four defining constants are stored exact: a = `6378 137` m, GM = `3 986 005 × 10⁸` m³ s⁻², J₂ = `108 263 × 10⁻⁸`, and ω = `7 292 115 × 10⁻¹¹` rad s⁻¹. Three derived constants are stored as printed with no uncertainty: 1/f = `298.257 222 101`, normal gravity at the equator γ_e = `9.780 326 7715` m s⁻², and at the pole γ_p = `9.832 186 3685` m s⁻². Moritz says the derived values are accurate to the places given, and the notes say so.
+
+Measured g comes from three Kibble-balance sites. Leaman et al. give `980103140.2(4.3)` µGal at the NIST-4 test mass in Gaithersburg. Liu et al. (2024) quote `980 122 922.8` µGal (standard uncertainty `1.0`) at the NIM Changping key-comparison point and transfer it to `980 139 581.2 ± 2.3` µGal (k = 1) at the Tsinghua tabletop balance. The values stay in µGal, as printed. A test checks that all three sit between GRS80's γ_e and γ_p, as does g_n.
+
+Electromagnetism adds CODATA's Faraday constant and flux quantum (both exact, printed truncated), the vacuum impedance `376.730 313 412(59)` Ω, and the Bohr magneton `9.274 010 0657(29) × 10⁻²⁴` J T⁻¹. Definitional tests check F = N_A e, Φ₀ = h/2e, and Z₀ = μ₀c within the printed uncertainties. IGRF-14 adds the degree-1 Gauss coefficients: g₁⁰ = `-29350.0`, g₁¹ = `-1410.3`, and h₁¹ = `4545.5` nT for 2025.0, g₁⁰ at 2020.0 (`-29403.41`, definitive) and 1900.0 (`-31543`), and its forecast secular variation `12.6` nT/yr. The file prints no uncertainties. A test checks that |g₁⁰| falls from 1900 to 2020 to 2025. The board does not compute a dipole moment from these coefficients.
+
+The conductance quantum was planned but left out because its NIST page code could not be found. This adds 21 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.81.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.82.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
