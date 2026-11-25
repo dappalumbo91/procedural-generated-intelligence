@@ -16,17 +16,17 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | atomic | 54 |
 | molecular and chemistry | 55 |
 | nuclear | 79 |
-| particle | 78 |
+| particle | 88 |
 | condensed matter | 11 |
 | fluids | 12 |
-| gravitation | 55 |
+| gravitation | 59 |
 | astrophysics | 33 |
 | cosmology | 30 |
 | QED and precision | 37 |
-| null results and bounds | 16 |
+| null results and bounds | 17 |
 | SI defining constants | 7 |
 | foundations and status | 9 |
-| **total** | **589** |
+| **total** | **604** |
 <!-- counts:end -->
 
 ## Audit at pgi-0.79.0 (482 records)
@@ -67,10 +67,10 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 | atomic | excited-state lifetimes and oscillator strengths; polarizabilities; alkali D-line frequencies; ionization energies above krypton; isotope shifts |
 | molecular and chemistry | vibrational frequencies and rotational constants; dipole moments; standard electrode potentials; solubility products; enthalpies of combustion; more pKa values |
 | nuclear | half-lives (3H, 14C, 40K, 238U); charge radii (Angeli-Marinova); thermal neutron cross sections; nuclear spins and quadrupole moments; fission and fusion Q-values |
-| particle | Z lineshape (Gamma_Z, sigma_had, R_l); sin^2 theta_eff; heavier meson and baryon masses; branching ratios; the top width; measured cross sections |
+| particle | the Z lineshape from the 2006 LEP combination and PDG 2026 (Gamma_Z, sigma_had0, R_l0, A_FB0l, N_nu, sin^2 theta_eff; batch 9); PDG's R_l; the heavy-flavour asymmetries and A_l from SLD; heavier meson and baryon masses; branching ratios; the top width; measured cross sections |
 | condensed matter | elastic constants and Debye temperatures; thermal conductivities; more superconductors (MgB2, H3S); lattice constants beyond silicon; magnetic moments |
 | fluids | water properties and air sound speed (batch 8); viscosity and thermal conductivity of air and the noble gases; seawater (TEOS-10); diffusion coefficients |
-| gravitation | gravitational redshift (Gravity Probe A, Galileo 5/6); Lense-Thirring from LAGEOS/LARES; the LLR Nordtvedt parameter; Gdot/G; more GW events |
+| gravitation | gravitational redshift from Galileo 5/6 (Delva 2018, Herrmann 2018), Pound-Snider 1965, and the Gravity Probe A agreement level (batch 9); Pound-Rebka 1960 itself (abstract not reachable); optical-clock height tests (e.g. Takamoto 2020 Tokyo Skytree); Lense-Thirring from LAGEOS/LARES; the LLR Nordtvedt parameter; Gdot/G; more GW events |
 | astrophysics | solar neutrino fluxes (Borexino); Sgr A* mass and distance (GRAVITY); the M87* and Sgr A* shadow sizes; eclipsing-binary masses; the solar abundance scale |
 | cosmology | BAO distances (DESI); the baryon-to-photon ratio; weak-lensing S8 (KiDS, DES); Omega_k; the age of the universe; the reionization redshift |
 | QED and precision | the electron mass in u (Penning trap); He+ and HD+ spectroscopy; positronium and muonium 1S-2S; the 3He-4He isotope shift; the antiproton-to-proton charge-to-mass ratio |
@@ -83,5 +83,5 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 3. Fluids had nothing: no transport properties and no sound speeds.
 4. Electromagnetism is thin and holds only unit constants. It has no geomagnetic field and no material constants.
 5. Nuclear half-lives and charge radii are missing, even though nuclear masses are well covered.
-6. The Z lineshape is missing, so electroweak precision rests on masses and G_F alone.
-7. Gravitational redshift is missing, so the clock test of GR is absent.
+6. The Z lineshape is missing, so electroweak precision rests on masses and G_F alone. Batch 9 added the LEP 2006 combination and PDG 2026's Gamma_Z, sigma_had0, and A_FB0l.
+7. Gravitational redshift is missing, so the clock test of GR is absent. Batch 9 added Galileo 5/6, Pound-Snider, and the GP-A agreement level.

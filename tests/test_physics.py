@@ -1430,6 +1430,37 @@ class EarthRotationTests(unittest.TestCase):
         self.assertIn("iers2010.psi_a_rate", self._linked("what is the precession constant"))
 
 
+class RedshiftZPoleTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_galileo_results_are_within_gpa_level_and_consistent_with_zero(self) -> None:
+        gpa = next(item for item in BOUNDS if item.id == "bound.vessot1980.redshift").upper
+        for id in ("delva2018.redshift_alpha", "herrmann2018.redshift_alpha", "herrmann2018.redshift_alpha_rs"):
+            item = quantity(id)
+            self.assertLess(item.uncertainty, gpa, id)
+            self.assertLessEqual(abs(item.value), 2 * item.uncertainty, id)
+
+    def test_pound_snider_ratio_is_one_within_its_errors(self) -> None:
+        item = quantity("pound1965.redshift_ratio")
+        self.assertLessEqual(abs(item.value - 1), item.uncertainty + Fraction("0.010"))
+
+    def test_lep_and_pdg_z_parameters(self) -> None:
+        for lep, pdg_id in (("m_z", "m_z"), ("gamma_z", "gamma_z")):
+            a, b = quantity(f"lep2005.{lep}"), quantity(f"pdg2026.{pdg_id}")
+            self.assertLessEqual(abs(a.value - b.value), a.uncertainty + b.uncertainty, lep)
+        lep_sigma, pdg_sigma = quantity("lep2005.sigma_had0"), quantity("pdg2026.sigma_had0")
+        self.assertGreater(abs(lep_sigma.value - pdg_sigma.value), lep_sigma.uncertainty)
+        self.assertEqual(quantity("pdg2026.a_fb0_l").value / 100, quantity("lep2005.a_fb0_l").value)
+        n_nu = quantity("lep2005.n_nu")
+        self.assertLess(abs(n_nu.value - 3), 2 * n_nu.uncertainty + Fraction(1, 100))
+
+    def test_redshift_and_z_asks_link(self) -> None:
+        self.assertTrue({"delva2018.redshift_alpha", "herrmann2018.redshift_alpha", "pound1965.redshift_ratio"} <= self._linked("list the gravitational redshift tests"))
+        self.assertTrue({"lep2005.gamma_z", "lep2005.sigma_had0", "lep2005.r_l0", "lep2005.a_fb0_l"} <= self._linked("what are the z lineshape parameters"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

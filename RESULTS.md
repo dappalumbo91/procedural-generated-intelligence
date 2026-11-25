@@ -509,9 +509,17 @@ The NIST-4 local-g record keeps its `leaman2015` id. Crossref confirms IEEE Tran
 
 This adds 26 records.
 
+### Gravitational redshift and the Z lineshape
+
+The clock test of GR is on the board now. Galileo satellites 5 and 6, accidentally launched into eccentric orbits, give two analyses. Delva et al. (2018) measure the fractional deviation from GR's redshift as `(+0.19 ± 2.48) × 10⁻⁵` at 1σ. Herrmann et al. (2018) take their final result from one clock, `(2.2 ± 1.6) × 10⁻⁵` for the combined redshift and Doppler test, and give `(4.5 ± 3.1) × 10⁻⁵` for the redshift alone. Pound and Snider (1965) measured the 57Fe gamma-ray shift over 75 ft at `0.9990 ± 0.0076` times the equivalence-principle value, with an estimated systematic limit of `0.010`. Gravity Probe A's abstract says agreement 'at the 70×10⁻⁶ level', with no confidence level stated, so that is stored as a bound and the condition says so. The original Pound–Rebka 1960 letter has no reachable abstract and is not stored. The tests check that the Galileo uncertainties are below GP-A's level, that each α is within 2σ of zero, and that Pound–Snider's ratio is within its errors of 1.
+
+The Z lineshape comes from the 2006 LEP/SLD combination, Table 2.13 with lepton universality: m_Z = `91.1875 ± 0.0021` GeV, Γ_Z = `2.4952 ± 0.0023` GeV, σ⁰_had = `41.540 ± 0.037` nb, R⁰_ℓ = `20.767 ± 0.025`, and A⁰,ℓ_FB = `0.0171 ± 0.0010`. The abstract adds N_ν = `2.9840 ± 0.0082` and sin²θ_eff = `0.23153 ± 0.00016`. Their printed correlations stay in the notes. PDG 2026 adds Γ_Z = `2.4955 ± 0.0023` GeV, σ⁰_had = `41.4802 ± 0.0325` nb, and A⁰,ℓ_FB = `(1.71 ± 0.10)%`. LEP and PDG agree on m_Z and Γ_Z within their uncertainties. PDG's σ⁰_had sits more than one LEP uncertainty below the 2006 value, the API record doesn't say why, and both are kept. N_ν is about 2σ below 3, which a test records without reading anything into it.
+
+This adds 15 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.83.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.84.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

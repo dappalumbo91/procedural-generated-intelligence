@@ -2990,8 +2990,76 @@ EARTH_ROTATION: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION
-BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS
+_DELVA_SOURCE = "P. Delva, N. Puchades, E. Schoenemann, F. Dilssner, C. Courde et al., Gravitational redshift test using eccentric Galileo satellites, Phys. Rev. Lett. 121, 231101 (2018), doi:10.1103/PhysRevLett.121.231101, arXiv:1812.03711."
+_HERRMANN_SOURCE = "S. Herrmann, F. Finke, M. Luelf, O. Kichakova, D. Puetzfeld et al., Test of the gravitational redshift with Galileo satellites in an eccentric orbit, Phys. Rev. Lett. 121, 231102 (2018), doi:10.1103/PhysRevLett.121.231102, arXiv:1812.09161."
+_LEP_SOURCE = "ALEPH, DELPHI, L3, OPAL, and SLD Collaborations, LEP Electroweak Working Group, SLD Electroweak and Heavy Flavour Groups, Precision electroweak measurements on the Z resonance, Phys. Rept. 427, 257-454 (2006), doi:10.1016/j.physrep.2005.12.006, arXiv:hep-ex/0509008"
+_LEP_URL = "https://doi.org/10.1016/j.physrep.2005.12.006"
+_LEP_COPY = "https://arxiv.org/pdf/hep-ex/0509008"
+_Z_PHRASES = ("z lineshape", "z line shape", "z resonance", "z pole")
+
+
+def _lep(key: str, name: str, symbol: str, value: str, error: str, unit: str, where: str, phrases: tuple[str, ...], extra: tuple[str, ...] = ()) -> Quantity:
+    return _q(f"lep2005.{key}", f"{name} (LEP combination)", symbol, value, error, unit, kind="uncertainty as printed, level not stated",
+              source=f"{_LEP_SOURCE}, {where}.", edition="Phys. Rept. 427 (2006); arXiv v3", url=_LEP_URL, retrieved_from=_LEP_COPY,
+              keys=("z boson", "lep"), phrases=phrases + _Z_PHRASES + ("lep z parameters",),
+              notes=(f"Printed as {value} +- {error}" + (f" {unit}" if unit else "") + f" in {where}.",) + extra)
+
+
+_TABLE_213 = "Table 2.13, combination with lepton universality"
+_TABLE_213_NOTE = "Table 2.13's caption: 'The errors include all common errors except the parametric uncertainty on mZ due to the choice of mH.' Correlations with m_Z, Gamma_Z, sigma_had0, R_l0, A_FB0l are printed beside the values (for example -0.297 between Gamma_Z and sigma_had0) and are not stored."
+
+REDSHIFT_ZPOLE: tuple[Quantity, ...] = (
+    _q("delva2018.redshift_alpha", "fractional deviation of the gravitational redshift from GR (Galileo 5 and 6)", "alpha", "0.19 e-5", "2.48 e-5", "",
+       kind="standard uncertainty", source=_DELVA_SOURCE, edition="Phys. Rev. Lett. 121 (2018)", url="https://doi.org/10.1103/PhysRevLett.121.231101",
+       retrieved_from="https://export.arxiv.org/api/query?id_list=1812.03711", keys=("gravitational redshift", "local position invariance"),
+       phrases=("gravitational redshift", "redshift test", "galileo redshift", "clock redshift test"),
+       notes=("The abstract prints (+0.19 +- 2.48) x 10^-5 'at 1 sigma', from 1008 days of two eccentric-orbit Galileo satellites (GSAT-0201 and GSAT-0202).",
+              "It says this improves on Gravity Probe A by a factor of about 5.6.")),
+    _q("herrmann2018.redshift_alpha", "redshift test parameter, combined redshift and Doppler (Galileo clock 5)", "alpha", "2.2 e-5", "1.6 e-5", "",
+       kind="uncertainty as printed, level not stated", source=_HERRMANN_SOURCE, edition="Phys. Rev. Lett. 121 (2018); arXiv v1",
+       url="https://doi.org/10.1103/PhysRevLett.121.231102", retrieved_from="https://arxiv.org/pdf/1812.09161",
+       keys=("gravitational redshift", "local position invariance"), phrases=("gravitational redshift", "redshift test", "galileo redshift", "clock redshift test"),
+       notes=("The paper takes its final result from clock 5 only: alpha = (2.2 +- 1.6) x 10^-5. The combined posterior of all three clocks is alpha = (-0.9 +- 1.4) x 10^-5, not stored.",
+              "This alpha tests the combined gravitational redshift and relativistic Doppler effect, as in the GP-A analysis.")),
+    _q("herrmann2018.redshift_alpha_rs", "redshift test parameter, gravitational redshift only (Galileo)", "alpha_rs", "4.5 e-5", "3.1 e-5", "",
+       kind="uncertainty as printed, level not stated", source=_HERRMANN_SOURCE, edition="Phys. Rev. Lett. 121 (2018); arXiv v1",
+       url="https://doi.org/10.1103/PhysRevLett.121.231102", retrieved_from="https://arxiv.org/pdf/1812.09161",
+       keys=("gravitational redshift", "local position invariance"), phrases=("gravitational redshift", "redshift test", "galileo redshift"),
+       notes=("Printed as alpha_rs = (4.5 +- 3.1) x 10^-5 when the violation model is restricted to the redshift part, compared there with GP-A's alpha_rs < 1.4 x 10^-4.",)),
+    _q("pound1965.redshift_ratio", "measured gravitational shift of the 14.4 keV 57Fe line over 75 ft, relative to 2gh/c^2", "Delta nu_obs / Delta nu_EP", "0.9990", "0.0076", "",
+       kind=_SPLIT_KIND, systematic_text="0.010", source="R. V. Pound and J. L. Snider, Effect of gravity on gamma radiation, Phys. Rev. 140, B788-B803 (1965), doi:10.1103/PhysRev.140.B788.",
+       edition="Phys. Rev. 140 (1965)", url="https://doi.org/10.1103/PhysRev.140.B788",
+       retrieved_from="https://inspirehep.net/api/literature?q=doi:10.1103/PhysRev.140.B788",
+       keys=("gravitational redshift", "pound-rebka"), phrases=("gravitational redshift", "pound rebka", "pound-rebka", "redshift test"),
+       notes=("The abstract prints '(0.9990+-0.0076) times the value 4.905x10^-15 of 2gh/c^2 predicted from the principle of equivalence', where 0.0076 is the statistical standard deviation; 'an estimated limit of systematic error is 0.010', stored as the systematic term.",
+              "The original Pound-Rebka 1960 result (Phys. Rev. Lett. 4, 337) is not stored: its abstract was not reachable (INSPIRE has none and APS blocks the box).", _SPLIT_NOTE)),
+    _lep("m_z", "Z boson mass", "m_Z", "91.1875", "0.0021", "GeV", _TABLE_213, ("z boson mass", "mass of the z"), (_TABLE_213_NOTE,)),
+    _lep("gamma_z", "Z boson total width", "Gamma_Z", "2.4952", "0.0023", "GeV", _TABLE_213, ("z width", "z boson width"), (_TABLE_213_NOTE,)),
+    _lep("sigma_had0", "hadronic pole cross section", "sigma_had^0", "41.540", "0.037", "nb", _TABLE_213, ("hadronic pole cross section",), (_TABLE_213_NOTE,)),
+    _lep("r_l0", "ratio of hadronic to leptonic Z width", "R_l^0", "20.767", "0.025", "", _TABLE_213, ("r_l", "hadronic to leptonic width ratio"), (_TABLE_213_NOTE,)),
+    _lep("a_fb0_l", "leptonic pole forward-backward asymmetry", "A_FB^0,l", "0.0171", "0.0010", "", _TABLE_213, ("forward-backward asymmetry",), (_TABLE_213_NOTE,)),
+    _lep("n_nu", "number of light neutrino species", "N_nu", "2.9840", "0.0082", "", "abstract and eq. (7.8)", ("number of light neutrinos", "neutrino species"),
+         ("The abstract says this is 'in agreement with the three observed generations of fundamental fermions'.",)),
+    _lep("sin2_theta_eff", "effective leptonic weak mixing angle", "sin^2 theta_eff^lept", "0.23153", "0.00016", "", "abstract", ("effective weak mixing angle", "sin2 theta eff")),
+    _pdg("pdg2026.gamma_z", "Z boson total width", "Gamma_Z", "2.4955", "0.0023", "GeV", node="S044W", keys=("z boson",), phrases=("z width", "z boson width") + _Z_PHRASES, notes=(_API_NOTE,)),
+    _pdg("pdg2026.sigma_had0", "Z hadronic pole cross section", "sigma_had^0", "41.4802", "0.0325", "nb", node="S044SH", keys=("z boson",), phrases=("hadronic pole cross section",) + _Z_PHRASES,
+         notes=(_API_NOTE, "PDG's value differs from the 2006 LEP combination (41.540 +- 0.037 nb); the reason is not given in the API record, and both are stored.")),
+    _pdg("pdg2026.a_fb0_l", "Z leptonic pole forward-backward asymmetry", "A_FB^0,l", "1.71", "0.10", "%", node="S044Z0L", keys=("z boson",), phrases=("forward-backward asymmetry",) + _Z_PHRASES,
+         notes=(_API_NOTE, "The pdgLive listing heads the column 'ASYMMETRY (%)'; the API record carries no unit, so the percent comes from the listing page.")),
+)
+
+GPA_BOUND: tuple[Bound, ...] = (
+    _null_bound("bound.vessot1980.redshift", "Gravity Probe A agreement of the relativistic frequency shift with prediction", "|alpha|", "70 e-6", "",
+                source="R. F. C. Vessot, M. W. Levine, E. M. Mattison, E. L. Blomberg, T. E. Hoffman et al., Test of relativistic gravitation with a space-borne hydrogen maser, Phys. Rev. Lett. 45, 2081-2084 (1980), doi:10.1103/PhysRevLett.45.2081.",
+                edition="Phys. Rev. Lett. 45 (1980)", url="https://doi.org/10.1103/PhysRevLett.45.2081", retrieved_from="https://inspirehep.net/api/literature?q=doi:10.1103/PhysRevLett.45.2081",
+                keys=("gravitational redshift", "gravity probe a"), phrases=("gravitational redshift", "gravity probe a", "redshift test"),
+                conditions=("The abstract says 'the agreement of the observed relativistic frequency shift with prediction is at the 70x10^-6 level'. It states no confidence level, and this record reads that agreement level as the bound.",
+                            "Herrmann et al. (2018) quote GP-A's redshift-only bound as alpha_rs < 1.4 x 10^-4; that quotation is kept in herrmann2018.redshift_alpha_rs's notes, not as a separate record.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE
+BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND
 
 
 def quantity(id: str) -> Quantity:

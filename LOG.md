@@ -984,3 +984,11 @@ Added IERS Conventions (2010) Earth constants, the IAU 2006 precession rate, nom
 That is 26 records.
 
 `python -m unittest discover -s tests -v` finished 316 tests, 0 failures, about 155.31 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — redshift and Z lineshape pgi-0.84.0
+
+Added the Galileo 5/6 redshift tests, Pound–Snider 1965, the Gravity Probe A agreement level as a bound, the LEP 2006 Z-pole combination, and PDG 2026's Γ_Z, σ⁰_had, and A⁰,ℓ_FB. COVERAGE.md's particle and gravitation rows and top gaps 6 and 7 are updated.
+
+That is 15 records.
+
+`python -m unittest discover -s tests -v` finished 320 tests, 0 failures, about 137.59 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
