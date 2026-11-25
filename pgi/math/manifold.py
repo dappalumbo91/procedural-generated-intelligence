@@ -32,6 +32,9 @@ from pgi.math.poly import (
     as_rat,
     const_poly,
     eval_symbolic,
+    mpoly_add,
+    mpoly_mul,
+    mpoly_pow,
     mrat_add,
     mrat_diff,
     mrat_div,
@@ -51,6 +54,18 @@ from pgi.model import Rule
 
 
 MAP_LIMIT = 8
+_METRIC_OPS = frozenset({
+    "metric",
+    "embedding",
+    "pullback",
+    "vector",
+    "apply",
+    "dot",
+    "christoffel",
+    "riemann",
+    "ricci",
+    "scalar",
+})
 _ZERO = Ratio(0, 1)
 _ONE = Ratio(1, 1)
 _NEG_ONE = Ratio(-1, 1)
@@ -72,6 +87,10 @@ _CHART_COORDS: dict[tuple[str, str], tuple[str, ...]] = {
     ("r2", "pq"): ("p", "q"),
     ("rp1", "u0"): ("t",),
     ("rp1", "u1"): ("s",),
+    ("minkowski2", "tx"): ("t", "x"),
+    ("minkowski2", "uv"): ("u", "v"),
+    ("m2", "tx"): ("t", "x"),
+    ("m2", "uv"): ("u", "v"),
 }
 
 _CHART_ALIASES: dict[tuple[str, str], tuple[str, str]] = {
@@ -79,6 +98,8 @@ _CHART_ALIASES: dict[tuple[str, str], tuple[str, str]] = {
     ("circle", "south"): ("s1", "south"),
     ("sphere", "north"): ("s2", "north"),
     ("sphere", "south"): ("s2", "south"),
+    ("m2", "tx"): ("minkowski2", "tx"),
+    ("m2", "uv"): ("minkowski2", "uv"),
 }
 
 
@@ -200,15 +221,39 @@ def var_rat(name: str, names: tuple[str, ...] | None = None) -> MRat:
     return embed_rat(as_rat(var_poly(name)), names)
 
 
+def actual_names(*polys) -> set[str]:
+    present: set[str] = set()
+    for poly in polys:
+        for monom, _coeff in poly.terms:
+            for name, exp in zip(poly.names, monom):
+                if exp:
+                    present.add(name)
+    return present
+
+
+def restrict_rat(value: MRat, names: tuple[str, ...]) -> MRat:
+    extra = actual_names(value.num, value.den) - set(names)
+    if extra:
+        raise KernelError("a map component has a variable outside the source coordinates")
+    return mrat_from(_restrict_poly(value.num, names), _restrict_poly(value.den, names))
+
+
+def _restrict_poly(poly, names: tuple[str, ...]):
+    result = zero_poly(names)
+    for monom, coeff in poly.terms:
+        term = const_poly(coeff, names)
+        for name, exp in zip(poly.names, monom):
+            if exp:
+                term = mpoly_mul(term, mpoly_pow(var_poly(name, names), exp))
+        result = mpoly_add(result, term)
+    return result
+
+
 def embed_rat(value: MRat, names: tuple[str, ...]) -> MRat:
     result = value
     for name in names:
         result = mrat_add(result, as_rat(zero_poly((name,))))
-    used = set(result.num.names) | set(result.den.names)
-    extra = used - set(names)
-    if extra:
-        raise KernelError("a map component has a variable outside the source coordinates")
-    return result
+    return restrict_rat(result, names)
 
 
 def mrat_subst(value: MRat, env: dict[str, MRat]) -> MRat:
@@ -376,6 +421,13 @@ def jac_mul(left: JacMatrix, right: JacMatrix) -> JacMatrix:
             row.append(embed_rat(total, names))
         rows.append(tuple(row))
     return JacMatrix(names, tuple(rows))
+
+
+def jac_transpose(value: JacMatrix) -> JacMatrix:
+    rows = []
+    for j in range(value.width):
+        rows.append(tuple(value.rows[i][j] for i in range(value.height)))
+    return JacMatrix(value.names, tuple(rows))
 
 
 def jac_subst(value: JacMatrix, env: dict[str, MRat], names: tuple[str, ...]) -> JacMatrix:
@@ -607,6 +659,19 @@ def _rp1_u1_u0() -> RatMap:
     return RatMap(("s",), ("t",), (_over(one_rat(), s),))
 
 
+def _m2_tx_uv() -> RatMap:
+    names = ("t", "x")
+    time, space = _var("t", names), _var("x", names)
+    return RatMap(names, ("u", "v"), (_minus(time, space), _plus(time, space)))
+
+
+def _m2_uv_tx() -> RatMap:
+    names = ("u", "v")
+    u, v = _var("u", names), _var("v", names)
+    half = Ratio(1, 2)
+    return RatMap(names, ("t", "x"), (_scale(half, _plus(u, v)), _scale(half, _minus(v, u))))
+
+
 _TRANSITIONS: dict[tuple[str, str, str], object] = {
     ("s1", "north", "south"): _s1_north_south,
     ("s1", "south", "north"): _s1_south_north,
@@ -620,6 +685,8 @@ _TRANSITIONS: dict[tuple[str, str, str], object] = {
     ("r2", "pq", "uv"): _r2_pq_uv,
     ("rp1", "u0", "u1"): _rp1_u0_u1,
     ("rp1", "u1", "u0"): _rp1_u1_u0,
+    ("minkowski2", "tx", "uv"): _m2_tx_uv,
+    ("minkowski2", "uv", "tx"): _m2_uv_tx,
 }
 
 
@@ -680,7 +747,11 @@ def _eval(term: Term) -> RatMap | JacMatrix | MRat:
         if len(term.args) != 1:
             raise NotExact("inv takes a Jacobian")
         return jac_inv(eval_jac(term.args[0]))
-    raise NotExact("this term is not a chart, a transition, or a Jacobian")
+    if term.op in _METRIC_OPS:
+        from pgi.math.metric import eval_geo
+
+        return eval_geo(term)
+    raise NotExact("this term is not a chart, a transition, a Jacobian, or a metric")
 
 
 def _eval_identity(term: App) -> RatMap:
@@ -708,7 +779,7 @@ def _name(term: Term) -> str:
 
 def has_manifold(term: Term) -> bool:
     if isinstance(term, App):
-        if term.op in {"transition", "compose", "jacobian", "identity", "chart"}:
+        if term.op in {"transition", "compose", "jacobian", "identity", "chart"} | _METRIC_OPS:
             return True
         if term.op in {"det", "inv", "inverse"} and term.args and has_manifold(term.args[0]):
             return True
@@ -735,7 +806,12 @@ def eval_man_result(term: Term) -> MapTheorem | JacTheorem | RatTheorem | object
         if constant is not None:
             return rat_normalize(constant.num, constant.den)
         return _RatFn(value, term)
-    raise NotExact("this term is not a chart, a transition, or a Jacobian")
+    from pgi.math.metric import as_geo_theorem
+
+    wrapped = as_geo_theorem(value, term)
+    if wrapped is not None:
+        return wrapped
+    raise NotExact("this term is not a chart, a transition, a Jacobian, or a metric")
 
 
 @dataclass(frozen=True)
@@ -820,14 +896,28 @@ def man_value_rule(origin: Term, result: object, prelude: tuple[str, ...] = ()) 
         )
     if isinstance(result, _RatFn):
         shown = show_rat(result.value)
+        kind = "poly" if result.value.is_poly else "rat"
+        detail = "The exact evaluation of this geometric or symbolic term is this reduced rational function."
+        if isinstance(origin, App) and origin.op == "det":
+            detail = "The determinant of this Jacobian is this reduced rational function."
+        elif isinstance(origin, App) and origin.op == "apply":
+            detail = "A tangent vector acts as a derivation, checked by the Leibniz rule."
+        elif isinstance(origin, App) and origin.op == "dot":
+            detail = "The metric pairing is the contraction g_ij X^i Y^j, checked to be symmetric."
+        elif isinstance(origin, App) and origin.op == "scalar":
+            detail = "The scalar curvature is the contraction of Ricci with the inverse metric."
         return Rule(
-            id=f"math.ratfn.{shown}",
+            id=f"math.{kind}fn.{shown}",
             layer="base",
             stage="quantity",
             title=f"{title_left} = {shown}",
-            produces=f"rat({shown})",
-            detail_lines=(*prelude, "The determinant of this Jacobian is this reduced rational function."),
+            produces=f"{kind}({shown})",
+            detail_lines=(*prelude, detail),
         )
+    from pgi.math.metric import geo_value_rule, is_geo_result
+
+    if is_geo_result(result):
+        return geo_value_rule(origin, result, prelude)
     raise KernelError("this manifold result has no claim")
 
 
@@ -871,6 +961,10 @@ def _man_values_eq(left: object, right: object) -> bool:
     right_jac = _as_jac(right)
     if left_jac is not None and right_jac is not None:
         return jac_eq(left_jac, right_jac)
+    from pgi.math.metric import geo_values_eq, is_geo_result
+
+    if is_geo_result(left) or is_geo_result(right):
+        return geo_values_eq(left, right)
     left_rat = _as_mrat(left)
     right_rat = _as_mrat(right)
     if left_rat is not None and right_rat is not None:

@@ -832,3 +832,13 @@ The tests close the loops. The CODATA masses give the binding energy, and AME202
 That is 13 new records. The next slice is Stefan–Boltzmann and Wien.
 
 `python -m unittest discover -s tests -v` finished 223 tests, 0 failures, about 65.68 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — metrics, tangent vectors, and curvature pgi-0.66.0
+
+A metric is a symmetric matrix of reduced rational functions on a chart. A tangent vector is a derivation with rational components, kept only when it annihilates constants, reproduces its components on the coordinates, and satisfies Leibniz. A pullback is `J^T g J` along the map, functorial on the plane atlas, and the identity pullback is the original metric. The unit 2-sphere metric in stereographic coordinates is the pullback of the Euclidean 3-metric through the inverse stereographic embedding, kept only when that embedding lands on `X^2 + Y^2 + Z^2 = 1` and the pullback equals `4 / (1 + ρ^2)^2` times the identity. `metric(e2)` is `[[1, 0], [0, 1]]`. `metric(minkowski2)` is `[[-1, 0], [0, 1]]`. `apply(vector(e2, 1, 0), x^2)` is `2 * x`.
+
+Christoffel symbols, Riemann, Ricci, and the scalar curvature are computed exactly. The inverse metric multiplies back to the identity. The Levi-Civita connection is torsion-free and metric-compatible. The Riemann symmetries and both Bianchi identities hold identically. Flat Euclidean and Minkowski space have vanishing curvature. `scalar(metric(s2, north))` is `2`, and the Ricci tensor equals the metric. An unknown chart stays open.
+
+The next mathematics is Hilbert space, then gauge theory. Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 227 tests, 0 failures, about 64.43 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -120,6 +120,16 @@ def _claim_block(support: Support, index: int, lod: int) -> list[str]:
         lines.append(f"   {support.atom} is the exact rational map")
     elif support.atom.startswith("jac("):
         lines.append(f"   {support.atom} is the exact Jacobian")
+    elif support.atom.startswith("g("):
+        lines.append(f"   {support.atom} is the exact metric")
+    elif support.atom.startswith("vector("):
+        lines.append(f"   {support.atom} is the exact tangent vector")
+    elif support.atom.startswith("christoffel("):
+        lines.append(f"   {support.atom} is the Levi-Civita connection")
+    elif support.atom.startswith("riemann("):
+        lines.append(f"   {support.atom} is the Riemann curvature")
+    elif support.atom.startswith("ricci("):
+        lines.append(f"   {support.atom} is the Ricci tensor")
     elif support.atom == "eigenvalues()":
         lines.append("   eigenvalues() is the empty set of real eigenvalues")
     elif support.atom.startswith("eigenvalues("):

@@ -260,6 +260,12 @@ def demo_text() -> str:
         "=== Jacobian of a linear change of coordinates ===",
         unfold(Request(ask="what is jacobian(transition(r2, xy, uv))", lod=2, seed=1)).text(lod=2),
         "",
+        "=== stereographic metric of the unit 2-sphere ===",
+        unfold(Request(ask="what is metric(s2, north)", lod=2, seed=1)).text(lod=2),
+        "",
+        "=== scalar curvature of the unit 2-sphere ===",
+        unfold(Request(ask="what is scalar(metric(s2, north))", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]
