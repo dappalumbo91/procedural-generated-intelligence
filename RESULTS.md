@@ -617,9 +617,17 @@ Dielectrics come from NIST Technical Note 1512, with each method's standard unce
 
 This adds 27 records.
 
+### Cosmology: DESI DR2 BAO distances
+
+The board had DESI DR2's dark-energy parameters but not the distances they come from. It now holds Table IV of the DR2 BAO paper (arXiv:2503.14738): D_V/r_d for all seven baseline bins, and D_M/r_d and D_H/r_d for the six bins that have them. That is BGS, LRG1, LRG2, LRG3+ELG1, ELG2, QSO, and Lyα, from z_eff `0.295` to `2.330`. Each value is the posterior mean with its standard deviation, systematics included, read from the paper's LaTeX source. The table's correlation coefficients are left out, as asked, and each record says so. The superseded LRG3 and ELG1 rows are not stored.
+
+The only check is definitional: D_V = (z D_M² D_H)^(1/3). The printed means satisfy it in every bin to well within one printed sigma.
+
+This adds 19 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.95.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.96.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

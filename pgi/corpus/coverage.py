@@ -214,6 +214,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("Planck 2018 parameters", ("planck2018.",)),
         ("SH0ES H0", ("sh0es2022.",)),
         ("DESI DR2 dark energy", ("desi_dr2.",)),
+        ("DESI DR2 BAO distances", ("desi_dr2.bao.",)),
         ("CMB temperature", ("fixsen2009.",)),
         ("primordial abundances", ("aver2021.", "cooke2018.", "fields2020.", "pdg2026.bbn.")),
     ),

@@ -3700,7 +3700,47 @@ EM_MATERIALS: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS
+_DESI_BAO_ROWS = (
+    # tracer key, printed tracer, z_eff, DV/rd, DM/rd, DH/rd (value, sigma) as printed in Table IV
+    ("bgs", "BGS", "0.295", ("7.942", "0.075"), None, None),
+    ("lrg1", "LRG1", "0.510", ("12.720", "0.099"), ("13.588", "0.167"), ("21.863", "0.425")),
+    ("lrg2", "LRG2", "0.706", ("16.050", "0.110"), ("17.351", "0.177"), ("19.455", "0.330")),
+    ("lrg3_elg1", "LRG3+ELG1", "0.934", ("19.721", "0.091"), ("21.576", "0.152"), ("17.641", "0.193")),
+    ("elg2", "ELG2", "1.321", ("24.252", "0.174"), ("27.601", "0.318"), ("14.176", "0.221")),
+    ("qso", "QSO", "1.484", ("26.055", "0.398"), ("30.512", "0.760"), ("12.817", "0.516")),
+    ("lya", "Lya", "2.330", ("31.267", "0.256"), ("38.988", "0.531"), ("8.632", "0.101")),
+)
+_DESI_BAO_NAMES = {
+    "dv": ("D_V/r_d", "angle-averaged BAO distance over the sound horizon"),
+    "dm": ("D_M/r_d", "transverse comoving BAO distance over the sound horizon"),
+    "dh": ("D_H/r_d", "Hubble BAO distance c/H(z) over the sound horizon"),
+}
+_DESI_BAO_NOTES = (
+    "Table IV gives the mean and standard deviation of the marginalized posterior; the systematic error budget is included.",
+    "Table IV also prints correlation coefficients (r_V,M/H and r_M,H) between quantities of the same row; they are not stored, so each record stands alone without its covariance.",
+    "These are the baseline rows used for cosmology. Table IV's separate LRG3 and ELG1 rows, which the combined LRG3+ELG1 row supersedes, are not stored.",
+)
+
+
+def _desi_bao() -> tuple[Quantity, ...]:
+    out = []
+    for key, tracer, z, *cols in _DESI_BAO_ROWS:
+        for (q, pair) in zip(("dv", "dm", "dh"), cols):
+            if pair is None:
+                continue
+            symbol, what = _DESI_BAO_NAMES[q]
+            out.append(_q(f"desi_dr2.bao.{key}.{q}_rd", f"BAO distance {symbol}, DESI DR2 {tracer} at z_eff = {z} ({what})", symbol, pair[0], pair[1], "",
+                          kind="standard uncertainty", source=f"{DESI_DR2_SOURCE} Table IV, {tracer} row (z_eff = {z}).", edition="DESI DR2 BAO, Table IV",
+                          url="https://doi.org/10.1103/tr6y-kpc6", retrieved_from="https://arxiv.org/e-print/2503.14738",
+                          keys=("desi", "bao"), phrases=("bao distance", "baryon acoustic oscillation distance", f"desi {tracer.lower()}", "desi bao"),
+                          notes=(f"Printed as {pair[0]} +- {pair[1]} at z_eff = {z}.",) + _DESI_BAO_NOTES))
+    return tuple(out)
+
+
+DESI_DR2_BAO: tuple[Quantity, ...] = _desi_bao()
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

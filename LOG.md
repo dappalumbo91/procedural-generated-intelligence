@@ -1080,3 +1080,11 @@ Added JPCRD recommended resistivities for Cu, Ag, Au (Matula 1979) and Al, W (De
 That is 27 records.
 
 `python -m unittest discover -s tests -v` finished 358 tests, 0 failures, about 109.48 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — DESI DR2 BAO distances pgi-0.96.0
+
+Added DESI DR2 Table IV: D_V/r_d, D_M/r_d, and D_H/r_d for the seven baseline tracer bins, without the covariance. The "DESI BAO distances" gap in COVERAGE.md closed itself.
+
+That is 19 records.
+
+`python -m unittest discover -s tests -v` finished 361 tests, 0 failures, about 121.78 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

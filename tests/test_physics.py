@@ -1788,6 +1788,28 @@ class EmMaterialsTests(unittest.TestCase):
         self.assertIn("nist_tn1512.corning7980.pp_5_07ghz", self._linked("what is the permittivity of fused silica"))
 
 
+class DesiBaoTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_rows(self) -> None:
+        ids = [r.id for r in QUANTITIES if r.id.startswith("desi_dr2.bao.")]
+        self.assertEqual(len(ids), 19)
+        self.assertEqual(quantity("desi_dr2.bao.lya.dm_rd").value_text, "38.988")
+
+    def test_dv_is_the_definitional_combination(self) -> None:
+        # D_V = (z D_M^2 D_H)^(1/3) by definition; the printed means agree with it to well inside one printed sigma.
+        for key, z in (("lrg1", "0.510"), ("lrg2", "0.706"), ("lrg3_elg1", "0.934"), ("elg2", "1.321"), ("qso", "1.484"), ("lya", "2.330")):
+            dv = quantity(f"desi_dr2.bao.{key}.dv_rd")
+            dm, dh = quantity(f"desi_dr2.bao.{key}.dm_rd").value, quantity(f"desi_dr2.bao.{key}.dh_rd").value
+            cube = Fraction(z) * dm * dm * dh
+            self.assertLess(abs(float(cube) ** (1 / 3) - float(dv.value)), float(dv.uncertainty), key)
+
+    def test_asks_link(self) -> None:
+        self.assertIn("desi_dr2.bao.lrg1.dm_rd", self._linked("what are the DESI BAO distance measurements"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
