@@ -28,6 +28,7 @@ from pgi.math.order import rules_from_body as order_rules
 from pgi.math.rational import equality_rules, eval_rat, order_rule, ratio_rule
 from pgi.math.real import eval_real, real_equality_rules, real_order_rule, real_value_rule
 from pgi.math.matrix import eval_lin_result, has_matrix, lin_equality_rules, lin_value_rule
+from pgi.math.manifold import eval_man_result, has_manifold, man_equality_rules, man_value_rule, side_as_man_or_field
 from pgi.math.poly import eval_sym_result, has_symbolic, sym_equality_rules, sym_value_rule
 from pgi.math.quant import is_quantifier, quantifier_rules
 from pgi.math.set import (
@@ -86,6 +87,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return conflicts
         if _has_set(equation.left) or _has_set(equation.right):
             return _set_equation(equation, anchors)
+        if has_manifold(equation.left) or has_manifold(equation.right):
+            return _manifold_equation(equation, anchors)
         if has_matrix(equation.left) or has_matrix(equation.right):
             return _matrix_equation(equation, anchors)
         if has_symbolic(equation.left) or has_symbolic(equation.right):
@@ -105,6 +108,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return conflicts
     if _has_set(term):
         return _set_value(term, anchors)
+    if has_manifold(term):
+        return _manifold_value(term, anchors)
     if has_matrix(term):
         return _matrix_value(term, anchors)
     if has_symbolic(term):
@@ -403,6 +408,34 @@ def _real_order(body: str, anchors: dict[str, Theorem]) -> tuple[Rule, ...] | No
     except NotExact as exc:
         return (_note(str(exc)),)
     return (real_order_rule(left, right, left_real, right_real, (*left_closed[1], *right_closed[1])),)
+
+
+def _manifold_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    try:
+        result = eval_man_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (man_value_rule(term, result, prelude),)
+
+
+def _manifold_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left_sub = _substitute(equation.left, anchors)
+    right_sub = _substitute(equation.right, anchors)
+    left_body = left_sub.formula.right
+    right_body = right_sub.formula.right
+    prelude = (
+        *(trace(left_sub) if left_sub.rule != "Eq.refl" else ()),
+        *(trace(right_sub) if right_sub.rule != "Eq.refl" else ()),
+    )
+    try:
+        left_value = side_as_man_or_field(left_body)
+        right_value = side_as_man_or_field(right_body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return man_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
 
 
 def _matrix_closed(term: Term, anchors: dict[str, Theorem]) -> tuple[Term, tuple[str, ...]] | None:

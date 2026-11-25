@@ -114,6 +114,12 @@ def _claim_block(support: Support, index: int, lod: int) -> list[str]:
         lines.append(f"   {support.atom} is the exact polynomial")
     elif support.atom.startswith("rat("):
         lines.append(f"   {support.atom} is the exact rational function")
+    elif support.atom.startswith("identity(") and " = " not in support.atom:
+        lines.append(f"   {support.atom} is the identity map on these coordinates")
+    elif support.atom.startswith("map("):
+        lines.append(f"   {support.atom} is the exact rational map")
+    elif support.atom.startswith("jac("):
+        lines.append(f"   {support.atom} is the exact Jacobian")
     elif support.atom == "eigenvalues()":
         lines.append("   eigenvalues() is the empty set of real eigenvalues")
     elif support.atom.startswith("eigenvalues("):

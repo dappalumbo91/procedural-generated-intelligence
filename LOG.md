@@ -774,3 +774,11 @@ In each period the alkali metal is lowest and the noble gas highest, as printed.
 The next slice is AME2020 atomic masses.
 
 `python -m unittest discover -s tests -v` finished 196 tests, 0 failures, about 54.75 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — charts, transition maps, and Jacobians pgi-0.60.0
+
+A transition map is a tuple of reduced rational functions between charts, kept only when the two-way composition is the identity. The Jacobian is the matrix of exact partial derivatives, and composition is kept only when the chain rule holds identically. `compose(transition(s2, south, north), transition(s2, north, south))` is `identity(u, v)`. The same holds for the stereographic charts on the circle, the affine charts on the real projective line, and the linear charts on the plane, which also satisfy the cocycle identity. `jacobian(transition(r2, xy, uv))` is `[[1, 1], [1, -1]]`, and its determinant is `-2`. `det(jacobian(transition(s2, north, south)))` is `-1 / (u^2 + v^2)^2`. A Jacobian inverse is kept only when both products are the identity. An unknown chart and a composition that is not an inverse pair stay open.
+
+The next mathematics is tangent vectors and the metric tensor, first for Euclidean and Minkowski space and then for the 2-sphere. Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 200 tests, 0 failures, about 50.36 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

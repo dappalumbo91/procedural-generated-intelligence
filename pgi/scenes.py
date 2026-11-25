@@ -254,6 +254,12 @@ def demo_text() -> str:
         "=== a cancelled rational function ===",
         unfold(Request(ask="what is (x^2 - 1) / (x - 1)", lod=2, seed=1)).text(lod=2),
         "",
+        "=== stereographic transitions compose to the identity ===",
+        unfold(Request(ask="what is compose(transition(s2, south, north), transition(s2, north, south))", lod=2, seed=1)).text(lod=2),
+        "",
+        "=== Jacobian of a linear change of coordinates ===",
+        unfold(Request(ask="what is jacobian(transition(r2, xy, uv))", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]
