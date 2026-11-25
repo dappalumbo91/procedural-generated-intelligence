@@ -752,3 +752,15 @@ The tests check that each row loads with its uncertainty, that helium is highest
 The second physics batch is done. The open items are INPOP ephemeris numbers and the levels Park, Bertotti, Riess, and Fixsen leave unstated.
 
 `python -m unittest discover -s tests -v` finished 190 tests, 0 failures, about 48.84 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — INPOP perihelion and PPN results pgi-0.58.0
+
+INPOP results are on the board, each with its stated uncertainty kind. The INPOP19a and INPOP21a notes from IMCCE were read in full. Neither prints PPN `β` or `γ`. Their solar `J2` values are stored: INPOP19a `(2.010 ± 0.010) × 10^−7` in a ± 1σ column, and INPOP21a `(2.2180 ± 0.01) × 10^−7` with no level. The notes disagree on INPOP19a's `GM_⊙`. That is written down, and neither value is stored.
+
+INPOP20a, Proc. IAU Symp. 364, Table 4: `β − 1 = (−1.12 ± 7.16) × 10^−5` and `γ − 1 = (−1.69 ± 7.49) × 10^−5`, stated at 99.7% of the WRSS distribution. The least-squares row, `−1.9 ± 6.28` and `2.64 ± 3.44` × 10^−5, has no level named. The Living Reviews reprint of that `β − 1` has the opposite sign. The original is kept, and the difference is noted. INPOP15a, MG14 proceedings: Mercury's supplementary perihelion `0.0 ± 3.1` mas/cy and `0.0 ± 1.05` mas/cy, acceptance intervals under `Δ(O − C) < 35%` and `< 5%`. Fienga and Minazzoli 2024: the overlap `β − 1 = (−0.45 ± 1.75) × 10^−5`, `γ − 1 = (0.55 ± 1.35) × 10^−5`. B-INPOP with INPOP21a, A&A 682, A175 (2024): `1 − γ < 1.73, 2.40, 2.50 × 10^−5` at 66.7%, 95%, 99.7% C.L., stored as bounds whose lower end is the prior edge.
+
+The uncertainty kinds gain `99.7% interval` and `acceptance interval`. Every printed interval contains zero. The nested windows nest, and the B-INPOP limits rise with the level. A `ppn gamma` ask links INPOP, Cassini, and B-INPOP with nothing retracted. That is 13 new records.
+
+The next slice is the NIST ASD first ionization energies, Na to Kr.
+
+`python -m unittest discover -s tests -v` finished 195 tests, 0 failures, about 65.82 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

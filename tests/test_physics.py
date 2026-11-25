@@ -427,6 +427,61 @@ class AsdIonizationTests(unittest.TestCase):
         self.assertNotIn("value(", text)
 
 
+def _bound(id: str):
+    for item in BOUNDS:
+        if item.id == id:
+            return item
+    raise KeyError(id)
+
+
+def _contains(item: Quantity, x: Fraction) -> bool:
+    return item.value - item.lower_uncertainty <= x <= item.value + item.uncertainty
+
+
+class InpopTests(unittest.TestCase):
+    PPN = (
+        "inpop20a.wrss.beta_minus_1", "inpop20a.wrss.gamma_minus_1", "inpop20a.ls.beta_minus_1", "inpop20a.ls.gamma_minus_1",
+        "ppn.fienga_minazzoli2024.beta_minus_1", "ppn.fienga_minazzoli2024.gamma_minus_1",
+    )
+
+    def test_kinds_are_the_stated_ones(self) -> None:
+        self.assertEqual(quantity("inpop20a.wrss.beta_minus_1").uncertainty_kind, "99.7% interval")
+        self.assertEqual(quantity("inpop20a.ls.gamma_minus_1").uncertainty_kind, "uncertainty as printed, level not stated")
+        self.assertEqual(quantity("mercury.inpop15a.extra_perihelion_c1").uncertainty_kind, "acceptance interval")
+        self.assertEqual(quantity("inpop19a.solar_j2").uncertainty_kind, "standard uncertainty")
+        self.assertIn("plus sign", " ".join(quantity("inpop20a.ls.beta_minus_1").notes))
+
+    def test_every_printed_interval_contains_zero(self) -> None:
+        for id in self.PPN + ("mercury.inpop15a.extra_perihelion_c1", "mercury.inpop15a.extra_perihelion_c2"):
+            self.assertTrue(_contains(quantity(id), Fraction(0)), id)
+
+    def test_nesting_as_printed(self) -> None:
+        tight = quantity("mercury.inpop15a.extra_perihelion_c2")
+        loose = quantity("mercury.inpop15a.extra_perihelion_c1")
+        self.assertLess(tight.uncertainty, loose.uncertainty)
+        for name in ("beta_minus_1", "gamma_minus_1"):
+            overlap = quantity(f"ppn.fienga_minazzoli2024.{name}")
+            wrss = quantity(f"inpop20a.wrss.{name}")
+            self.assertTrue(_contains(wrss, overlap.value - overlap.uncertainty))
+            self.assertTrue(_contains(wrss, overlap.value + overlap.uncertainty))
+        uppers = [_bound(f"bound.binpop21a.one_minus_gamma_{level}").upper for level in ("66_7", "95", "99_7")]
+        self.assertEqual(uppers, sorted(uppers))
+        self.assertTrue(all(_bound(f"bound.binpop21a.one_minus_gamma_{level}").lower == 0 for level in ("66_7", "95", "99_7")))
+
+    def test_inpop15a_mercury_window_is_far_inside_the_classical_residual_error(self) -> None:
+        # mas per century against Clemence's arcsec per century: 3.1 mas is 0.0031 arcsec.
+        loose = quantity("mercury.inpop15a.extra_perihelion_c1")
+        clemence = quantity("mercury.clemence1947.residual")
+        self.assertLess(loose.uncertainty / 1000, clemence.uncertainty)
+
+    def test_ppn_ask_links_inpop_and_cassini(self) -> None:
+        session = unfold(Request(ask="what is the ppn gamma", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        for id in ("inpop20a.wrss.gamma_minus_1", "cassini.bertotti2003.gamma_minus_1", "bound.binpop21a.one_minus_gamma_99_7"):
+            self.assertIn(f"record({id})", atoms)
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

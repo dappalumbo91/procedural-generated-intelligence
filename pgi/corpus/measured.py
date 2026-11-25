@@ -28,6 +28,8 @@ UNCERTAINTY_KINDS = frozenset(
         "3 sigma",
         "68% interval",
         "statistical and systematic, printed separately",
+        "99.7% interval",
+        "acceptance interval",
     }
 )
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval"})
@@ -585,6 +587,7 @@ MERCURY_MODERN: tuple[Quantity, ...] = (
         notes=(
             "The abstract prints gamma = 1 + (2.1 +- 2.3) x 10^-5, from the frequency shift of radio photons to and from Cassini near solar conjunction in 2002.",
             "The abstract does not name a confidence level for the uncertainty, so none is assigned here.",
+            "Mariani et al., A&A 682, A175 (2024), Section 3.1, describe this constraint as given at 1 sigma, assuming Gaussian noise. That is a later reading, not the paper's own statement, so the label is unchanged.",
         ),
     ),
 )
@@ -935,9 +938,89 @@ ASD_IONIZATION: tuple[Quantity, ...] = (
          )),
 )
 
+INPOP20A_SOURCE = (
+    "A. Fienga, L. Bigot, D. Mary, P. Deram, A. Di Ruscio, L. Bernus, M. Gastineau, and J. Laskar, Evolution of INPOP "
+    "planetary ephemerides and Bepi-Colombo simulations, Proc. IAU Symposium 364, 31-51, doi:10.1017/S1743921321001277, "
+    "arXiv:2111.04499, Table 4."
+)
+INPOP20A_EDITION = "INPOP20a ephemeris, Proc. IAU Symposium 364"
+INPOP20A_URL = "https://doi.org/10.1017/S1743921321001277"
+INPOP20A_ARXIV = "https://arxiv.org/abs/2111.04499"
+_INPOP20A_WRSS = (
+    "Table 4 is captioned: PPN beta and gamma confidence intervals given at 99.7 % of the reference WRSS distribution. "
+    "This row is the 3-sigma WRSS selection: 3800 alternative ephemerides with beta and gamma drawn from uniform priors, "
+    "each refitted, and the 23% compatible at 99.7% with the INPOP20a residual distribution kept."
+)
+_INPOP20A_LS = (
+    "This row is the direct least-squares fit with beta and gamma added to the 402 other INPOP20a parameters (non-GRT LS). "
+    "The caption ties the 99.7% level to the reference WRSS distribution. This row is not a WRSS selection, and the paper names no level for it, so none is assigned."
+)
+INPOP15A_SOURCE = (
+    "A. Fienga, J. Laskar, H. Manche, and M. Gastineau, Tests of GR with INPOP15a planetary ephemerides: estimations of "
+    "possible supplementary advances of perihelia for Mercury and Saturn, Proc. 14th Marcel Grossmann Meeting (2017), "
+    "pp. 3694-3695, doi:10.1142/9789813226609_0482, arXiv:1601.00947, Table 1."
+)
+INPOP15A_EDITION = "INPOP15a ephemeris, Proc. 14th Marcel Grossmann Meeting"
+INPOP_NOTE_19A = "https://www.imcce.fr/content/medias/recherche/equipes/asd/inpop/inpop19a_20191214.pdf"
+INPOP_NOTE_21A = "https://www.imcce.fr/content/medias/recherche/equipes/asd/inpop/inpop21a.pdf"
+FIENGA_MINAZZOLI_SOURCE = (
+    "A. Fienga and O. Minazzoli, Testing theories of gravity with planetary ephemerides, Living Rev. Relativ. 27, 1 (2024), "
+    "doi:10.1007/s41114-023-00047-0, arXiv:2303.01821, Section 4.1.3, Eq. (102)."
+)
+_FM_OVERLAP = (
+    "Printed as the constraint from the common overlap of all the recently published planetary-ephemeris intervals in the review's Table 5. "
+    "It is an overlap of intervals with different methods and levels, not a fit, and the review names no confidence level for it."
+)
+
+INPOP: tuple[Quantity, ...] = (
+    _q("inpop20a.wrss.beta_minus_1", "PPN beta minus one, INPOP20a 3-sigma WRSS selection", "beta - 1", "-1.12 e-5", "7.16 e-5", "",
+       kind="99.7% interval", source=INPOP20A_SOURCE, edition=INPOP20A_EDITION, url=INPOP20A_URL, retrieved_from=INPOP20A_ARXIV,
+       keys=("inpop", "ppn"), phrases=("ppn beta", "post-newtonian beta"),
+       notes=("Printed in Table 4 as (beta - 1) x 10^5 = -1.12 +- 7.16.", _INPOP20A_WRSS)),
+    _q("inpop20a.wrss.gamma_minus_1", "PPN gamma minus one, INPOP20a 3-sigma WRSS selection", "gamma - 1", "-1.69 e-5", "7.49 e-5", "",
+       kind="99.7% interval", source=INPOP20A_SOURCE, edition=INPOP20A_EDITION, url=INPOP20A_URL, retrieved_from=INPOP20A_ARXIV,
+       keys=("inpop", "ppn"), phrases=("ppn gamma", "post-newtonian gamma"),
+       notes=("Printed in Table 4 as (gamma - 1) x 10^5 = -1.69 +- 7.49.", _INPOP20A_WRSS)),
+    _q("inpop20a.ls.beta_minus_1", "PPN beta minus one, INPOP20a direct least-squares fit", "beta - 1", "-1.9 e-5", "6.28 e-5", "",
+       kind="uncertainty as printed, level not stated", source=INPOP20A_SOURCE, edition=INPOP20A_EDITION, url=INPOP20A_URL, retrieved_from=INPOP20A_ARXIV,
+       keys=("inpop", "ppn"), phrases=("ppn beta", "post-newtonian beta"),
+       notes=("Printed in Table 4 as (beta - 1) x 10^5 = -1.9 +- 6.28.", _INPOP20A_LS,
+              "The Living Reviews table (Fienga and Minazzoli 2024, Table 5) prints this entry as 1.9 +- 6.28, with a plus sign. The sign here is the one in the original paper.")),
+    _q("inpop20a.ls.gamma_minus_1", "PPN gamma minus one, INPOP20a direct least-squares fit", "gamma - 1", "2.64 e-5", "3.44 e-5", "",
+       kind="uncertainty as printed, level not stated", source=INPOP20A_SOURCE, edition=INPOP20A_EDITION, url=INPOP20A_URL, retrieved_from=INPOP20A_ARXIV,
+       keys=("inpop", "ppn"), phrases=("ppn gamma", "post-newtonian gamma"),
+       notes=("Printed in Table 4 as (gamma - 1) x 10^5 = 2.64 +- 3.44.", _INPOP20A_LS)),
+    _q("mercury.inpop15a.extra_perihelion_c1", "possible supplementary advance of Mercury's perihelion, INPOP15a, criterion 1", "varpi_sup Mercury", "0.0", "3.1", "mas per century",
+       kind="acceptance interval", source=INPOP15A_SOURCE, edition=INPOP15A_EDITION, url="https://doi.org/10.1142/9789813226609_0482", retrieved_from="https://arxiv.org/abs/1601.00947",
+       keys=("mercury", "perihelion", "inpop"), phrases=("perihelion of mercury", "mercury perihelion", "supplementary perihelion"),
+       notes=("Printed in Table 1 as (0.0 +- 3.1) mas.cy^-1. The interval holds the supplementary advances whose refitted ephemerides keep postfit residuals within 35% of INPOP15a's, Delta(O - C) < 35%. It is an acceptance range, not a confidence interval.",)),
+    _q("mercury.inpop15a.extra_perihelion_c2", "possible supplementary advance of Mercury's perihelion, INPOP15a, criterion 2", "varpi_sup Mercury", "0.0", "1.05", "mas per century",
+       kind="acceptance interval", source=INPOP15A_SOURCE, edition=INPOP15A_EDITION, url="https://doi.org/10.1142/9789813226609_0482", retrieved_from="https://arxiv.org/abs/1601.00947",
+       keys=("mercury", "perihelion", "inpop"), phrases=("perihelion of mercury", "mercury perihelion", "supplementary perihelion"),
+       notes=("Printed in Table 1 as (0.0 +- 1.05) mas.cy^-1, under the tighter criterion Delta(O - C) < 5%. It is an acceptance range, not a confidence interval.",)),
+    _q("inpop19a.solar_j2", "solar oblateness J2 fitted in INPOP19a", "J2_sun", "2.010 e-7", "0.010 e-7", "",
+       kind="standard uncertainty", source="A. Fienga, P. Deram, V. Viswanathan, A. Di Ruscio, L. Bernus, D. Durante, M. Gastineau, and J. Laskar, INPOP19a planetary ephemerides, Notes Scientifiques et Techniques de l'Institut de mecanique celeste S109 (14 December 2019), ISBN 978-2-910015-81-7, Table 3.",
+       edition="INPOP19a, NST IMCCE S109 (2019)", url=INPOP_NOTE_19A, retrieved_from=INPOP_NOTE_19A,
+       keys=("inpop",), phrases=("solar quadrupole", "solar oblateness", "solar j2"),
+       notes=("Printed in Table 3 as J2 x 10^-7 (2.010 +- 0.010) in a column headed +- 1sigma.",
+              "The INPOP19a note gives no PPN beta or gamma. Its Table 3 also prints GM_sun - 132712440000 = 40.042 +- 0.01 km^3 s^-2 for INPOP19a, while the INPOP21a note's Table 2 prints 42.0322 +- 0.13 for INPOP19a. The two IMCCE notes disagree and neither GM value is stored.")),
+    _q("inpop21a.solar_j2", "solar oblateness J2 fitted in INPOP21a with the Lense-Thirring term", "J2_sun", "2.2180 e-7", "0.01 e-7", "",
+       kind="uncertainty as printed, level not stated", source="A. Fienga, P. Deram, A. Di Ruscio, V. Viswanathan, J. I. B. Camargo, L. Bernus, M. Gastineau, and J. Laskar, INPOP21a planetary ephemerides, Notes Scientifiques et Techniques de l'Institut de mecanique celeste S110 (2021), ISBN 978-2-910015-84-8, Table 1.",
+       edition="INPOP21a, NST IMCCE S110 (2021)", url=INPOP_NOTE_21A, retrieved_from=INPOP_NOTE_21A,
+       keys=("inpop",), phrases=("solar quadrupole", "solar oblateness", "solar j2"),
+       notes=("Printed in Table 1 as J2 x 10^7 = 2.2180 +- 0.01, with S = 1.90 +- 1.5 x 10^48 g cm^-2 s^-1; the text writes (2.2180 +- 0.010) x 10^-7. Table 1 names no confidence level.",
+              "The INPOP21a note gives no PPN beta or gamma.")),
+    _q("ppn.fienga_minazzoli2024.beta_minus_1", "PPN beta minus one, overlap of planetary-ephemeris intervals", "beta - 1", "-0.45 e-5", "1.75 e-5", "",
+       kind="uncertainty as printed, level not stated", source=FIENGA_MINAZZOLI_SOURCE, edition="Living Rev. Relativ. 27 (2024)", url="https://doi.org/10.1007/s41114-023-00047-0", retrieved_from="https://arxiv.org/abs/2303.01821",
+       keys=("inpop", "ppn"), phrases=("ppn beta", "post-newtonian beta"), notes=("Printed as (beta - 1) = (-0.45 +- 1.75) x 10^-5.", _FM_OVERLAP)),
+    _q("ppn.fienga_minazzoli2024.gamma_minus_1", "PPN gamma minus one, overlap of planetary-ephemeris intervals", "gamma - 1", "0.55 e-5", "1.35 e-5", "",
+       kind="uncertainty as printed, level not stated", source=FIENGA_MINAZZOLI_SOURCE, edition="Living Rev. Relativ. 27 (2024)", url="https://doi.org/10.1007/s41114-023-00047-0", retrieved_from="https://arxiv.org/abs/2303.01821",
+       keys=("inpop", "ppn"), phrases=("ppn gamma", "post-newtonian gamma"), notes=("Printed as (gamma - 1) = (0.55 +- 1.35) x 10^-5.", _FM_OVERLAP)),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION + ASD_IONIZATION
+    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP
 )
 
 
@@ -968,6 +1051,37 @@ class Bound:
         return parse_decimal(self.upper_text)
 
 
+_BINPOP_SOURCE = (
+    "V. Mariani, O. Minazzoli, A. Fienga, J. Laskar, and M. Gastineau, Bayesian test of Brans-Dicke theories with planetary "
+    "ephemerides: Investigating the strong equivalence principle, Astron. Astrophys. 682, A175 (2024), "
+    "doi:10.1051/0004-6361/202348082, arXiv:2310.00719, Section 3.1 and Fig. 1."
+)
+_BINPOP_CONDITIONS = (
+    "INPOP21a planetary ephemeris, refitted inside an MCMC (B-INPOP), without strong-equivalence-principle violation (eta = 0).",
+    "The prior for 1 - gamma is uniform between 0 and 15 x 10^-5, so only gamma <= 1 is explored and the lower end is the prior edge, not a measurement.",
+    "The paper states the limits as C.L. of the MCMC posterior: 1.73 x 10^-5 at 66.7%, 2.40 x 10^-5 at 95%, and 2.50 x 10^-5 at 99.7%.",
+)
+
+
+def _binpop(level: str, upper: str) -> Bound:
+    return Bound(
+        id=f"bound.binpop21a.one_minus_gamma_{level.replace('.', '_')}",
+        name=f"PPN 1 - gamma upper limit at {level}% C.L. from the B-INPOP posterior",
+        symbol="1 - gamma",
+        lower_text="0",
+        upper_text=upper,
+        unit="",
+        source=_BINPOP_SOURCE,
+        edition="INPOP21a with B-INPOP, A&A 682 A175 (2024)",
+        url="https://doi.org/10.1051/0004-6361/202348082",
+        retrieved_from="https://arxiv.org/abs/2310.00719",
+        retrieved=RETRIEVED,
+        keys=("inpop", "ppn"),
+        phrases=("ppn gamma", "post-newtonian gamma"),
+        conditions=_BINPOP_CONDITIONS,
+        forbids=(),
+    )
+
 BOUNDS: tuple[Bound, ...] = (
     Bound(
         id="bound.gw170817_speed_of_gravity",
@@ -995,6 +1109,9 @@ BOUNDS: tuple[Bound, ...] = (
         ),
         forbids=("law(gravity_outruns_light_beyond_gw170817_bound)", "law(light_outruns_gravity_beyond_gw170817_bound)"),
     ),
+    _binpop("66.7", "1.73 e-5"),
+    _binpop("95", "2.40 e-5"),
+    _binpop("99.7", "2.50 e-5"),
 )
 
 

@@ -294,9 +294,21 @@ Each row keeps its ASD bibliography codes, ground shells, ground level, and ioni
 
 The tests check every row's value and uncertainty, that helium is the largest and lithium the smallest of the ten, and that hydrogen's energy lies below `R_∞ hc` and within `α^2` of the reduced-mass ratio `m_p/(m_p + m_e)`. That window is loose on purpose. It is a test, not a stored relation. That is 11 new records.
 
+### INPOP perihelion and PPN results
+
+The INPOP team's general-relativity results are on the board, each with the uncertainty kind its paper states. Neither IMCCE note for INPOP19a (NST S109, December 2019) nor for INPOP21a (NST S110, 2021) prints PPN `β` or `γ`, so the PPN numbers come from the papers built on those ephemerides.
+
+INPOP20a, Fienga et al., Proc. IAU Symposium 364, 31–51, Table 4, "confidence intervals given at 99.7 % of the reference WRSS distribution": `β − 1 = (−1.12 ± 7.16) × 10^−5`, `γ − 1 = (−1.69 ± 7.49) × 10^−5`. These are stored under a new kind, `99.7% interval`. From the same table, the direct least-squares row is `β − 1 = (−1.9 ± 6.28) × 10^−5` and `γ − 1 = (2.64 ± 3.44) × 10^−5`. No level is named for that row, so it is labelled `level not stated`. The Living Reviews table reprints the least-squares `β − 1` as `+1.9`. The record keeps the original paper's sign and notes the difference.
+
+INPOP15a, Fienga, Laskar, Manche, and Gastineau, Proc. 14th Marcel Grossmann Meeting, Table 1: Mercury's possible supplementary perihelion advance is `0.0 ± 3.1` mas/cy under `Δ(O − C) < 35%` and `0.0 ± 1.05` mas/cy under `Δ(O − C) < 5%`. These are ranges of acceptable refitted ephemerides, not confidence intervals. They get a new kind, `acceptance interval`.
+
+Sun `J2`: INPOP19a `(2.010 ± 0.010) × 10^−7` (± 1σ column), and INPOP21a with the Lense–Thirring term `(2.2180 ± 0.01) × 10^−7` (level not stated). The two IMCCE notes print different INPOP19a `GM_⊙` values, 40.042 ± 0.01 and 42.0322 ± 0.13 for `GM − 132712440000` km³ s⁻². Neither is stored, and the disagreement is written on the record. Fienga and Minazzoli, Living Rev. Relativ. 27, 1 (2024), Eq. (102), give the overlap of published ephemeris intervals: `β − 1 = (−0.45 ± 1.75) × 10^−5` and `γ − 1 = (0.55 ± 1.35) × 10^−5`. That is an overlap of intervals with no named level. Mariani et al., A&A 682, A175 (2024), ran INPOP21a in an MCMC (B-INPOP) with a uniform prior `0 ≤ 1 − γ ≤ 15 × 10^−5`. Their upper limits on `1 − γ` are `1.73`, `2.40`, and `2.50 × 10^−5` at 66.7%, 95%, and 99.7% C.L. They are stored as three bounds whose lower end is the prior edge.
+
+The tests check that every printed PPN and perihelion interval contains zero, that the tighter acceptance window sits inside the looser one, that the overlap sits inside the INPOP20a WRSS intervals, and that the B-INPOP limits grow with the level. A `ppn gamma` ask links INPOP, Cassini, and B-INPOP together with nothing retracted. The Cassini record gains a note that Mariani et al. read its `±2.3 × 10^−5` as 1σ. Its label stays `level not stated` because Bertotti et al. do not say. That is 10 new quantities and 3 new bounds, 13 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.57.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.58.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
