@@ -650,3 +650,15 @@ A matrix over the rationals is a rectangular array of reduced fractions. Additio
 Characteristic polynomials and eigenvalues of these matrices are the next mathematics, using the existing algebraic-number kernel. Manifolds, differential geometry, Hilbert space, and gauge theory follow. The Particle Data Group is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 148 tests, 0 failures, about 47.04 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — PDG 2026 masses, couplings, and the CKM fit pgi-0.49.0
+
+The Particle Data Group numbers are on the board, from the 2026 edition: F. Takahashi et al. (Particle Data Group), Int. J. Mod. Phys. A 41, 2630011 (2026). Masses are the summary-table rows of the PDG API database, `pdg` package 2026.0, data release 2026-05-30, each citing its pdgLive node. `α_s(m_Z) = 0.1180(9)`, `G_F/(ħc)^3 = 1.166 378 5(6) e-5 GeV^-2`, and MSbar `sin^2 θ̂_W(m_Z) = 0.231 22(6)` are from Table 1.1, revised May 2026. The CKM global fit is from review 12, revised March 2026.
+
+`m_W`, `m_Z`, the measured `m_W/m_Z`, `m_H`, the direct `m_t`, `m_e`, `m_μ`, and `m_τ` carry PDG's one-standard-deviation errors, with the scale factor noted where PDG applied one. The u, d, and s masses are MSbar at 2 GeV, and `m_c(m_c)` and `m_b(m_b)` are MSbar running masses. PDG prints all five with CL = 90%, and the uncertainty kind says so. The Wolfenstein parameters, the nine magnitudes, and `J` keep their asymmetric errors. The uncertainty kinds gain `asymmetric standard uncertainty` and `uncertainty at CL = 90%`. That is 30 new quantities and 30 new records.
+
+The concise forms are parsed and matched to the stored numbers. `m_W/m_Z` from the masses agrees with the measured ratio. The PDG and CODATA electron masses are the same number. The PDG and CODATA `G_F` differ in the last digit and agree inside the uncertainty. Each row and column of the CKM magnitudes squares to 1 inside the propagated uncertainty. No relation is stored as a claim.
+
+The next slice is the Mercury perihelion residual and the gravitational-wave events.
+
+`python -m unittest discover -s tests -v` finished 156 tests, 0 failures, about 47.54 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

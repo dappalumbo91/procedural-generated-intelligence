@@ -224,9 +224,17 @@ The tests check the stored numbers against each other in exact rational arithmet
 
 A matrix over the rationals is a rectangular array of reduced fractions. Addition, multiplication, and transpose use those exact entries. A determinant is the Bareiss value after clearing denominators, and through degree five the cofactor expansion has to agree. `det([[1, 2], [3, 4]])` is `-2`. `det([[1, 2, 3], [4, 5, 6], [7, 8, 10]])` is `-3`. `det([[1/2, 0], [0, 1/3]])` is `1/6`. A rank is kept only when a pivot minor has a nonzero determinant and every other row is the corresponding linear combination of the pivot rows. `rank([[1, 2], [3, 4]])` is `2`. `rank([[1, 2], [2, 4]])` is `1`. An inverse is kept only when both products are the identity. `inv([[1, 2], [3, 4]])` is `[[-2, 1], [3/2, -1/2]]`. A singular inverse and a non-square determinant stay open. An entry that is not an exact rational stays open. Characteristic polynomials and eigenvalues are still ahead.
 
+### PDG 2026 masses, couplings, and the CKM fit
+
+The Particle Data Group numbers are from the 2026 edition, F. Takahashi et al. (Particle Data Group), Int. J. Mod. Phys. A 41, 2630011 (2026). It is the current edition, so it is used rather than 2024 or 2025. Masses come from the summary-table rows of the PDG API database shipped as the `pdg` Python package 2026.0, data release 2026-05-30, as PDG displays them, and each record cites its pdgLive node. `α_s(m_Z)`, `G_F`, and the MSbar weak-mixing angle come from Table 1.1, Physical Constants, revised May 2026. The CKM values are the global unitarity fit of review 12, revised March 2026, Eq. (12.26) and Eq. (12.27).
+
+`m_W = 80.3625 ± 0.0077 GeV`. `m_Z = 91.1879 ± 0.0020 GeV`. The measured ratio `m_W/m_Z = 0.88136 ± 0.00015`. `m_H = 125.13 ± 0.11 GeV`. The direct `m_t = 172.60 ± 0.27 GeV`. `m_e = 0.51099895069 ± 0.00000000016 MeV`, `m_μ = 105.6583755 ± 0.0000023 MeV`, `m_τ = 1776.93 ± 0.09 MeV`. `α_s(m_Z) = 0.1180(9)`. `G_F/(ħc)^3 = 1.166 378 5(6) e-5 GeV^-2`. `sin^2 θ̂_W(m_Z)` in MSbar is `0.231 22(6)`. The quark masses carry the label PDG prints: `m_u = 2.16 ± 0.07 MeV`, `m_d = 4.70 ± 0.07 MeV`, and `m_s = 92.9 ± 0.7 MeV` are MSbar at `μ = 2 GeV`. `m_c(m_c) = 1.2729 ± 0.0045 GeV` and `m_b(m_b) = 4.186 ± 0.006 GeV` are MSbar running masses. All five are printed with CL = 90%, so they are stored as that, not as one standard deviation. The CKM fit keeps its asymmetric errors as printed: `λ = 0.22517 ± 0.00068`, `A = 0.826 +0.017 −0.015`, `ρ̄ = 0.1576 +0.0092 −0.0091`, `η̄ = 0.3556 +0.0071 −0.0069`, the nine magnitudes from `|V_ud| = 0.97431 ± 0.00016` to `|V_tb| = 0.999115 +0.000029 −0.000034`, and `J = 3.16 +0.13 −0.11 × 10^-5`. That is 30 new quantities and 30 new records.
+
+The concise forms `0.1180(9)`, `1.166 378 5(6) e-5`, and `0.231 22(6)` are parsed and checked against the stored value and uncertainty. `m_W/m_Z` from the two masses agrees with the measured ratio. The PDG electron mass equals the CODATA MeV equivalent. PDG `G_F` and CODATA `G_F` differ in the last digit and agree inside the uncertainty. Every row and column of the CKM magnitudes squares to 1 inside the propagated uncertainty, and `λ` equals `|V_us|`.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.48.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.49.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -235,4 +243,4 @@ This list is the current state as of `pgi-0.48.0`. Earlier sections above are hi
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
 - Characteristic polynomials and eigenvalues of exact rational matrices, then manifolds, differential geometry, Hilbert space, and gauge theory, are still ahead of any physical law.
-- The Particle Data Group, gravitational-wave catalogs, the Mercury residual in arcseconds, and a stored Rayleigh–Jeans formula are still not ingested. CODATA 2022 is on the board.
+- Gravitational-wave catalogs, the Mercury residual in arcseconds, and a stored Rayleigh–Jeans formula are still not ingested. CODATA 2022 and PDG 2026 are on the board.

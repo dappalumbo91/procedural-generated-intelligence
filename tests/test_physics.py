@@ -3,7 +3,7 @@ from __future__ import annotations
 import unittest
 from fractions import Fraction
 
-from pgi.corpus.measured import QUANTITIES, Quantity, audit_quantities, parse_decimal, quantity
+from pgi.corpus.measured import QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, quantity
 from pgi.corpus.records import RECORDS, audit_records
 from pgi.engine import unfold
 from pgi.model import Request
@@ -166,6 +166,64 @@ class Codata2022Tests(unittest.TestCase):
         self.assertFalse(_agrees(alpha, wrong, _rel2(eps0)))
 
 
+class Pdg2026Tests(unittest.TestCase):
+    def test_concise_forms_match_the_stored_numbers(self) -> None:
+        self.assertEqual(parse_concise("0.1180(9)"), (Fraction(1180, 10**4), Fraction(9, 10**4)))
+        self.assertEqual(
+            parse_concise("1.166 378 5(6) e-5"), (Fraction(11663785, 10**12), Fraction(6, 10**12))
+        )
+        with self.assertRaises(ValueError):
+            parse_concise("0.1180+-0.0009")
+        for item in QUANTITIES:
+            if item.printed:
+                self.assertEqual(parse_concise(item.printed), (item.value, item.uncertainty), item.id)
+
+    def test_requested_set_is_present_with_its_kind(self) -> None:
+        for id in ("pdg2026.m_w", "pdg2026.m_z", "pdg2026.m_h", "pdg2026.m_t", "pdg2026.m_e", "pdg2026.m_mu", "pdg2026.m_tau", "pdg2026.alpha_s_mz", "pdg2026.g_f", "pdg2026.sin2_theta_w", "pdg2026.ckm.lambda", "pdg2026.ckm.v_ud"):
+            self.assertEqual(quantity(id).uncertainty_kind, "standard uncertainty", id)
+        for id in ("pdg2026.m_u", "pdg2026.m_d", "pdg2026.m_s", "pdg2026.m_c", "pdg2026.m_b"):
+            item = quantity(id)
+            self.assertEqual(item.uncertainty_kind, "uncertainty at CL = 90%", id)
+            self.assertIn("CL = 90%", " ".join(item.notes))
+        a = quantity("pdg2026.ckm.a")
+        self.assertEqual((a.uncertainty, a.lower_uncertainty), (Fraction(17, 1000), Fraction(15, 1000)))
+        self.assertIn("MSbar", " ".join(quantity("pdg2026.m_u").notes))
+        self.assertIn("2 GeV", " ".join(quantity("pdg2026.m_u").notes))
+
+    def test_w_over_z_ratio_agrees_with_the_masses(self) -> None:
+        w, z = quantity("pdg2026.m_w"), quantity("pdg2026.m_z")
+        ratio = quantity("pdg2026.m_w_over_m_z")
+        self.assertTrue(_agrees(ratio, w.value / z.value, _rel2(w) + _rel2(z)))
+
+    def test_electron_mass_agrees_across_codata_and_pdg(self) -> None:
+        pdg = quantity("pdg2026.m_e")
+        codata = quantity("codata2022.m_e_c2_mev")
+        self.assertEqual(pdg.value, codata.value)
+        self.assertEqual(pdg.uncertainty, codata.uncertainty)
+
+    def test_fermi_constant_agrees_across_codata_and_pdg(self) -> None:
+        pdg = quantity("pdg2026.g_f")
+        codata = quantity("codata2022.g_f")
+        self.assertNotEqual(pdg.value, codata.value)
+        self.assertTrue(_agrees(pdg, codata.value, _rel2(codata)))
+
+    def test_ckm_fit_rows_and_columns_are_unitary_within_uncertainty(self) -> None:
+        names = (("v_ud", "v_us", "v_ub"), ("v_cd", "v_cs", "v_cb"), ("v_td", "v_ts", "v_tb"))
+        grid = [[quantity(f"pdg2026.ckm.{n}") for n in row] for row in names]
+
+        def check(line: list[Quantity]) -> None:
+            total = sum(item.value**2 for item in line)
+            sigma2 = sum((2 * item.value * max(item.uncertainty, item.lower_uncertainty)) ** 2 for item in line)
+            self.assertLessEqual((total - 1) ** 2, sigma2, [item.id for item in line])
+
+        for row in grid:
+            check(row)
+        for column in zip(*grid):
+            check(list(column))
+        lam, v_us = quantity("pdg2026.ckm.lambda"), quantity("pdg2026.ckm.v_us")
+        self.assertEqual(lam.value, v_us.value)
+
+
 class PhysicsBoardTests(unittest.TestCase):
     def test_a_constant_is_linked_not_settled(self) -> None:
         session = unfold(Request(ask="what is the fine-structure constant", seed=1))
@@ -185,6 +243,21 @@ class PhysicsBoardTests(unittest.TestCase):
         )
         self.assertIn("derived(codata2022.h)", contested.retracted)
         self.assertIn("record(codata2022.h)", [claim.atom for claim in contested.claims])
+
+    def test_a_quark_mass_carries_its_scheme_and_confidence(self) -> None:
+        session = unfold(Request(ask="what is the strange quark mass", seed=1))
+        text = session.text(lod=2)
+        self.assertIn("record(pdg2026.m_s)", text)
+        self.assertIn("92.9", text)
+        self.assertIn("CL = 90%", text)
+        self.assertIn("mu = 2 GeV", text)
+        self.assertNotIn("value(", text)
+
+    def test_ckm_asks_link_the_fit(self) -> None:
+        session = unfold(Request(ask="what is the ckm matrix", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        self.assertIn("record(pdg2026.ckm.v_ub)", atoms)
+        self.assertIn("+0.000088 -0.000083", session.text(lod=2))
 
     def test_gravitation_is_measured(self) -> None:
         session = unfold(Request(ask="what is the gravitational constant", seed=1))
