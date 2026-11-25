@@ -1892,7 +1892,20 @@ def _mul_one_deep(
             rad,
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, deep_coeff)))
-    if other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
+    for fold_coeff, extra, fold_mult, fold_const, fold_sqrt, fold_rad in other.folds:
+        scaled = _fold_times_deep(
+            extra,
+            fold_mult,
+            fold_const,
+            fold_sqrt,
+            fold_rad,
+            mult,
+            constant,
+            sqrt_coeff,
+            rad,
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, fold_coeff)))
+    if other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
