@@ -782,3 +782,13 @@ A transition map is a tuple of reduced rational functions between charts, kept o
 The next mathematics is tangent vectors and the metric tensor, first for Euclidean and Minkowski space and then for the 2-sphere. Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 200 tests, 0 failures, about 50.36 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — AME2020 atomic masses and binding energies, starter set pgi-0.61.0
+
+AME2020 is on the board for n, ¹H, ²H, ³H, ³He, ⁴He, ¹²C, ¹⁶O, ⁵⁶Fe, ⁵⁸Fe, ⁶²Ni, and ²⁰⁸Pb: atomic mass in µu, mass excess in keV, and binding energy per nucleon in keV where A ≥ 2. Values come from the AMDC file `mass.mas20`, which Part II names as the full-precision version of its rounded table. Part I says every uncertainty is 1σ, so the label is `standard uncertainty`. ¹²C's mass is printed as `12 000000.0` with uncertainty 0.0 and is stored exact, by the definition of u. AME2020's `1 u = 931 494.10242(28) keV` is stored. ⁵⁸Fe was added to the requested set so the peak is shown with its real neighbours.
+
+¹²C is exactly 12 u. ⁶²Ni `8794.5555`, ⁵⁸Fe `8792.2534`, and ⁵⁶Fe `8790.3563` keV are the top three per nucleon, as printed. Each `B/A` is recomputed from the mass excesses of the nuclide, ¹H, and n, and each mass from `A + Δ/u`. Both agree inside the printed uncertainties. No nuclear model is stored. That is 35 new records.
+
+The next slice is PDG 2026 light hadron masses.
+
+`python -m unittest discover -s tests -v` finished 204 tests, 0 failures, about 48.16 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

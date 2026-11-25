@@ -498,6 +498,48 @@ class InpopTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class Ame2020Tests(unittest.TestCase):
+    NUCLIDES = (("h2", 1, 1), ("h3", 1, 2), ("he3", 2, 1), ("he4", 2, 2), ("c12", 6, 6), ("o16", 8, 8),
+                ("fe56", 26, 30), ("fe58", 26, 32), ("ni62", 28, 34), ("pb208", 82, 126))
+
+    def test_carbon_12_is_exactly_12_u(self) -> None:
+        carbon = quantity("ame2020.c12.atomic_mass")
+        self.assertTrue(carbon.exact)
+        self.assertEqual(carbon.value, 12 * 10**6)
+        self.assertEqual(quantity("ame2020.c12.mass_excess").value, 0)
+        board = {record.id: record for record in RECORDS}
+        self.assertIn("derived(ame2020.c12.atomic_mass)", board["ame2020.c12.atomic_mass"].forbids)
+        for id in ("ame2020.n.atomic_mass", "ame2020.h1.atomic_mass", "ame2020.pb208.binding_per_nucleon"):
+            self.assertEqual(quantity(id).uncertainty_kind, "standard uncertainty")
+
+    def test_iron_and_nickel_sit_at_the_binding_peak_as_printed(self) -> None:
+        per_nucleon = {nid: quantity(f"ame2020.{nid}.binding_per_nucleon").value for nid, _, _ in self.NUCLIDES}
+        ranked = sorted(per_nucleon, key=per_nucleon.get, reverse=True)
+        self.assertEqual(ranked[:3], ["ni62", "fe58", "fe56"])
+        self.assertLess(per_nucleon["ni62"] - per_nucleon["fe56"], 5)
+        self.assertGreater(per_nucleon["fe56"] - per_nucleon["pb208"], 900)
+
+    def test_binding_per_nucleon_follows_from_the_mass_excesses(self) -> None:
+        hydrogen = quantity("ame2020.h1.mass_excess")
+        neutron = quantity("ame2020.n.mass_excess")
+        unit = quantity("ame2020.u_kev")
+        for nid, z, n in self.NUCLIDES:
+            a = z + n
+            excess = quantity(f"ame2020.{nid}.mass_excess")
+            binding = quantity(f"ame2020.{nid}.binding_per_nucleon")
+            computed = (z * hydrogen.value + n * neutron.value - excess.value) / a
+            self.assertLessEqual(abs(computed - binding.value), binding.uncertainty, nid)
+            mass = quantity(f"ame2020.{nid}.atomic_mass")
+            from_excess = a * 10**6 + excess.value / unit.value * 10**6
+            self.assertLessEqual(abs(from_excess - mass.value), mass.uncertainty or 0, nid)
+
+    def test_an_ask_links_the_peak(self) -> None:
+        session = unfold(Request(ask="what is the binding energy per nucleon", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        for nid in ("fe56", "fe58", "ni62"):
+            self.assertIn(f"record(ame2020.{nid}.binding_per_nucleon)", atoms)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

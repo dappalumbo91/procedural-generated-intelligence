@@ -1180,9 +1180,94 @@ INPOP: tuple[Quantity, ...] = (
        keys=("inpop", "ppn"), phrases=("ppn gamma", "post-newtonian gamma"), notes=("Printed as (gamma - 1) = (0.55 +- 1.35) x 10^-5.", _FM_OVERLAP)),
 )
 
+AME2020_SOURCE = (
+    "W. J. Huang, M. Wang, F. G. Kondev, G. Audi, and S. Naimi, The AME 2020 atomic mass evaluation (I), Chinese Phys. C 45, "
+    "030002 (2021), doi:10.1088/1674-1137/abddb0; M. Wang, W. J. Huang, F. G. Kondev, G. Audi, and S. Naimi, The AME 2020 "
+    "atomic mass evaluation (II), Chinese Phys. C 45, 030003 (2021), doi:10.1088/1674-1137/abddaf. Values from the AMDC "
+    "file mass.mas20, the unrounded version of the published table."
+)
+AME2020_EDITION = "AME2020, Chinese Phys. C 45 (2021)"
+AME2020_FILE = "https://www-nds.iaea.org/amdc/ame2020/mass_1.mas20.txt"
+AME2020_PAPER_II = "https://doi.org/10.1088/1674-1137/abddaf"
+_AME_SIGMA = "AME2020 Part I, Section 1: all uncertainties are one-standard deviation (1 sigma)."
+_AME_FILE = (
+    "The printed table in Part II rounds values whose leading uncertainty digit exceeds 3 and writes 'a' for uncertainties below 0.5 eV. "
+    "Part II points to the AMDC ASCII file for full precision; the value here is that file's, as written."
+)
+
+
+def _ame(id: str, name: str, symbol: str, value_text: str, uncertainty_text: str, unit: str, *, z: int, n: int, a: int, phrases: tuple[str, ...]) -> Quantity:
+    exact = id in {"ame2020.c12.atomic_mass", "ame2020.c12.mass_excess"} and uncertainty_text == "0.0"
+    notes = [f"Z = {z}, N = {n}, A = {a}.", _AME_FILE]
+    if id.endswith("binding_per_nucleon"):
+        notes.insert(1, "Part II defines the tabulated value as B/A = (1/A)[Z M(1H) + N M(n) - M(A, Z)], with atomic masses.")
+    if exact:
+        notes.insert(1, "AME prints the uncertainty as 0.0. The unified atomic mass unit is defined by 1 u = m(12C)/12, so this value is exact by definition.")
+    else:
+        notes.insert(1, _AME_SIGMA)
+    return _q(
+        id,
+        name,
+        symbol,
+        value_text,
+        "exact" if exact else uncertainty_text,
+        unit,
+        kind="exact" if exact else "standard uncertainty",
+        source=AME2020_SOURCE,
+        edition=AME2020_EDITION,
+        url=AME2020_PAPER_II,
+        retrieved_from=AME2020_FILE,
+        keys=("ame2020",),
+        phrases=phrases,
+        notes=tuple(notes),
+    )
+
+
+AME2020: tuple[Quantity, ...] = (
+    _q("ame2020.u_kev", "energy equivalent of the unified atomic mass unit used in AME2020", "1 u", "931 494.10242", "0.00028", "keV",
+       kind="standard uncertainty", source=AME2020_SOURCE.replace("Values from the AMDC file mass.mas20, the unrounded version of the published table.", "Part I, Section 2, units table."),
+       edition=AME2020_EDITION, url="https://doi.org/10.1088/1674-1137/abddb0", retrieved_from="https://iopscience.iop.org/article/10.1088/1674-1137/abddb0/pdf",
+       keys=("ame2020",), phrases=("atomic mass unit in kev",),
+       notes=("Printed in Part I as 1 u = 931 494.10242 +- 0.00028 keV (0.3 ppb), from CODATA 2018 with 2e/h = 483597.8484 GHz/V exact.", _AME_SIGMA)),
+    _ame("ame2020.n.atomic_mass", "atomic mass of the neutron", "M(1n)", "1 008664.91590", "0.00047", "micro-u", z=0, n=1, a=1, phrases=('atomic mass of neutron',)),
+    _ame("ame2020.n.mass_excess", "mass excess of the neutron", "Delta(1n)", "8071.31806", "0.00044", "keV", z=0, n=1, a=1, phrases=('mass excess of neutron',)),
+    _ame("ame2020.h1.atomic_mass", "atomic mass of hydrogen-1", "M(1H)", "1 007825.031898", "0.000014", "micro-u", z=1, n=0, a=1, phrases=('atomic mass of hydrogen-1',)),
+    _ame("ame2020.h1.mass_excess", "mass excess of hydrogen-1", "Delta(1H)", "7288.971064", "0.000013", "keV", z=1, n=0, a=1, phrases=('mass excess of hydrogen-1',)),
+    _ame("ame2020.h2.atomic_mass", "atomic mass of hydrogen-2", "M(2H)", "2 014101.777844", "0.000015", "micro-u", z=1, n=1, a=2, phrases=('atomic mass of hydrogen-2', 'atomic mass of deuterium')),
+    _ame("ame2020.h2.mass_excess", "mass excess of hydrogen-2", "Delta(2H)", "13135.722895", "0.000015", "keV", z=1, n=1, a=2, phrases=('mass excess of hydrogen-2', 'mass excess of deuterium')),
+    _ame("ame2020.h2.binding_per_nucleon", "binding energy per nucleon of hydrogen-2", "B/A(2H)", "1112.2831", "0.0002", "keV", z=1, n=1, a=2, phrases=('binding energy per nucleon of hydrogen-2', 'binding energy per nucleon of deuterium')),
+    _ame("ame2020.h3.atomic_mass", "atomic mass of hydrogen-3", "M(3H)", "3 016049.28132", "0.00008", "micro-u", z=1, n=2, a=3, phrases=('atomic mass of hydrogen-3', 'atomic mass of tritium')),
+    _ame("ame2020.h3.mass_excess", "mass excess of hydrogen-3", "Delta(3H)", "14949.81090", "0.00008", "keV", z=1, n=2, a=3, phrases=('mass excess of hydrogen-3', 'mass excess of tritium')),
+    _ame("ame2020.h3.binding_per_nucleon", "binding energy per nucleon of hydrogen-3", "B/A(3H)", "2827.2654", "0.0003", "keV", z=1, n=2, a=3, phrases=('binding energy per nucleon of hydrogen-3', 'binding energy per nucleon of tritium')),
+    _ame("ame2020.he3.atomic_mass", "atomic mass of helium-3", "M(3He)", "3 016029.32197", "0.00006", "micro-u", z=2, n=1, a=3, phrases=('atomic mass of helium-3',)),
+    _ame("ame2020.he3.mass_excess", "mass excess of helium-3", "Delta(3He)", "14931.21888", "0.00006", "keV", z=2, n=1, a=3, phrases=('mass excess of helium-3',)),
+    _ame("ame2020.he3.binding_per_nucleon", "binding energy per nucleon of helium-3", "B/A(3He)", "2572.68044", "0.00015", "keV", z=2, n=1, a=3, phrases=('binding energy per nucleon of helium-3',)),
+    _ame("ame2020.he4.atomic_mass", "atomic mass of helium-4", "M(4He)", "4 002603.25413", "0.00016", "micro-u", z=2, n=2, a=4, phrases=('atomic mass of helium-4',)),
+    _ame("ame2020.he4.mass_excess", "mass excess of helium-4", "Delta(4He)", "2424.91587", "0.00015", "keV", z=2, n=2, a=4, phrases=('mass excess of helium-4',)),
+    _ame("ame2020.he4.binding_per_nucleon", "binding energy per nucleon of helium-4", "B/A(4He)", "7073.9156", "0.0002", "keV", z=2, n=2, a=4, phrases=('binding energy per nucleon of helium-4',)),
+    _ame("ame2020.c12.atomic_mass", "atomic mass of carbon-12", "M(12C)", "12 000000.0", "0.0", "micro-u", z=6, n=6, a=12, phrases=('atomic mass of carbon-12',)),
+    _ame("ame2020.c12.mass_excess", "mass excess of carbon-12", "Delta(12C)", "0.0", "0.0", "keV", z=6, n=6, a=12, phrases=('mass excess of carbon-12',)),
+    _ame("ame2020.c12.binding_per_nucleon", "binding energy per nucleon of carbon-12", "B/A(12C)", "7680.1446", "0.0002", "keV", z=6, n=6, a=12, phrases=('binding energy per nucleon of carbon-12',)),
+    _ame("ame2020.o16.atomic_mass", "atomic mass of oxygen-16", "M(16O)", "15 994914.61926", "0.00032", "micro-u", z=8, n=8, a=16, phrases=('atomic mass of oxygen-16',)),
+    _ame("ame2020.o16.mass_excess", "mass excess of oxygen-16", "Delta(16O)", "-4737.00217", "0.00030", "keV", z=8, n=8, a=16, phrases=('mass excess of oxygen-16',)),
+    _ame("ame2020.o16.binding_per_nucleon", "binding energy per nucleon of oxygen-16", "B/A(16O)", "7976.2072", "0.0002", "keV", z=8, n=8, a=16, phrases=('binding energy per nucleon of oxygen-16',)),
+    _ame("ame2020.fe56.atomic_mass", "atomic mass of iron-56", "M(56Fe)", "55 934935.537", "0.287", "micro-u", z=26, n=30, a=56, phrases=('atomic mass of iron-56',)),
+    _ame("ame2020.fe56.mass_excess", "mass excess of iron-56", "Delta(56Fe)", "-60607.163", "0.268", "keV", z=26, n=30, a=56, phrases=('mass excess of iron-56',)),
+    _ame("ame2020.fe56.binding_per_nucleon", "binding energy per nucleon of iron-56", "B/A(56Fe)", "8790.3563", "0.0048", "keV", z=26, n=30, a=56, phrases=('binding energy per nucleon of iron-56', 'binding energy per nucleon')),
+    _ame("ame2020.fe58.atomic_mass", "atomic mass of iron-58", "M(58Fe)", "57 933273.575", "0.339", "micro-u", z=26, n=32, a=58, phrases=('atomic mass of iron-58',)),
+    _ame("ame2020.fe58.mass_excess", "mass excess of iron-58", "Delta(58Fe)", "-62155.271", "0.316", "keV", z=26, n=32, a=58, phrases=('mass excess of iron-58',)),
+    _ame("ame2020.fe58.binding_per_nucleon", "binding energy per nucleon of iron-58", "B/A(58Fe)", "8792.2534", "0.0055", "keV", z=26, n=32, a=58, phrases=('binding energy per nucleon of iron-58', 'binding energy per nucleon')),
+    _ame("ame2020.ni62.atomic_mass", "atomic mass of nickel-62", "M(62Ni)", "61 928344.753", "0.455", "micro-u", z=28, n=34, a=62, phrases=('atomic mass of nickel-62',)),
+    _ame("ame2020.ni62.mass_excess", "mass excess of nickel-62", "Delta(62Ni)", "-66746.440", "0.425", "keV", z=28, n=34, a=62, phrases=('mass excess of nickel-62',)),
+    _ame("ame2020.ni62.binding_per_nucleon", "binding energy per nucleon of nickel-62", "B/A(62Ni)", "8794.5555", "0.0069", "keV", z=28, n=34, a=62, phrases=('binding energy per nucleon of nickel-62', 'binding energy per nucleon')),
+    _ame("ame2020.pb208.atomic_mass", "atomic mass of lead-208", "M(208Pb)", "207 976652.005", "1.232", "micro-u", z=82, n=126, a=208, phrases=('atomic mass of lead-208',)),
+    _ame("ame2020.pb208.mass_excess", "mass excess of lead-208", "Delta(208Pb)", "-21748.519", "1.148", "keV", z=82, n=126, a=208, phrases=('mass excess of lead-208',)),
+    _ame("ame2020.pb208.binding_per_nucleon", "binding energy per nucleon of lead-208", "B/A(208Pb)", "7867.4530", "0.0055", "keV", z=82, n=126, a=208, phrases=('binding energy per nucleon of lead-208',)),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP
+    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020
 )
 
 

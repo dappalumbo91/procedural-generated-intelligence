@@ -286,9 +286,17 @@ The first ionization energies of the 26 neutral atoms from sodium to krypton are
 
 None of the 26 values is in brackets or parentheses, so all are evaluated experimental values in ASD's own terms. The level of the uncertainty column is not stated, as before. The tests check every row's uncertainty, and that the alkali metal is lowest and the noble gas highest in each period, as printed. They also check Calcium's `0.0000000005` eV uncertainty exactly. The ionization rows no longer share a generic key, so an ask about one element links only that element. That is 26 new records, and the board now holds 36 ASD rows.
 
+### AME2020 atomic masses and binding energies, starter set
+
+A starter set from the 2020 atomic mass evaluation is on the board. The sources are Huang, Wang, Kondev, Audi, and Naimi, Chinese Phys. C 45, 030002 (2021), and Wang, Huang, Kondev, Audi, and Naimi, Chinese Phys. C 45, 030003 (2021). Part I states that all uncertainties are one standard deviation, so these are standard uncertainties. The printed table in Part II rounds some values and writes `a` for uncertainties below 0.5 eV, and it points to the AMDC ASCII file for full precision. The values here are from that file, `mass.mas20`, as written.
+
+For n, ¹H, ²H, ³H, ³He, ⁴He, ¹²C, ¹⁶O, ⁵⁶Fe, ⁵⁸Fe, ⁶²Ni, and ²⁰⁸Pb the board holds the atomic mass in µu and the mass excess in keV. It also holds the binding energy per nucleon in keV for every nuclide with A ≥ 2. A few values: n `1 008664.91590 ± 0.00047` µu, ¹H `1 007825.031898 ± 0.000014` µu, ⁴He `4 002603.25413 ± 0.00016` µu, and ¹²C `12 000000.0` µu. AME prints the ¹²C uncertainty as 0.0, and since 1 u = m(¹²C)/12 it is stored as exact. Binding energy per nucleon: ²H `1112.2831(2)`, ⁴He `7073.9156(2)`, ¹²C `7680.1446(2)`, ¹⁶O `7976.2072(2)`, ⁵⁶Fe `8790.3563(48)`, ⁵⁸Fe `8792.2534(55)`, ⁶²Ni `8794.5555(69)`, ²⁰⁸Pb `7867.4530(55)` keV. AME2020's `1 u = 931 494.10242 ± 0.00028 keV` is stored beside them. ⁵⁸Fe was added to the requested set because it sits between ⁵⁶Fe and ⁶²Ni at the peak.
+
+The tests check the following. ¹²C is exactly 12 000 000 µu with mass excess 0. ⁶²Ni, ⁵⁸Fe, and ⁵⁶Fe are the top three in binding energy per nucleon, in that order and within 5 keV of each other, as printed. Every `B/A` agrees with `(1/A)[Z Δ(¹H) + N Δ(n) − Δ]` from the stored mass excesses, and every atomic mass agrees with `A + Δ/u` within its printed uncertainty. That is 35 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.60.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.61.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
