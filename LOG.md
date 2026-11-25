@@ -618,3 +618,15 @@ A sign that an isolating enclosure cannot decide is settled by a Sturm or algebr
 The next gap is a boolean connective whose sides the kernel can now settle individually. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A polynomial whose resultant would exceed the kernel's degree limit stays outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 130 tests, 0 failures, about 48.97 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — boolean sides of settled charts pgi-0.46.0
+
+A boolean connective whose sides the kernel can settle individually is composed by the Collect lemmas, rather than left outside. Each side is reduced first: a polynomial or algebraic-coefficient comparison becomes its checked sign chart, and a ray stays a ray. Conjunction is intersection, disjunction is union, negation is complement, and implication is rewritten to `not P or Q`. `{x. x * x <= 2 and 0 <= x}` is `atLeastAtMost(0, sqrt(2))`. `{x. not x * x <= 2}` is `lessThan(-sqrt(2)) union greaterThan(sqrt(2))`. `{x. x * x <= 2 or x * x * x <= 2}` is `atMost(sqrt(2))`. `{x. x * x <= 2 implies x <= 3}` is `univ`. `{x. x * x * x <= sqrt(2) and 0 <= x}` is `atLeastAtMost(0, root(x^6 - 2, 2))`. `sup {x. x * x <= 2 and 0 <= x}` is `cauchy(sqrt(2))`. A boolean connective whose sides the kernel cannot settle stays outside.
+
+A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next work, in GOAL order, is linear algebra. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 131 tests, 0 failures, about 51.91 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

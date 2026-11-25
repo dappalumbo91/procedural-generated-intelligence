@@ -763,11 +763,11 @@ def _reduce_not(binder: str, domain: Term, predicate: Term) -> tuple[object, tup
     ray = classify(CollectForm(binder, inner.op, inner.args[0], inner.args[1]))
     if ray is None:
         try:
-            value = eval_set(_side_collect(binder, domain, inner))
+            value, detail = interpret(_side_collect(binder, domain, inner))
             complemented, extra = _complement(value)
         except NotExact as exc:
             raise NotExact(_OUTSIDE) from exc
-        return complemented, (_NEG, *order_lines, *extra)
+        return complemented, (_NEG, *order_lines, *detail, *extra)
     if ray.kind == "univ":
         return set_empty(), (
             _NEG,
@@ -789,7 +789,8 @@ def _side_value(binder: str, domain: Term, predicate: Term) -> tuple[object, tup
         return value, (*order_lines, *detail)
     if not _atomic_comparison(predicate):
         raise NotExact(_OUTSIDE)
-    return eval_set(_side_collect(binder, domain, predicate)), order_lines
+    value, detail = interpret(_side_collect(binder, domain, predicate))
+    return value, (*order_lines, *detail)
 
 
 def _two_atoms(predicate: Term) -> tuple[Term, Term]:

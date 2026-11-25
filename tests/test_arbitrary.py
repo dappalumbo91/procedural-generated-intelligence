@@ -1131,6 +1131,34 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(related.claims[0].atom, "atMost(-sqrt(2)) union set({sqrt(2)})")
         self.assertEqual(related.open_gaps, ())
 
+    def test_boolean_sides_of_polynomial_charts(self) -> None:
+        half = run(Request(ask="what is {x. x * x <= 2 and 0 <= x}", seed=1))
+        self.assertEqual(half.claims[0].atom, "atLeastAtMost(0, sqrt(2))")
+        self.assertIn("Collect_conj_eq", half.text(lod=2))
+        self.assertEqual(half.open_gaps, ())
+
+        complement = run(Request(ask="what is {x. not x * x <= 2}", seed=1))
+        self.assertEqual(complement.claims[0].atom, "lessThan(-sqrt(2)) union greaterThan(sqrt(2))")
+        self.assertIn("Collect_neg_eq", complement.text(lod=2))
+        self.assertEqual(complement.open_gaps, ())
+
+        joined = run(Request(ask="what is {x. x * x <= 2 or x * x * x <= 2}", seed=1))
+        self.assertEqual(joined.claims[0].atom, "atMost(sqrt(2))")
+        self.assertEqual(joined.open_gaps, ())
+
+        implied = run(Request(ask="what is {x. x * x <= 2 implies x <= 3}", seed=1))
+        self.assertEqual(implied.claims[0].atom, "univ")
+        self.assertIn("imp_conv_disj", implied.text(lod=2))
+        self.assertEqual(implied.open_gaps, ())
+
+        algebraic = run(Request(ask="what is {x. x * x * x <= sqrt(2) and 0 <= x}", seed=1))
+        self.assertEqual(algebraic.claims[0].atom, "atLeastAtMost(0, root(x^6 - 2, 2))")
+        self.assertEqual(algebraic.open_gaps, ())
+
+        bound = run(Request(ask="what is sup {x. x * x <= 2 and 0 <= x}", seed=1))
+        self.assertEqual(bound.claims[0].atom, "cauchy(sqrt(2))")
+        self.assertEqual(bound.open_gaps, ())
+
     def test_ge_and_gt_rewrite_to_le_and_lt(self) -> None:
 
         from pgi.math.syntax import GE_IFF, GT_IFF, parse_term, pretty, rewrite_ge_gt

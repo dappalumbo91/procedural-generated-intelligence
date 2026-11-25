@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.45.0`.
+Rule version `pgi-0.46.0`.
 
 In the kernel now:
 
@@ -96,7 +96,7 @@ In the kernel now:
 
 Still outside the kernel, and required before a physical law can be written:
 
-- A set whose upper-bound predicate the kernel cannot decide. The bisection runs for a lessThan ray and for an interval whose upper end is open. An affine comparison in the binder is decided: `{x. x <= x + 1}` is UNIV and is not bounded above. A polynomial comparison, with rational or algebraic coefficients, is decided by a checked sign chart: `{x. x * x <= 2}` is atLeastAtMost(-sqrt(2), sqrt(2)) and its supremum is sqrt(2); `{x. x * x * x <= 2}` is atMost(root(x^3 - 2, 1)); `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}` is atLeastAtMost of the two real square roots of that radicand; `{x. x * x * x <= sqrt(2)}` is atMost(root(x^6 - 2, 2)). `>=` and `>` are rewritten to `<=` and `<` by flipping the sides. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A boolean connective whose sides the kernel cannot settle stays outside. A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring and checked by `real_sqrt_unique`. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A negative radicand stays open. Division by zero stays open.
+- A set whose upper-bound predicate the kernel cannot decide. The bisection runs for a lessThan ray and for an interval whose upper end is open. An affine comparison in the binder is decided: `{x. x <= x + 1}` is UNIV and is not bounded above. A polynomial comparison, with rational or algebraic coefficients, is decided by a checked sign chart: `{x. x * x <= 2}` is atLeastAtMost(-sqrt(2), sqrt(2)) and its supremum is sqrt(2); `{x. x * x * x <= 2}` is atMost(root(x^3 - 2, 1)); `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}` is atLeastAtMost of the two real square roots of that radicand; `{x. x * x * x <= sqrt(2)}` is atMost(root(x^6 - 2, 2)). `>=` and `>` are rewritten to `<=` and `<` by flipping the sides. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A boolean connective whose sides the kernel can settle individually is composed: `{x. x * x <= 2 and 0 <= x}` is atLeastAtMost(0, sqrt(2)). A boolean connective whose sides the kernel cannot settle stays outside. A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring and checked by `real_sqrt_unique`. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A negative radicand stays open. Division by zero stays open.
 - Linear algebra, manifolds, differential geometry, Hilbert space, and gauge theory.
 - Any encoding of general relativity or the Standard Model.
 - CODATA recommended values, the Particle Data Group listings, gravitational-wave catalogs, and atomic-clock comparisons. They will enter as sourced anchors or bounds. They will not be typed in as theorems.

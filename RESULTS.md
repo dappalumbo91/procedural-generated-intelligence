@@ -208,12 +208,16 @@ A sum of conjugate nested binomials of the same square-free integer is rewritten
 
 A sign that an isolating enclosure cannot decide is settled by a Sturm or algebraic sign when the form is a rational, a tower element, or a real algebraic number. A radicand whose sign is certified positive has a square root, stored as a nested radical when one can be formed, otherwise as a checked real algebraic number. A divisor whose sign is certified nonzero has an inverse, checked by multiplying back to 1. `0 <= -2 + sqrt(sqrt(2)) + sqrt(sqrt(3))` holds. `sqrt(sqrt(sqrt(2)) + sqrt(sqrt(3)))` is `root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 4)`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 
+### Boolean sides of settled charts
+
+A boolean connective whose sides the kernel can settle individually is composed by the Collect lemmas, rather than left outside. Each side is reduced first: a polynomial or algebraic-coefficient comparison becomes its checked sign chart, and a ray stays a ray. Conjunction is intersection, disjunction is union, negation is complement, and implication is rewritten to `not P or Q`. `{x. x * x <= 2 and 0 <= x}` is `atLeastAtMost(0, sqrt(2))`. `{x. not x * x <= 2}` is `lessThan(-sqrt(2)) union greaterThan(sqrt(2))`. `{x. x * x <= 2 or x * x * x <= 2}` is `atMost(sqrt(2))`. `{x. x * x <= 2 implies x <= 3}` is `univ`. `{x. x * x * x <= sqrt(2) and 0 <= x}` is `atLeastAtMost(0, root(x^6 - 2, 2))`. `sup {x. x * x <= 2 and 0 <= x}` is `cauchy(sqrt(2))`. A boolean connective whose sides the kernel cannot settle stays outside.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.45.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.46.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
-- A boolean connective whose sides the kernel can now settle individually, such as `{x. x * x <= 2 and 0 <= x}`, stays outside the connective rule until those sides are composed.
+- A boolean connective whose sides the kernel cannot settle stays outside.
 - A polynomial whose resultant would exceed the kernel's degree limit stays outside.
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
