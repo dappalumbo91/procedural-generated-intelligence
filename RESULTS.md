@@ -240,9 +240,19 @@ GW150914 is from GWTC-1, B. P. Abbott et al., Phys. Rev. X 9, 031040 (2019), Tab
 
 The speed-of-gravity bound is B. P. Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`. The record keeps its conditions: the observed 1.74 ± 0.05 s delay, D = 26 Mpc, an emission lag from 0 to 10 s, and the paper's note that exotic models widen the window. No central value is stored. That is 12 new quantities, one bound, and 13 new records.
 
+### Planck and Rayleigh–Jeans as stored formulas
+
+`pgi/corpus/formulas.py` stores a sourced expression in the notation of its source. A stored formula is not a theorem and is not derived here. The board kinds gain `stored_formula`, with standing `stored` or `failed`.
+
+`formula.planck_spectrum` is Planck, Ueber das Gesetz der Energieverteilung im Normalspectrum, Annalen der Physik 309, 553–563 (1901), equation (12) on page 561: `u = (8 π h ν^3 / c^3) / (exp(h ν / (k θ)) − 1)`. It was read from the proofread Wikisource transcription of the journal pages, because the Wiley page needs a login. Claiming `derived(planck_spectrum)` contests the board.
+
+`formula.rayleigh_jeans` is Planck's equation (8) on page 560, `u = 8 π ν^2 U / c^3`, with the classical equipartition energy `U = k θ`: `u = 8 π ν^2 k θ / c^3`. Its standing is failed at high frequency. Rayleigh's 1900 and Jeans' 1905 pages were not reachable without a login, so their own notation is not copied; the failure itself stays on `known.rayleigh_jeans`. Asserting `law(rayleigh_jeans_at_high_frequency)` contests the board.
+
+The tests evaluate both stored texts with the CODATA `h`, `k`, and `c`. At `h ν / k θ = 10^-4` they agree to better than one part in a thousand. At `h ν / k θ = 20` Rayleigh–Jeans is more than a million times Planck. Doubling the frequency cutoff multiplies the Rayleigh–Jeans total by exactly 8 with no limit, while Planck's density falls by more than 25 orders of magnitude between `h ν / k θ = 10` and `80`.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.50.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.51.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -251,4 +261,4 @@ This list is the current state as of `pgi-0.50.0`. Earlier sections above are hi
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
 - Characteristic polynomials and eigenvalues of exact rational matrices, then manifolds, differential geometry, Hilbert space, and gauge theory, are still ahead of any physical law.
-- A stored Rayleigh–Jeans formula is still not ingested. CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, and the GW170817 bound are on the board. The rest of the gravitational-wave catalogs and a modern Mercury reduction are not.
+- CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The rest of the gravitational-wave catalogs and a modern Mercury reduction are not.

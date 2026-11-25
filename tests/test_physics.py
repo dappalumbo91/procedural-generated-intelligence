@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from fractions import Fraction
 
+from pgi.corpus.formulas import FORMULAS, audit_formulas, formula, planck_u, rayleigh_jeans_u
 from pgi.corpus.measured import BOUNDS, QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, quantity
 from pgi.corpus.records import RECORDS, audit_records
 from pgi.engine import unfold
@@ -284,6 +285,50 @@ class Gw170817BoundTests(unittest.TestCase):
         self.assertIn("10 s", " ".join(record.statement))
 
 
+class SpectralFormulaTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.h = quantity("codata2022.h").value
+        self.k = quantity("codata2022.k").value
+        self.c = quantity("codata2022.c").value
+
+    def test_formulas_load_and_cite(self) -> None:
+        audit_formulas()
+        board = {record.id: record for record in RECORDS}
+        for item in FORMULAS:
+            record = board[item.id]
+            self.assertEqual(record.kind, "stored_formula")
+            self.assertEqual(record.standing, item.standing)
+            self.assertIn(item.text, " ".join(record.statement))
+            self.assertIn("doi:10.1002/andp.19013090310", record.source)
+        self.assertEqual(formula("formula.planck_spectrum").standing, "stored")
+        failed = formula("formula.rayleigh_jeans")
+        self.assertEqual(failed.standing, "failed")
+        self.assertIn("law(rayleigh_jeans_at_high_frequency)", failed.forbids)
+
+    def test_the_two_formulas_meet_only_at_low_frequency(self) -> None:
+        theta = 5000.0
+        kt = float(self.k) * theta
+        low = 1e-4 * kt / float(self.h)
+        ratio = rayleigh_jeans_u(low, theta, self.k, self.c) / planck_u(low, theta, self.h, self.k, self.c)
+        self.assertLess(abs(ratio - 1), 1e-3)
+        high = 20 * kt / float(self.h)
+        ratio = rayleigh_jeans_u(high, theta, self.k, self.c) / planck_u(high, theta, self.h, self.k, self.c)
+        self.assertGreater(ratio, 1e6)
+
+    def test_rayleigh_jeans_total_diverges_and_planck_falls(self) -> None:
+        theta = 5000.0
+        kt = float(self.k) * theta
+        # The stored Rayleigh-Jeans density is a constant times nu^2, so its integral to nu_max is that constant times nu_max^3 / 3.
+        # Doubling the cutoff multiplies the total by exactly 8, with no limit.
+        coefficient = rayleigh_jeans_u(1.0, theta, self.k, self.c)
+        totals = [coefficient * (2.0**n) ** 3 / 3 for n in range(40, 50)]
+        for before, after in zip(totals, totals[1:]):
+            self.assertAlmostEqual(after / before, 8.0)
+        tail = [planck_u(x * kt / float(self.h), theta, self.h, self.k, self.c) for x in (10, 20, 40, 80)]
+        self.assertEqual(tail, sorted(tail, reverse=True))
+        self.assertLess(tail[-1], 1e-25 * tail[0])
+
+
 class PhysicsBoardTests(unittest.TestCase):
     def test_a_constant_is_linked_not_settled(self) -> None:
         session = unfold(Request(ask="what is the fine-structure constant", seed=1))
@@ -345,6 +390,25 @@ class PhysicsBoardTests(unittest.TestCase):
         self.assertIn("record(gw150914.m1_source)", text)
         self.assertIn("+4.7 -3.1", text)
         self.assertIn("90% credible interval", text)
+
+    def test_the_failed_formula_stays_failed(self) -> None:
+        session = unfold(Request(ask="what is the rayleigh-jeans law", seed=1))
+        text = session.text(lod=2)
+        self.assertIn("record(formula.rayleigh_jeans)", text)
+        self.assertIn("record(known.rayleigh_jeans)", text)
+        self.assertIn("standing failed", text)
+        contested = unfold(
+            Request(
+                ask="what is the rayleigh-jeans law",
+                facts=("law(rayleigh_jeans_at_high_frequency)",),
+                seed=1,
+            )
+        )
+        self.assertIn("law(rayleigh_jeans_at_high_frequency)", contested.retracted)
+        planck = unfold(Request(ask="what is planck's law", seed=1)).text(lod=2)
+        self.assertIn("record(formula.planck_spectrum)", planck)
+        self.assertIn("standing stored", planck)
+        self.assertNotIn("value(", planck)
 
     def test_gravitation_is_measured(self) -> None:
         session = unfold(Request(ask="what is the gravitational constant", seed=1))

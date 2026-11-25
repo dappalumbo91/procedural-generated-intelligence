@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pgi.corpus.formulas import FORMULAS, Formula
 from pgi.corpus.measured import BOUNDS, QUANTITIES, Bound, Quantity
 
 KINDS = frozenset(
@@ -21,6 +22,7 @@ KINDS = frozenset(
         "experimental_bound",
         "definitional_anchor",
         "measured_anchor",
+        "stored_formula",
         "open_problem",
         "effective_limit",
         "math_primitive",
@@ -34,6 +36,7 @@ _URL_KINDS = frozenset(
         "experimental_bound",
         "definitional_anchor",
         "measured_anchor",
+        "stored_formula",
         "open_problem",
         "effective_limit",
     }
@@ -360,10 +363,31 @@ def _bound_record(item: Bound) -> Record:
     )
 
 
+def _formula_record(item: Formula) -> Record:
+    return Record(
+        id=item.id,
+        kind="stored_formula",
+        standing=item.standing,
+        title=f"{item.name} ({item.standing})",
+        keys=item.keys,
+        phrases=item.phrases,
+        statement=(
+            f"{item.edition}: {item.text}.",
+            *(f"where {variable}" for variable in item.variables),
+            *item.notes,
+            f"Retrieved {item.retrieved} from {item.retrieved_from}.",
+        ),
+        source=f"{item.source} Edition: {item.edition}.",
+        url=item.url,
+        forbids=item.forbids,
+    )
+
+
 RECORDS = (
     RECORDS
     + tuple(_quantity_record(item) for item in QUANTITIES if item.record)
     + tuple(_bound_record(item) for item in BOUNDS)
+    + tuple(_formula_record(item) for item in FORMULAS)
 )
 
 

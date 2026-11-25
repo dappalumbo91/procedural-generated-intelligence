@@ -674,3 +674,15 @@ Observed minus computed is exactly the residual. The probable errors combine in 
 The next slice stores the Planck and Rayleigh–Jeans spectral formulas, with Rayleigh–Jeans marked failed at high frequency.
 
 `python -m unittest discover -s tests -v` finished 164 tests, 0 failures, about 46.19 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Planck and Rayleigh–Jeans as stored formulas pgi-0.51.0
+
+Planck's spectral law and the Rayleigh–Jeans law are stored formulas. `pgi/corpus/formulas.py` keeps each in its source's notation, with its variables, source, page, and retrieval date. The board kinds gain `stored_formula`. A stored formula is not a theorem.
+
+Planck's law is equation (12) of Annalen der Physik 309, 553–563 (1901), doi:10.1002/andp.19013090310, read from the proofread Wikisource transcription of page 561: `u = (8 π h ν^3 / c^3) / (exp(h ν / (k θ)) − 1)`. Its standing is stored, and `derived(planck_spectrum)` is blocked. The Rayleigh–Jeans law is Planck's equation (8) on page 560 with equipartition, `u = 8 π ν^2 k θ / c^3`. Its standing is failed at high frequency, and `law(rayleigh_jeans_at_high_frequency)` is blocked. Rayleigh's and Jeans' own pages were behind logins, so their notation is not copied, and `known.rayleigh_jeans` still carries the failure.
+
+With the CODATA constants, the two agree to one part in a thousand at `h ν / k θ = 10^-4`, and Rayleigh–Jeans is more than a million times Planck at `h ν / k θ = 20`. The Rayleigh–Jeans total grows eightfold with each doubling of the cutoff. Planck's tail falls.
+
+The physics board now holds 64 quantities, one bound, and two formulas. The next sourced data are a modern Mercury reduction with standard uncertainties, the rest of the gravitational-wave catalogs, and atomic-clock comparisons.
+
+`python -m unittest discover -s tests -v` finished 168 tests, 0 failures, about 58.28 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
