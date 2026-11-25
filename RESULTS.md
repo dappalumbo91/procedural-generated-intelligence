@@ -609,9 +609,17 @@ GW150914 is no longer the only event. Eight more come from the GWOSC event API, 
 
 This adds 28 records.
 
+### Electromagnetism: metal resistivities and dielectric permittivities
+
+The board now has resistivities of real metals, not just the IACS copper standard. The values are the JPCRD recommended totals. Matula 1979 covers copper, silver, and gold, and Desai and co-workers (1984) cover aluminium and tungsten. At 293 K, in 10⁻⁸ Ω m: silver `1.587`, copper `1.678`, gold `2.214`, aluminium `2.650`, and tungsten `5.28`, plus 273 K and 300 K rows for each and copper at 100 K. The text layers are OCR, so every value was checked against the page image (Matula's gold row reads `~9~` for 293 K in the text). Each paper's uncertainty statement for the range is in the notes, for example 0.5% for copper from 250 to 350 K. The tests check the room-temperature order (Ag < Cu < Au < Al < W) and that each metal's resistivity rises with temperature. This also closes the old gap for copper resistivity versus temperature, which had stayed open because the earlier Matula copy was an image-only scan.
+
+Dielectrics come from NIST Technical Note 1512, with each method's standard uncertainty taken from the table caption as a relative standard uncertainty. Values: Corning 7980 fused silica `3.84` at 5.07 GHz; PTFE `2.05` at 9.93 GHz and `2.055` at 9.816 GHz; PMMA `2.634`; sapphire `11.58` parallel and `9.40` perpendicular to the c-axis at 12.4 GHz; crystalline quartz `4.443` and `4.59`; rutile `163.7` and `85.6`. A test checks that the printed anisotropy runs the same way for sapphire and rutile.
+
+This adds 27 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.94.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.95.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

@@ -50,7 +50,7 @@ for _domain, _names in {
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84"),
-    "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971"),
+    "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971", "matula1979", "desai1984", "nist_tn1512"),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998"),
     "thermodynamics and statistical": ("iapws1992", "iapws2011", "its90", "formula"),
@@ -128,6 +128,8 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("IACS copper standard", ("nbs1966.",)),
         ("water's relative permittivity (IAPWS)", ("iapwsr897.",)),
         ("Coulomb inverse-square tests", ("williams1971.",)),
+        ("resistivities of Cu, Ag, Au, Al, and W (JPCRD recommended values)", ("matula1979.", "desai1984.")),
+        ("microwave permittivities of solid dielectrics (NIST TN 1512)", ("nist_tn1512.",)),
     ),
     "optics": (
         ("NIST ASD reference lines", ("asd512.line.",)),

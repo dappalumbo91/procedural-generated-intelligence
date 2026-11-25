@@ -1762,6 +1762,32 @@ class GravEventsSkytreeTests(unittest.TestCase):
         self.assertIn("gw231123.m1_source", self._linked("what is the gw231123 primary source-frame mass"))
 
 
+class EmMaterialsTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_room_temperature_resistivities(self) -> None:
+        rho = {m: quantity(f"{src}.{m}.rho_293k").value for src, m in (("matula1979", "ag"), ("matula1979", "cu"), ("matula1979", "au"), ("desai1984", "al"), ("desai1984", "w"))}
+        self.assertEqual(sorted(rho, key=rho.get), ["ag", "cu", "au", "al", "w"])
+        for src, metal, temps in (("matula1979", "cu", ("100", "273_15", "293", "300")), ("matula1979", "ag", ("273_15", "293", "300")),
+                                  ("matula1979", "au", ("273_15", "293", "300")), ("desai1984", "al", ("273", "293", "300")), ("desai1984", "w", ("273", "293", "300"))):
+            values = [quantity(f"{src}.{metal}.rho_{t}k").value for t in temps]
+            self.assertEqual(values, sorted(values), metal)
+
+    def test_permittivity_rows(self) -> None:
+        e = lambda k: quantity(f"nist_tn1512.{k}").value
+        self.assertGreater(e("sapphire.parallel_c_12_4ghz"), e("sapphire.perp_c_12_4ghz"))
+        self.assertGreater(e("rutile.parallel_c_4_2ghz"), e("rutile.perp_c_4_2ghz"))
+        self.assertEqual(quantity("nist_tn1512.ptfe.pp_9_93ghz").uncertainty_kind, "relative standard uncertainty")
+
+    def test_asks_link(self) -> None:
+        self.assertIn("desai1984.w.rho_293k", self._linked("what is the resistivity of tungsten"))
+        self.assertIn("matula1979.ag.rho_293k", self._linked("what is the resistivity of silver"))
+        self.assertIn("nist_tn1512.ptfe.pp_9_93ghz", self._linked("what is the permittivity of ptfe"))
+        self.assertIn("nist_tn1512.corning7980.pp_5_07ghz", self._linked("what is the permittivity of fused silica"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

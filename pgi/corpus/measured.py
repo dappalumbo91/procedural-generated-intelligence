@@ -3616,7 +3616,91 @@ GRAV_EVENTS_SKYTREE: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE
+_MATULA_SOURCE = "R. A. Matula, Electrical resistivity of copper, gold, palladium, and silver, J. Phys. Chem. Ref. Data 8, 1147-1298 (1979), doi:10.1063/1.555614"
+_MATULA_URL = "https://srd.nist.gov/jpcrdreprint/1.555614.pdf"
+_DESAI_AL_SOURCE = "P. D. Desai, H. M. James, and C. Y. Ho, Electrical resistivity of aluminum and manganese, J. Phys. Chem. Ref. Data 13, 1131-1172 (1984), doi:10.1063/1.555725, Table 1"
+_DESAI_AL_URL = "https://srd.nist.gov/jpcrdreprint/1.555725.pdf"
+_DESAI_W_SOURCE = "P. D. Desai, T. K. Chu, H. M. James, and C. Y. Ho, Electrical resistivity of selected elements, J. Phys. Chem. Ref. Data 13, 1069-1096 (1984), doi:10.1063/1.555723, Table 5"
+_DESAI_W_URL = "https://srd.nist.gov/jpcrdreprint/1.555723.pdf"
+_METAL = {"cu": "copper", "ag": "silver", "au": "gold", "al": "aluminium", "w": "tungsten"}
+
+
+def _rho(prefix: str, metal: str, t: str, value: str, source: str, url: str, edition: str, where: str, note: str) -> Quantity:
+    name = _METAL[metal]
+    phrases = (f"resistivity of {name}", f"{name} resistivity", f"electrical resistivity of {name}", "resistivity of metals", "electrical resistivity")
+    if metal == "al":
+        phrases += ("resistivity of aluminum", "aluminum resistivity")
+    if metal == "cu":
+        phrases += ("copper resistivity versus temperature",)
+    key = t.replace(".", "_")
+    return _q(f"{prefix}.{metal}.rho_{key}k", f"electrical resistivity of {name} at {t} K (recommended value)", f"rho_{metal.capitalize()}({t} K)", value, "", "1e-8 ohm m",
+              kind="no uncertainty printed", source=source, edition=edition, url=url.replace("https://srd.nist.gov/jpcrdreprint/", "https://doi.org/10.1063/").replace(".pdf", ""), retrieved_from=url,
+              keys=("electrical resistivity", "metals"), phrases=phrases, notes=(f"{where} prints {value} x 10^-8 ohm m at T = {t} K.", note))
+
+
+_MATULA_NOTES = {
+    "cu": "Table 2 is the total resistivity, corrected for thermal expansion, for annealed 99.999% or purer copper (residual resistivity 0.00200 x 10^-8 ohm m below 55 K). The text puts the uncertainty of the total resistivity at 3% above 10 K to 100 K, 1% above 100 K to 250 K, and 0.5% above 250 K to 350 K.",
+    "ag": "Table 11 is the total resistivity, corrected for thermal expansion, for annealed 99.999% or purer silver (residual resistivity 0.00100 x 10^-8 ohm m below 40 K). The text puts the uncertainty of the total resistivity at 1% above 70 K to 400 K.",
+    "au": "Table 5 is the total resistivity, corrected for thermal expansion, for annealed 99.999% or purer gold (residual resistivity 0.0220 x 10^-8 ohm m below 293 K). The text puts the uncertainty of the total resistivity at 1% above 50 K to 500 K.",
+}
+_DESAI_AL_NOTE = ("Table 1's 'uncorrected' column (not corrected for thermal expansion) for well-annealed aluminium of 99.99% purity or higher; at these temperatures the corrected column prints the same value. "
+                  "The text estimates the uncertainty 'within +-1% below 400 K'.")
+_DESAI_W_NOTE = ("Table 5's 'uncorrected' column for tungsten of 99.99% purity or higher; at these temperatures the corrected column prints the same value. "
+                 "The table footnote gives the estimated uncertainty as within +-3% from 100 K to 300 K. Values were checked against the page image, since the text layer is OCR.")
+
+_TN1512_SOURCE = "J. Baker-Jarvis, B. Riddle, and M. D. Janezic, Dielectric and magnetic properties of printed wiring boards and other substrate materials, NIST Technical Note 1512 (March 1999)"
+_TN1512_URL = "https://nvlpubs.nist.gov/nistpubs/Legacy/TN/nbstechnicalnote1512.pdf"
+
+
+def _eps(key: str, material: str, method: str, f_ghz: str, value: str, rel: str, table: str, phrases: tuple[str, ...], extra: tuple[str, ...] = ()) -> Quantity:
+    return _q(f"nist_tn1512.{key}", f"relative permittivity (real part) of {material} at {f_ghz} GHz, {method}", f"eps_r'({material})", value, rel, "",
+              kind="relative standard uncertainty", source=f"{_TN1512_SOURCE}, {table}", edition="NIST TN 1512 (1999)", url=_TN1512_URL, retrieved_from=_TN1512_URL,
+              keys=("permittivity", "dielectric constant"), phrases=phrases + ("relative permittivity", "dielectric constant", "permittivity of dielectrics", "microwave permittivity"),
+              notes=(f"{table} prints eps' = {value} at {f_ghz} GHz in the {method} column; its caption gives that method's standard uncertainty (RSS) as U_eps' = {rel_pct(rel)}.",) + extra)
+
+
+def rel_pct(rel: str) -> str:
+    return {"0.005": "0.5%", "0.01": "1%", "0.001": "0.1%"}[rel]
+
+
+_TN_7980 = ("The table names the specimen 'Corning 7980 34604'; Corning 7980 is Corning's high-purity fused silica (manufacturer's product name, not stated in the table).",)
+
+EM_MATERIALS: tuple[Quantity, ...] = (
+    _rho("matula1979", "cu", "100", "0.348", _MATULA_SOURCE + ", Table 2", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 2", _MATULA_NOTES["cu"]),
+    _rho("matula1979", "cu", "273.15", "1.543", _MATULA_SOURCE + ", Table 2", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 2", _MATULA_NOTES["cu"]),
+    _rho("matula1979", "cu", "293", "1.678", _MATULA_SOURCE + ", Table 2", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 2", _MATULA_NOTES["cu"]),
+    _rho("matula1979", "cu", "300", "1.725", _MATULA_SOURCE + ", Table 2", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 2", _MATULA_NOTES["cu"]),
+    _rho("matula1979", "ag", "273.15", "1.467", _MATULA_SOURCE + ", Table 11", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 11", _MATULA_NOTES["ag"]),
+    _rho("matula1979", "ag", "293", "1.587", _MATULA_SOURCE + ", Table 11", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 11", _MATULA_NOTES["ag"]),
+    _rho("matula1979", "ag", "300", "1.629", _MATULA_SOURCE + ", Table 11", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 11", _MATULA_NOTES["ag"]),
+    _rho("matula1979", "au", "273.15", "2.051", _MATULA_SOURCE + ", Table 5", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 5", _MATULA_NOTES["au"]),
+    _rho("matula1979", "au", "293", "2.214", _MATULA_SOURCE + ", Table 5", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 5", _MATULA_NOTES["au"]),
+    _rho("matula1979", "au", "300", "2.271", _MATULA_SOURCE + ", Table 5", _MATULA_URL, "J. Phys. Chem. Ref. Data 8 (1979)", "Table 5", _MATULA_NOTES["au"]),
+    _rho("desai1984", "al", "273", "2.417", _DESAI_AL_SOURCE, _DESAI_AL_URL, "J. Phys. Chem. Ref. Data 13 (1984)", "Table 1", _DESAI_AL_NOTE),
+    _rho("desai1984", "al", "293", "2.650", _DESAI_AL_SOURCE, _DESAI_AL_URL, "J. Phys. Chem. Ref. Data 13 (1984)", "Table 1", _DESAI_AL_NOTE),
+    _rho("desai1984", "al", "300", "2.733", _DESAI_AL_SOURCE, _DESAI_AL_URL, "J. Phys. Chem. Ref. Data 13 (1984)", "Table 1", _DESAI_AL_NOTE),
+    _rho("desai1984", "w", "273", "4.82", _DESAI_W_SOURCE, _DESAI_W_URL, "J. Phys. Chem. Ref. Data 13 (1984)", "Table 5", _DESAI_W_NOTE),
+    _rho("desai1984", "w", "293", "5.28", _DESAI_W_SOURCE, _DESAI_W_URL, "J. Phys. Chem. Ref. Data 13 (1984)", "Table 5", _DESAI_W_NOTE),
+    _rho("desai1984", "w", "300", "5.44", _DESAI_W_SOURCE, _DESAI_W_URL, "J. Phys. Chem. Ref. Data 13 (1984)", "Table 5", _DESAI_W_NOTE),
+    _eps("corning7980.pp_5_07ghz", "Corning 7980 fused silica", "parallel-plate dielectric resonator", "5.07", "3.84", "0.005", "Table 4.8 (glass specimens)",
+         ("permittivity of fused silica", "fused silica permittivity"), _TN_7980),
+    _eps("corning7980.split_cavity_8_85ghz", "Corning 7980 fused silica", "split cavity", "8.85", "3.827", "0.01", "Table 4.8 (glass specimens)",
+         ("permittivity of fused silica", "fused silica permittivity"), _TN_7980),
+    _eps("ptfe.pp_9_93ghz", "PTFE", "parallel-plate dielectric resonator", "9.93", "2.05", "0.005", "Table 4.9 (plastic specimens)", ("permittivity of ptfe", "ptfe permittivity", "teflon permittivity")),
+    _eps("ptfe.te01_9_816ghz", "PTFE", "60 mm TE01 cavity resonator", "9.816", "2.055", "0.01", "Table 4.9 (plastic specimens)", ("permittivity of ptfe", "ptfe permittivity", "teflon permittivity")),
+    _eps("pmma.pp_5_721ghz", "PMMA", "parallel-plate dielectric resonator", "5.721", "2.634", "0.005", "Table 4.9 (plastic specimens)", ("permittivity of pmma", "pmma permittivity", "acrylic permittivity")),
+    _eps("sapphire.parallel_c_12_4ghz", "sapphire (Al2O3), parallel to the c-axis", "whispering-gallery mode resonator", "12.4", "11.58", "0.001", "Table 4.11 (noncubic single crystals)",
+         ("permittivity of sapphire", "sapphire permittivity", "permittivity of alumina"), ("The parallel-plate column prints the same 11.58 at 10.0 GHz.",)),
+    _eps("sapphire.perp_c_12_4ghz", "sapphire (Al2O3), perpendicular to the c-axis", "whispering-gallery mode resonator", "12.4", "9.40", "0.001", "Table 4.11 (noncubic single crystals)",
+         ("permittivity of sapphire", "sapphire permittivity", "permittivity of alumina")),
+    _eps("quartz.perp_c_7_75ghz", "crystalline quartz, perpendicular to the c-axis", "parallel-plate dielectric resonator", "7.75", "4.59", "0.005", "Table 4.11 (noncubic single crystals)", ("permittivity of quartz", "quartz permittivity")),
+    _eps("quartz.parallel_c_9_03ghz", "crystalline quartz, parallel to the c-axis", "parallel-plate dielectric resonator", "9.03", "4.443", "0.005", "Table 4.11 (noncubic single crystals)", ("permittivity of quartz", "quartz permittivity")),
+    _eps("rutile.parallel_c_4_2ghz", "rutile (TiO2), parallel to the c-axis", "whispering-gallery mode resonator", "4.2", "163.7", "0.001", "Table 4.11 (noncubic single crystals)", ("permittivity of rutile", "rutile permittivity")),
+    _eps("rutile.perp_c_4_2ghz", "rutile (TiO2), perpendicular to the c-axis", "whispering-gallery mode resonator", "4.2", "85.6", "0.001", "Table 4.11 (noncubic single crystals)", ("permittivity of rutile", "rutile permittivity")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

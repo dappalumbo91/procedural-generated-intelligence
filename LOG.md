@@ -1072,3 +1072,11 @@ Added the Takamoto 2020 Skytree clock test (α, both height differences, and the
 That is 28 records.
 
 `python -m unittest discover -s tests -v` finished 355 tests, 0 failures, about 112.34 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — electromagnetic materials pgi-0.95.0
+
+Added JPCRD recommended resistivities for Cu, Ag, Au (Matula 1979) and Al, W (Desai et al. 1984), checked against page images, and NIST TN 1512 microwave permittivities for fused silica, PTFE, PMMA, sapphire, quartz, and rutile. COVERAGE.md's resistivity, copper-versus-temperature, and dielectric gaps closed themselves.
+
+That is 27 records.
+
+`python -m unittest discover -s tests -v` finished 358 tests, 0 failures, about 109.48 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
