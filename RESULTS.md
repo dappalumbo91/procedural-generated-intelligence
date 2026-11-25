@@ -1,8 +1,8 @@
-# Results through pgi-0.31.0
+# Results through pgi-0.32.0
 
 Procedural Generated Intelligence (PGI) unfolds answers from compact rules, seeds, and constraints. The store is generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and the kernel saturates the active packs, retracts contradictions, and renders the settled claims at the requested level of detail.
 
-This note records what the folder holds at rule version `pgi-0.31.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
+This note records what the folder holds at rule version `pgi-0.32.0`, the goal those rules are for, the architecture that runs them, and the results measured so far. The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal, with its bars and its five steps, is [GOAL.md](GOAL.md). The running record of each slice is [LOG.md](LOG.md).
 
 ## What the kernel holds
 
@@ -96,8 +96,9 @@ Each line is the post-stamp suite for that slice, from [LOG.md](LOG.md). Times a
 | pgi-0.29.0 | Inverse of a further square root of the nested binomial | 113 | about 5.60 s |
 | pgi-0.30.0 | `sqrt(1 + sqrt(2) + sqrt(5))` as itself | 114 | about 6.97 s |
 | pgi-0.31.0 | A nest times the pair | 115 | about 7.89 s |
+| pgi-0.32.0 | Inverse of one plus an admitted radical | 116 | about 10.36 s |
 
-`python -m unittest discover -s tests -v` at pgi-0.31.0 finished 115 tests, 0 failures, in 7.888 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 7.89 seconds in the table. One test calls GNU Octave through the portable lookup.
+`python -m unittest discover -s tests -v` at pgi-0.32.0 finished 116 tests, 0 failures, in 10.359 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH. That is the about 10.36 seconds in the table. One test calls GNU Octave through the portable lookup.
 
 ### Why the two open radicals stayed open, and what closed them
 
@@ -119,6 +120,11 @@ A nest times a pair stayed outside because multiplication had a rule for two nes
 
 ### Still outside
 
-`1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside, as does `1 / (1 + ...)` on the pair ladder. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
+
+### Inverse of one plus an admitted radical
+
+The inverse of a rational plus one admitted radical stayed outside when the kernel could invert the radical, or a field element, but not the constant shift. For a form `c + x` with `c` a nonzero rational and `x` exactly one admitted radical, the inverse is `(c - x)` times the inverse of `c^2 - x^2`, when that simpler inverse is already in the kernel and the constructed quotient multiplies back to 1 by `inverse_unique`. `1 / (1 + sqrt(sqrt(2 + sqrt(2))))` is `cauchy(1 - sqrt(2) + sqrt(2 + sqrt(2)) - sqrt(4 + 2 * sqrt(2)) - sqrt(sqrt(2 + sqrt(2))) + sqrt(2 * sqrt(2 + sqrt(2))) - sqrt(sqrt(20 + 14 * sqrt(2))) + sqrt(2 * sqrt(20 + 14 * sqrt(2))))`. The same rule closes `1 / (1 + sqrt(sqrt(2) + sqrt(5)))`, `1 / (1 + sqrt(sqrt(sqrt(2) + sqrt(5))))`, `1 / (1 + sqrt(1 + sqrt(2) + sqrt(5)))`, and `1 / (1 + sqrt(2 + 2 * sqrt(2) + 2 * sqrt(5) + sqrt(10)))`. A fold times a nest on the same radicand is written by associating through the already closed deep-times-nest product: `sqrt(sqrt(sqrt(2 + sqrt(2)))) * sqrt(2 + sqrt(2))` is `cauchy(sqrt(sqrt(2 * sqrt(58 + 41 * sqrt(2)))))`.
+
+`1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside, because the expanded product of the constructed inverse with `1` plus that fold does not yet reduce to 1 in the form language. `1 / (1 + ...)` from the peak downward on the pair ladder stays outside, because the products of a peak with a high or a pair are not yet in the kernel. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. A negative radicand stays open. Division by zero stays open.
 
 `primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.

@@ -1441,7 +1441,12 @@ def _mul_nest(coeff: Ratio, constant: Ratio, sqrt_coeff: Ratio, rad: int, other:
     for pair_coeff, left_c, left_r, right_c, right_r in other.pairs:
         piece = _nest_times_pair(constant, sqrt_coeff, rad, left_c, left_r, right_c, right_r)
         product = _add_forms(product, _scale(piece, _qmul(coeff, pair_coeff)))
-    if other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
+    for fold_coeff, extra, fold_mult, fold_const, fold_sqrt, fold_rad in other.folds:
+        scaled = _fold_times_nest(
+            extra, fold_mult, fold_const, fold_sqrt, fold_rad, constant, sqrt_coeff, rad
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, fold_coeff)))
+    if other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -3344,6 +3349,27 @@ def _fold_times_term(
     return _sqrt_of_form(_scale(core, _ratio(extra[0] * other_rad, 1)))
 
 
+def _fold_times_nest(
+    extra: tuple[int, ...],
+    mult: int,
+    constant: int,
+    sqrt_coeff: int,
+    rad: int,
+    nest_const: Ratio,
+    nest_sqrt: Ratio,
+    nest_rad: int,
+) -> RealForm:
+    if nest_rad != rad:
+        raise NotExact("this nested radical stays outside")
+    core = _fold_core(extra, mult, constant, sqrt_coeff, rad)
+    nest = _nest_form(_ratio(1, 1), nest_const, nest_sqrt, nest_rad)
+    # F * N = sqrt(F^2 * N^2) = sqrt((core * N) * N). Associate through
+    # the already closed deep-times-nest product, not through core * N^2,
+    # which splits into a sum whose square root stays outside.
+    mixed = _mul_forms(_mul_forms(core, nest), nest)
+    return _sqrt_of_form(_scale(mixed, _ratio(extra[0], 1)))
+
+
 def _fold_times_deep(
     extra: tuple[int, ...],
     mult: int,
@@ -3395,9 +3421,13 @@ def _mul_one_fold(
     for other_coeff, other_rad in other.terms:
         scaled = _fold_times_term(extra, mult, constant, sqrt_coeff, rad, other_rad)
         product = _add_forms(product, _scale(scaled, _qmul(coeff, other_coeff)))
+    for nest_coeff, nest_const, nest_sqrt, nest_rad in other.nests:
+        scaled = _fold_times_nest(
+            extra, mult, constant, sqrt_coeff, rad, nest_const, nest_sqrt, nest_rad
+        )
+        product = _add_forms(product, _scale(scaled, _qmul(coeff, nest_coeff)))
     if (
         other.towers
-        or other.nests
         or other.pairs
         or other.highs
         or other.peaks
@@ -7195,9 +7225,65 @@ def _div_form(left: RealForm, right: RealForm) -> RealForm:
     return _mul_forms(left, inverse)
 
 
+def _as_shifted_radical(form: RealForm) -> tuple[Ratio, RealForm] | None:
+    if form.constant.num == 0 or form.terms or form.towers:
+        return None
+    families = [
+        ("nests", form.nests),
+        ("pairs", form.pairs),
+        ("deeps", form.deeps),
+        ("highs", form.highs),
+        ("peaks", form.peaks),
+        ("crests", form.crests),
+        ("summits", form.summits),
+        ("apexes", form.apexes),
+        ("shells", form.shells),
+        ("folds", form.folds),
+        ("quads", form.quads),
+    ]
+    present = [(name, items) for name, items in families if items]
+    if len(present) != 1 or len(present[0][1]) != 1:
+        return None
+    name, items = present[0]
+    kwargs = {name: items}
+    radical = RealForm(_ratio(0, 1), (), **kwargs)
+    return form.constant, radical
+
+
+def _invert_shifted_radical(form: RealForm) -> RealForm:
+    parsed = _as_shifted_radical(form)
+    if parsed is None:
+        raise NotExact("this quotient stays outside")
+    constant, radical = parsed
+    power = radical
+    step_const = constant
+    cofactor = _sub_forms(RealForm(constant, ()), radical)
+    try:
+        for _ in range(16):
+            square = _mul_forms(power, power)
+            denom = _sub_forms(RealForm(_qmul(step_const, step_const), ()), square)
+            try:
+                inverse_denom = _inverse_form(denom)
+            except NotExact:
+                next_const = _qmul(step_const, step_const)
+                cofactor = _mul_forms(cofactor, _add_forms(RealForm(next_const, ()), square))
+                power = square
+                step_const = next_const
+                continue
+            result = _mul_forms(cofactor, inverse_denom)
+            if _mul_forms(result, form) != RealForm(_ratio(1, 1), ()):
+                raise KernelError("shifted inverse did not multiply back to 1")
+            return result
+    except NotExact as exc:
+        raise NotExact("this quotient stays outside") from exc
+    raise NotExact("this quotient stays outside")
+
+
 def _inverse_form(form: RealForm) -> RealForm:
     if _is_rational(form):
         return RealForm(_inverse(form.constant), ())
+    if _as_shifted_radical(form) is not None:
+        return _invert_shifted_radical(form)
     if form.quads:
         return _invert_quad(form)
     if form.folds:
