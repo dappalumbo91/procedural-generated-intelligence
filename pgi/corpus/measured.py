@@ -32,8 +32,11 @@ UNCERTAINTY_KINDS = frozenset(
         "acceptance interval",
         "PDG estimated range",
         "exact, printed truncated",
+        "no uncertainty printed",
+        "IUPAC standard atomic weight uncertainty",
     }
 )
+_NONE_KIND = "no uncertainty printed"
 _TRUNCATED_KIND = "exact, printed truncated"
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval"})
 _SPLIT_KIND = "statistical and systematic, printed separately"
@@ -88,13 +91,13 @@ class Quantity:
 
     @property
     def uncertainty(self) -> Fraction | None:
-        if self.exact:
+        if self.exact or self.uncertainty_kind == _NONE_KIND:
             return None
         return parse_decimal(self.uncertainty_text)
 
     @property
     def lower_uncertainty(self) -> Fraction | None:
-        if self.exact:
+        if self.exact or self.uncertainty_kind == _NONE_KIND:
             return None
         if self.lower_text:
             return parse_decimal(self.lower_text)
@@ -1662,6 +1665,227 @@ BOUNDS: tuple[Bound, ...] = (
 )
 
 
+# ---- Batch 5: chemistry. Defined after Bound, because interval atomic weights are bounds. ----
+
+CIAAW_SOURCE = (
+    "T. Prohaska et al., Standard atomic weights of the elements 2021 (IUPAC Technical Report), Pure Appl. Chem. 94, 573-600 (2022), "
+    "doi:10.1515/pac-2019-0603, as tabulated by the IUPAC Commission on Isotopic Abundances and Atomic Weights (CIAAW)."
+)
+CIAAW_URL = "https://www.ciaaw.org/atomic-weights.htm"
+_CIAAW_EDITION = "IUPAC standard atomic weights 2021 (CIAAW table)"
+_CIAAW_FOOTNOTES = {
+    "g": "Footnote g: geological and biological materials are known in which the element has an isotopic composition outside the limits for normal material, and the atomic weight there may exceed the stated uncertainty.",
+    "m": "Footnote m: modified isotopic compositions may be found in commercially available material, and substantial deviations in atomic weight can occur.",
+    "r": "Footnote r: the range in isotopic composition of normal terrestrial material prevents a more precise standard atomic weight; the tabulated value and uncertainty should apply to normal material.",
+}
+_CIAAW_TABLE_NOTE = (
+    "The CIAAW page heads its table 'Standard Atomic Weights 2024' and says it is based on the 'Atomic Weights 2021' report, "
+    "with 2024 revisions only for gadolinium, lutetium, and zirconium, none of which is between H and Kr."
+)
+_CIAAW_LEVEL = (
+    "CIAAW: 'The reported uncertainties of the standard atomic weights are such that the atomic-weight values of normal materials "
+    "are expected to lie in the given interval with great certitude.' It is not a standard uncertainty."
+)
+
+# (Z, symbol, name, standard atomic weight as printed, footnotes), H through Kr, as printed by CIAAW.
+CIAAW_H_KR: tuple[tuple[int, str, str, str, str], ...] = (
+    (1, "H", "hydrogen", "[1.007 84, 1.008 11]", "m"),
+    (2, "He", "helium", "4.002 602(2)", "gr"),
+    (3, "Li", "lithium", "[6.938, 6.997]", "m"),
+    (4, "Be", "beryllium", "9.012 1831(5)", ""),
+    (5, "B", "boron", "[10.806, 10.821]", "m"),
+    (6, "C", "carbon", "[12.0096, 12.0116]", ""),
+    (7, "N", "nitrogen", "[14.006 43, 14.007 28]", "m"),
+    (8, "O", "oxygen", "[15.999 03, 15.999 77]", "m"),
+    (9, "F", "fluorine", "18.998 403 162(5)", ""),
+    (10, "Ne", "neon", "20.1797(6)", "gm"),
+    (11, "Na", "sodium", "22.989 769 28(2)", ""),
+    (12, "Mg", "magnesium", "[24.304, 24.307]", ""),
+    (13, "Al", "aluminium", "26.981 5384(3)", ""),
+    (14, "Si", "silicon", "[28.084, 28.086]", ""),
+    (15, "P", "phosphorus", "30.973 761 998(5)", ""),
+    (16, "S", "sulfur", "[32.059, 32.076]", ""),
+    (17, "Cl", "chlorine", "[35.446, 35.457]", "m"),
+    (18, "Ar", "argon", "[39.792, 39.963]", ""),
+    (19, "K", "potassium", "39.0983(1)", ""),
+    (20, "Ca", "calcium", "40.078(4)", "g"),
+    (21, "Sc", "scandium", "44.955 907(4)", ""),
+    (22, "Ti", "titanium", "47.867(1)", ""),
+    (23, "V", "vanadium", "50.9415(1)", ""),
+    (24, "Cr", "chromium", "51.9961(6)", ""),
+    (25, "Mn", "manganese", "54.938 043(2)", ""),
+    (26, "Fe", "iron", "55.845(2)", ""),
+    (27, "Co", "cobalt", "58.933 194(3)", ""),
+    (28, "Ni", "nickel", "58.6934(4)", "r"),
+    (29, "Cu", "copper", "63.546(3)", "r"),
+    (30, "Zn", "zinc", "65.38(2)", "r"),
+    (31, "Ga", "gallium", "69.723(1)", ""),
+    (32, "Ge", "germanium", "72.630(8)", ""),
+    (33, "As", "arsenic", "74.921 595(6)", ""),
+    (34, "Se", "selenium", "78.971(8)", "r"),
+    (35, "Br", "bromine", "[79.901, 79.907]", ""),
+    (36, "Kr", "krypton", "83.798(2)", "gm"),
+)
+
+
+def _ciaaw_notes(z: int, printed: str, flags: str) -> tuple[str, ...]:
+    return (f"Z = {z}. Printed by CIAAW as {printed}.", _CIAAW_TABLE_NOTE) + tuple(_CIAAW_FOOTNOTES[f] for f in flags)
+
+
+def _ciaaw_quantity(z: int, sym: str, name: str, printed: str, flags: str) -> Quantity:
+    value_text, _, rest = printed.partition("(")
+    digits = rest.rstrip(")")
+    places = len(value_text.replace(" ", "").partition(".")[2])
+    uncertainty_text = f"0.{'0' * (places - len(digits))}{digits}" if places else digits
+    return _q(
+        f"iupac2021.ar.{sym.lower()}", f"standard atomic weight of {name}", f"A_r({sym})", value_text.strip(), uncertainty_text, "",
+        kind="IUPAC standard atomic weight uncertainty", printed=printed, source=CIAAW_SOURCE, edition=_CIAAW_EDITION,
+        url="https://doi.org/10.1515/pac-2019-0603", retrieved_from=CIAAW_URL,
+        phrases=(f"atomic weight of {name}", "standard atomic weights"), notes=_ciaaw_notes(z, printed, flags) + (_CIAAW_LEVEL,),
+    )
+
+
+def _ciaaw_bound(z: int, sym: str, name: str, printed: str, flags: str) -> Bound:
+    low, high = (part.strip() for part in printed.strip("[]").split(","))
+    return Bound(
+        id=f"iupac2021.ar.{sym.lower()}", name=f"standard atomic weight interval of {name}", symbol=f"A_r({sym})",
+        lower_text=low, upper_text=high, unit="", source=CIAAW_SOURCE, edition=_CIAAW_EDITION,
+        url="https://doi.org/10.1515/pac-2019-0603", retrieved_from=CIAAW_URL, retrieved=RETRIEVED,
+        keys=(), phrases=(f"atomic weight of {name}", "standard atomic weights"),
+        conditions=_ciaaw_notes(z, printed, flags) + (
+            "IUPAC gives an interval because of well-documented natural variation in isotopic abundance. Normal materials are expected to lie inside it. No central value is given.",
+        ),
+        forbids=(),
+    )
+
+
+IUPAC_ATOMIC_WEIGHTS: tuple[Quantity, ...] = tuple(_ciaaw_quantity(*row) for row in CIAAW_H_KR if not row[3].startswith("["))
+IUPAC_ATOMIC_WEIGHT_INTERVALS: tuple[Bound, ...] = tuple(_ciaaw_bound(*row) for row in CIAAW_H_KR if row[3].startswith("["))
+
+
+WEBBOOK_DIATOMIC_SOURCE = (
+    "K. P. Huber and G. Herzberg, Constants of Diatomic Molecules (data prepared by J. W. Gallagher and R. D. Johnson, III), "
+    "in NIST Chemistry WebBook, NIST Standard Reference Database Number 69, eds. P. J. Linstrom and W. G. Mallard, doi:10.18434/T4D303. "
+    "Ground-state row of the 'Diatomic constants' table."
+)
+_WEBBOOK_EDITION = "NIST Chemistry WebBook, SRD 69 (Huber-Herzberg diatomic constants)"
+_RE_NOTE = "Huber and Herzberg print r_e with no uncertainty; the trailing superscripts on the WebBook row are footnote numbers, not digits."
+CCCBDB_SOURCE = (
+    "NIST Computational Chemistry Comparison and Benchmark Database, NIST Standard Reference Database Number 101, Release 22, "
+    "ed. R. D. Johnson III, doi:10.18434/T47C7Z, Experimental > Energy > Atomization Energy."
+)
+_CCCBDB_EDITION = "NIST CCCBDB Release 22"
+_D0_NOTE = (
+    "For a diatomic molecule the atomization energy at 0 K is the dissociation energy D_0. CCCBDB lists it beside the 298 K value; "
+    "the uncertainty column carries no stated level."
+)
+
+
+def _webbook_re(mol: str, cas: str, state: str, value: str, extra: str = "") -> Quantity:
+    return _q(
+        f"hh1979.{mol.lower()}.r_e", f"equilibrium internuclear distance of {mol}, ground state {state}", f"r_e({mol})", value, "", "Angstrom",
+        kind="no uncertainty printed", source=WEBBOOK_DIATOMIC_SOURCE, edition=_WEBBOOK_EDITION,
+        url=f"https://webbook.nist.gov/cgi/cbook.cgi?ID={cas}&Mask=1000#Diatomic", retrieved_from=f"https://webbook.nist.gov/cgi/cbook.cgi?ID={cas}&Mask=1000",
+        phrases=(f"bond length of {mol.lower()}", f"{mol.lower()} bond length", "diatomic bond lengths"),
+        notes=(f"Ground state {state}, r_e = {value} Angstrom as printed.", _RE_NOTE) + ((extra,) if extra else ()),
+    )
+
+
+def _cccbdb_d0(mol: str, cas: str, value0: str, value298: str, unc: str) -> Quantity:
+    printed = f"0 K {value0}, 298 K {value298}, unc. {unc or '(blank)'} kJ mol-1"
+    return _q(
+        f"cccbdb.{mol.lower()}.d0", f"dissociation energy of {mol} at 0 K (experimental atomization energy)", f"D_0({mol})", value0, unc, "kJ mol^-1",
+        kind="uncertainty as printed, level not stated" if unc else "no uncertainty printed",
+        source=CCCBDB_SOURCE, edition=_CCCBDB_EDITION,
+        url=f"https://cccbdb.nist.gov/exp2x.asp?casno={cas.lstrip('C')}&charge=0", retrieved_from="https://cccbdb.nist.gov/ea2x.asp",
+        phrases=(f"dissociation energy of {mol.lower()}", f"{mol.lower()} dissociation energy", "bond dissociation energies"),
+        notes=(f"CCCBDB row: {printed}.", _D0_NOTE),
+    )
+
+
+CODATA_KEY_SOURCE = (
+    "J. D. Cox, D. D. Wagman, and V. A. Medvedev, CODATA Key Values for Thermodynamics, Hemisphere, New York (1989), "
+    "as tabulated by CODATA."
+)
+_CODATA_KEY_URL = "https://www.codata.info/resources/databases/key1.html"
+_CODATA_KEY_NOTE = (
+    "CODATA: 'we believe there is a high probability that the true values fall within the stated uncertainty limits.' "
+    "The standard-state pressure is 100000 Pa (1 bar), at 298.15 K."
+)
+IUPAC_PKA_SOURCE = (
+    "IUPAC Digitized pKa Dataset, v2.4 (2026), high-confidence file, from E. P. Serjeant and B. Dempsey, Ionization Constants of Organic Acids "
+    "in Aqueous Solution, IUPAC Chemical Data Series No. 23, Pergamon (1979), entry serjeant2825; original measurement reference F12: "
+    "M. J. Fickling, A. Fischer, B. R. Mann, J. Packer, and J. Vaughan, J. Am. Chem. Soc. 81, 4226 (1959)."
+)
+CRC91_INORGANIC = (
+    "D. R. Lide (ed.), CRC Handbook of Chemistry and Physics, 91st Edition (2010-2011), Dissociation Constants of Inorganic Acids and Bases, "
+    "p. 8-40 to 8-41, from D. D. Perrin, Ionization Constants of Inorganic Acids and Bases in Aqueous Solution, 2nd ed., Pergamon (1982)."
+)
+CRC91_ORGANIC = (
+    "D. R. Lide (ed.), CRC Handbook of Chemistry and Physics, 91st Edition (2010-2011), Dissociation Constants of Organic Acids and Bases, p. 8-43 ff."
+)
+_CRC_DIR = "https://diverdi.colostate.edu/all_courses/CRC%20reference%20data/"
+IAPWS_KW_SOURCE = (
+    "International Association for the Properties of Water and Steam, IAPWS R11-24, Revised Release on the Ionization Constant of H2O (2024), Table 3."
+)
+_WEBBOOK_CH4 = "https://webbook.nist.gov/cgi/cbook.cgi?ID=C74828&Mask=1"
+
+CHEMISTRY: tuple[Quantity, ...] = (
+    _webbook_re("H2", "C1333740", "X 1Sigma_g+", "0.74144"),
+    _webbook_re("N2", "C7727379", "X 1Sigma_g+", "1.097685"),
+    _webbook_re("O2", "C7782447", "X 3Sigma_g-", "1.20752"),
+    _webbook_re("CO", "C630080", "X 1Sigma+", "1.128323"),
+    _webbook_re("HCl", "C7647010", "X 1Sigma+", "1.274552", "The WebBook page lists constants for H35Cl."),
+    _cccbdb_d0("H2", "1333740", "432.1", "436.0", ""),
+    _cccbdb_d0("N2", "7727379", "941.6", "945.4", "0.8"),
+    _cccbdb_d0("O2", "7782447", "493.7", "498.5", "0.2"),
+    _cccbdb_d0("CO", "630080", "1071.8", "1076.4", "0.5"),
+    _cccbdb_d0("HCl", "7647010", "427.8", "431.6", "0.1"),
+    _q("iupac_pka.phenol", "phenol acid dissociation constant, pKa, water, 25 C", "pK_a(C6H5OH)", "9.994", "", "",
+       kind="no uncertainty printed", source=IUPAC_PKA_SOURCE, edition="IUPAC Digitized pKa Dataset v2.4",
+       url="https://github.com/IUPAC/Dissociation-Constants", retrieved_from="https://raw.githubusercontent.com/IUPAC/Dissociation-Constants/main/iupac_high-confidence_v2_4.csv",
+       phrases=("phenol pka", "pka of phenol", "acid dissociation constants"),
+       notes=("Dataset row: pka_type pKa1, T 25 (deg C), method O5a, assessment Reliable, remarks 'm=0.0004-0.0008, I=0.01-0.05'. Other values in the same entry run 9.97 to 10.02 at 25 C.",)),
+    _q("crc91.pka.phenol", "phenol pKa, water, 25 C, CRC table", "pK_a(C6H5OH)", "9.99", "", "",
+       kind="no uncertainty printed", source=CRC91_ORGANIC, edition="CRC Handbook, 91st Edition",
+       url=_CRC_DIR + "dissociation%20constants%20of%20organic%20acids%20and%20bases.pdf", retrieved_from=_CRC_DIR + "dissociation%20constants%20of%20organic%20acids%20and%20bases.pdf",
+       phrases=("phenol pka", "pka of phenol", "acid dissociation constants"),
+       notes=("Row: C6H6O, Phenol, t/C 25, pKa 9.99. All values refer to dilute aqueous solutions.",)),
+    _q("crc91.pka.water", "water pKa, 25 C, CRC table", "pK_a(H2O)", "13.995", "", "",
+       kind="no uncertainty printed", source=CRC91_INORGANIC, edition="CRC Handbook, 91st Edition",
+       url=_CRC_DIR + "dissociation%20constants%20of%20inorganic%20acids%20and%20bases.pdf", retrieved_from=_CRC_DIR + "dissociation%20constants%20of%20inorganic%20acids%20and%20bases.pdf",
+       phrases=("water pka", "pka of water", "acid dissociation constants"),
+       notes=("Row: Water, H2O, t/C 25, pKa 13.995. The table preface says all values refer to dilute aqueous solutions at zero ionic strength, and gives K_water = 1.01 x 10^-14 at 25 C.",)),
+    _q("iapws2024.pkw_25c", "ionization constant of water, pKw, at 25 C and 0.1 MPa", "pK_w", "13.99", "", "",
+       kind="no uncertainty printed", source=IAPWS_KW_SOURCE, edition="IAPWS R11-24 (2024)",
+       url="https://iapws.org/technical-guidance/release/Ionization.download", retrieved_from="https://iapws.org/technical-guidance/release/Ionization.download",
+       phrases=("pkw", "ionization constant of water", "ion product of water"),
+       notes=("Table 3, row psat, column 25 C: 13.99. Footnote (b): values use the density of the liquid at 0.1 MPa below 100 C.",
+              "Section 5: in the liquid region below 200 C and 200 MPa the deviations of experimental data from the formulation 'do not generally exceed 0.05'. That is a statement about the fit, not a printed uncertainty on this entry.")),
+    _q("codata_key.h2o_l.dfh", "standard enthalpy of formation of liquid water at 298.15 K", "Delta_f H(H2O, l)", "-285.830", "0.040", "kJ mol^-1",
+       kind="uncertainty as printed, level not stated", source=CODATA_KEY_SOURCE, edition="CODATA Key Values for Thermodynamics (1989)",
+       url=_CODATA_KEY_URL, retrieved_from=_CODATA_KEY_URL, phrases=("enthalpy of formation of water", "heat of formation of water", "standard enthalpies of formation"),
+       notes=("Row: H2O, l, -285.830 +- 0.040 kJ mol-1.", _CODATA_KEY_NOTE)),
+    _q("codata_key.co2_g.dfh", "standard enthalpy of formation of gaseous carbon dioxide at 298.15 K", "Delta_f H(CO2, g)", "-393.51", "0.13", "kJ mol^-1",
+       kind="uncertainty as printed, level not stated", source=CODATA_KEY_SOURCE, edition="CODATA Key Values for Thermodynamics (1989)",
+       url=_CODATA_KEY_URL, retrieved_from=_CODATA_KEY_URL, phrases=("enthalpy of formation of carbon dioxide", "heat of formation of co2", "standard enthalpies of formation"),
+       notes=("Row: CO2, g, -393.51 +- 0.13 kJ mol-1.", _CODATA_KEY_NOTE)),
+    _q("janaf1998.ch4_g.dfh", "standard enthalpy of formation of gaseous methane at 298.15 K, JANAF", "Delta_f H(CH4, g)", "-74.87", "", "kJ mol^-1",
+       kind="no uncertainty printed", source="M. W. Chase, Jr., NIST-JANAF Thermochemical Tables, Fourth Edition, J. Phys. Chem. Ref. Data Monograph 9 (1998), as listed in the NIST Chemistry WebBook (SRD 69), gas phase thermochemistry of methane.",
+       edition="NIST-JANAF 4th ed. via NIST WebBook", url=_WEBBOOK_CH4, retrieved_from=_WEBBOOK_CH4,
+       phrases=("enthalpy of formation of methane", "heat of formation of methane", "standard enthalpies of formation"),
+       notes=("WebBook row: Delta_fH(gas) -74.87 kJ/mol, Review, Chase, 1998, 'Data last reviewed in March, 1961'. Methane is not among the CODATA key values.",)),
+    _q("gurvich1991.ch4_g.dfh", "standard enthalpy of formation of gaseous methane at 298.15 K, Gurvich recommendation", "Delta_f H(CH4, g)", "-74.6", "0.3", "kJ mol^-1",
+       kind="uncertainty as printed, level not stated", source="J. A. Manion, J. Phys. Chem. Ref. Data 31, 123 (2002), adopting the recommendation of L. V. Gurvich, I. V. Veyts, et al. (1991), as listed in the NIST Chemistry WebBook (SRD 69).",
+       edition="Manion 2002 via NIST WebBook", url=_WEBBOOK_CH4, retrieved_from=_WEBBOOK_CH4,
+       phrases=("enthalpy of formation of methane", "heat of formation of methane", "standard enthalpies of formation"),
+       notes=("WebBook row: Delta_fH(gas) -74.6 +- 0.3 kJ/mol, Review, Manion, 2002, 'adopted recommendation of Gurvich, Veyts, et al., 1991'.",)),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY
+BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS
+
+
 def quantity(id: str) -> Quantity:
     for item in QUANTITIES:
         if item.id == id:
@@ -1688,7 +1912,10 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
             item.truncation_bounds
         else:
             item.value
-        if not item.exact:
+        if item.uncertainty_kind == _NONE_KIND:
+            if item.uncertainty_text or item.lower_text or item.printed:
+                raise ValueError(f"{item.id} prints no uncertainty, so it cannot carry one")
+        elif not item.exact:
             upper = item.uncertainty
             lower = item.lower_uncertainty
             if upper is None or lower is None or upper <= 0 or lower <= 0:

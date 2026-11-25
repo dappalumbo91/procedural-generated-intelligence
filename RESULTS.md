@@ -359,9 +359,21 @@ The su(2) generators are T_a = σ_a / 2 and satisfy [T_a, T_b] = i ε_abc T_c, s
 
 A U(1) field strength is F = ∂_x A_y − ∂_y A_x, with exact rational partials, and is invariant under A ↦ A + dλ. `fieldstrength(u1, x * y, x)` is `-x + 1`. An SU(2) field strength of constant components is F = [A_x, A_y]. A constant special unitary U acts by A ↦ U A U†, and F transforms covariantly as F ↦ U F U†. The trace of F² is invariant. A connection built as U dU† from the rational SU(2) rotation in x + y is pure gauge, and `fieldstrength(puregauge(su2rot))` is the zero matrix. An SU(3) gauge transformation on a connection, and an SU(2) gauge transformation that is not a constant special unitary matrix or that rational rotation, stay open.
 
+### Chemistry: atomic weights, diatomic molecules, pKa and pKw, enthalpies of formation
+
+Chemistry data is on the board, each value as printed with the uncertainty its source states. Where a source prints none, the board says so. A new kind, `no uncertainty printed`, stores no number in that case. A second new kind, `IUPAC standard atomic weight uncertainty`, carries CIAAW's own wording: normal materials are expected to lie in the given interval "with great certitude". That is not a standard uncertainty.
+
+The IUPAC 2021 standard atomic weights for H through Kr come from the CIAAW table. The page is headed 2024, but its only 2024 changes are Gd, Lu, and Zr. Twenty-four elements have a value with an uncertainty, such as Fe `55.845(2)` and Co `58.933 194(3)`. Twelve have an interval, such as H `[1.007 84, 1.008 11]` and Ar `[39.792, 39.963]`. Those are stored as intervals with no central value. The g, m, and r footnotes are kept on each record.
+
+The diatomic molecules come from two NIST sources. Huber–Herzberg ground-state `r_e` via the NIST WebBook: H₂ `0.74144`, N₂ `1.097685`, O₂ `1.20752`, CO `1.128323`, H³⁵Cl `1.274552` Å, all printed without uncertainty. Dissociation energies `D₀` are the CCCBDB Release 22 experimental 0 K atomization energies: H₂ `432.1` (no uncertainty printed), N₂ `941.6 ± 0.8`, O₂ `493.7 ± 0.2`, CO `1071.8 ± 0.5`, HCl `427.8 ± 0.1` kJ/mol. The WebBook pages do not carry the Huber–Herzberg `D₀` header values, so CCCBDB is the source for `D₀`.
+
+The phenol pKa is `9.994` at 25 °C. It is the Reliable entry in the IUPAC Digitized pKa Dataset v2.4, from Serjeant and Dempsey, measured by Fickling et al. (1959). The CRC Handbook, 91st edition, prints `9.99`. The CRC inorganic table gives water `13.995` at 25 °C. IAPWS R11-24 Table 3 gives pKw `13.99` at 25 °C. Enthalpies of formation at 298.15 K come from the CODATA key values: H₂O(l) `−285.830 ± 0.040` and CO₂(g) `−393.51 ± 0.13` kJ/mol. CODATA's stated meaning is a high probability that the true value lies within the limits. Methane is not a CODATA key value, so the NIST WebBook gives two: JANAF `−74.87` (no uncertainty) and Gurvich via Manion `−74.6 ± 0.3` kJ/mol.
+
+The tests are data-only. All 36 elements are present, and every value matches its printed concise form. Each interval is ordered. Going up in Z, atomic weight rises except at exactly two places, Ar → K and Co → Ni. CCCBDB's 298 K atomization energy exceeds its 0 K value for all five molecules, and CO's is the largest. Overlapping sources agree to their printed digits: phenol 9.994 against 9.99, water 13.995 against 13.99, and JANAF methane within Gurvich's ±0.3. The atomic-weight ask links all 36 elements, and the phenol ask links exactly the two phenol rows. That is 54 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.69.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.70.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

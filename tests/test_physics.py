@@ -4,7 +4,7 @@ import unittest
 from fractions import Fraction
 
 from pgi.corpus.formulas import FORMULAS, audit_formulas, formula, planck_u, rayleigh_jeans_u
-from pgi.corpus.measured import BOUNDS, QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, parse_truncated, quantity
+from pgi.corpus.measured import BOUNDS, CIAAW_H_KR, QUANTITIES, Quantity, audit_quantities, parse_concise, parse_decimal, parse_truncated, quantity
 from pgi.corpus.records import RECORDS, audit_records
 from pgi.engine import unfold
 from pgi.model import Request
@@ -806,6 +806,72 @@ class RadiationConstantTests(unittest.TestCase):
         linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
         self.assertTrue({"codata2022.sigma", "codata2022.b_wien", "codata2022.b_prime_wien"} <= linked)
         self.assertEqual(session.retracted, ())
+
+
+class ChemistryTests(unittest.TestCase):
+    def _span(self, sym: str) -> tuple[Fraction, Fraction]:
+        id = f"iupac2021.ar.{sym.lower()}"
+        for bound in BOUNDS:
+            if bound.id == id:
+                return bound.lower, bound.upper
+        item = quantity(id)
+        return item.value - item.uncertainty, item.value + item.uncertainty
+
+    def test_atomic_weights_h_to_kr_are_all_there_as_printed(self) -> None:
+        self.assertEqual([row[0] for row in CIAAW_H_KR], list(range(1, 37)))
+        intervals = [b for b in BOUNDS if b.id.startswith("iupac2021.ar.")]
+        values = [q for q in QUANTITIES if q.id.startswith("iupac2021.ar.")]
+        self.assertEqual((len(intervals), len(values)), (12, 24))
+        for item in values:
+            self.assertEqual(parse_concise(item.printed), (item.value, item.uncertainty), item.id)
+            self.assertEqual(item.uncertainty_kind, "IUPAC standard atomic weight uncertainty")
+        for bound in intervals:
+            self.assertLess(bound.lower, bound.upper, bound.id)
+        self.assertEqual(self._span("C"), (Fraction("12.0096"), Fraction("12.0116")))
+        self.assertEqual(quantity("iupac2021.ar.co").uncertainty, Fraction(3, 10**6))
+
+    def test_atomic_weight_rises_with_z_except_argon_and_cobalt(self) -> None:
+        inversions = []
+        for (z1, s1, *_), (z2, s2, *_) in zip(CIAAW_H_KR, CIAAW_H_KR[1:]):
+            low1, high1 = self._span(s1)
+            low2, high2 = self._span(s2)
+            if low2 > high1:
+                continue
+            self.assertGreater(low1, high2, (s1, s2))
+            inversions.append((s1, s2))
+        self.assertEqual(inversions, [("Ar", "K"), ("Co", "Ni")])
+
+    def test_diatomic_data_rows(self) -> None:
+        for mol in ("h2", "n2", "o2", "co", "hcl"):
+            r_e = quantity(f"hh1979.{mol}.r_e")
+            self.assertIsNone(r_e.uncertainty)
+            self.assertEqual(r_e.uncertainty_kind, "no uncertainty printed")
+            d0 = quantity(f"cccbdb.{mol}.d0")
+            row = next(note for note in d0.notes if note.startswith("CCCBDB row"))
+            at_298 = parse_decimal(row.split("298 K ")[1].split(",")[0])
+            self.assertGreater(at_298, d0.value, mol)
+        self.assertIsNone(quantity("cccbdb.h2.d0").uncertainty)
+        self.assertEqual(quantity("cccbdb.n2.d0").uncertainty, Fraction(8, 10))
+        self.assertEqual(max((quantity(f"cccbdb.{m}.d0") for m in ("h2", "n2", "o2", "co", "hcl")), key=lambda q: q.value).id, "cccbdb.co.d0")
+
+    def test_pka_pkw_and_enthalpy_rows_agree_where_they_overlap(self) -> None:
+        iupac, crc = quantity("iupac_pka.phenol"), quantity("crc91.pka.phenol")
+        self.assertLessEqual(abs(iupac.value - crc.value), Fraction(5, 1000))
+        water, iapws = quantity("crc91.pka.water"), quantity("iapws2024.pkw_25c")
+        self.assertLessEqual(abs(water.value - iapws.value), Fraction(5, 1000))
+        janaf, gurvich = quantity("janaf1998.ch4_g.dfh"), quantity("gurvich1991.ch4_g.dfh")
+        self.assertLessEqual(abs(janaf.value - gurvich.value), gurvich.uncertainty)
+        for id in ("codata_key.h2o_l.dfh", "codata_key.co2_g.dfh", "janaf1998.ch4_g.dfh"):
+            self.assertLess(quantity(id).value, 0, id)
+
+    def test_chemistry_asks_link(self) -> None:
+        session = unfold(Request(ask="show the standard atomic weights", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertEqual(len([x for x in linked if x.startswith("iupac2021.ar.")]), 36)
+        self.assertEqual(session.retracted, ())
+        session = unfold(Request(ask="what is the phenol pka", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertEqual(linked, {"iupac_pka.phenol", "crc91.pka.phenol"})
 
 
 class Gw150914Tests(unittest.TestCase):

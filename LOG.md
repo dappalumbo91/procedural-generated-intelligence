@@ -868,3 +868,13 @@ A U(1) field strength is F = ∂_x A_y − ∂_y A_x, with exact rational partia
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 246 tests, 0 failures, about 72.20 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — chemistry: atomic weights, diatomics, pKa, pKw, enthalpies of formation pgi-0.70.0
+
+Batch 5 starts with chemistry, and the data is sourced only. The 36 IUPAC 2021 standard atomic weights from H to Kr come from the CIAAW table: 24 concise values and 12 intervals, with footnotes. Huber–Herzberg `r_e` for H₂, N₂, O₂, CO, and HCl comes via the NIST WebBook. The CCCBDB 0 K atomization energies serve as `D₀`. Phenol pKa `9.994` comes from the IUPAC dataset and `9.99` from CRC 91, and water `13.995` from CRC 91. pKw `13.99` comes from IAPWS R11-24. CODATA key values give ΔfH° for H₂O(l) and CO₂(g), and the WebBook gives JANAF and Gurvich values for CH₄.
+
+There are two new uncertainty kinds. `no uncertainty printed` stores nothing when the source prints nothing, and an audit refuses a number there. `IUPAC standard atomic weight uncertainty` keeps CIAAW's "great certitude" meaning apart from 1σ. Interval atomic weights are bounds with no central value.
+
+The tests are data-only, as Damian asked, with no derivations: completeness, printed forms, the two Z-order inversions (Ar/K and Co/Ni), 298 K above 0 K, and overlapping sources agreeing to their printed digits. That is 54 new records. The next slice is condensed matter.
+
+`python -m unittest discover -s tests -v` finished 251 tests, 0 failures, about 73.14 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
