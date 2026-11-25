@@ -322,7 +322,10 @@ def _quantity_statement(item: Quantity) -> tuple[str, ...]:
         lines.append("The source prints no uncertainty for this value, so none is stored.")
         lines.append("The value is a measured anchor. It is data, not a number derived by this system.")
     elif item.relative_uncertainty is not None:
-        lines.append(f"The source gives a maximum relative uncertainty of about {item.uncertainty_text} ppm; it is stored as printed and not converted.")
+        if item.uncertainty_kind == "relative standard uncertainty":
+            lines.append(f"The source gives a relative standard uncertainty of {item.uncertainty_text}; it is stored as printed and not converted.")
+        else:
+            lines.append(f"The source gives a maximum relative uncertainty of about {item.uncertainty_text} ppm; it is stored as printed and not converted.")
         lines.append("The value is a measured anchor. It is data, not a number derived by this system.")
     elif item.systematic_text:
         lower = f" -{item.systematic_lower_text}" if item.systematic_lower_text else ""

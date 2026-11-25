@@ -479,9 +479,19 @@ The speed of sound in standard dry air is disputed. Wong 1986 gives `331.29` m/s
 
 This adds 35 records.
 
+### Optics: reference lines, glass and water indices, standard frequencies
+
+The glass-catalogue letters now point to real lines. NIST ASD 5.12 gives the observed air wavelengths of the Na D2 and D1 lines, `588.995095(3)` and `589.592424(3)` nm, Hg e `546.0750(1)`, Hg g `435.8335(1)`, He d `587.5621` (a blend), Cd C′ `643.84695`, Cd F′ `479.99123`, and H-beta `486.135(5)` nm. ASD prints no uncertainty for He d or the two cadmium lines, so none is stored. A test checks that each line rounds to the wavelength SCHOTT prints for its letter, with H-alpha standing in for C.
+
+SCHOTT's N-BK7 data sheet (2014) gives n_d `1.51680`, n_D `1.51673`, n_e `1.51872`, n_F `1.52238`, n_C `1.51432`, n_g `1.52668`, n at 632.8 nm `1.51509`, and n at 1060 nm `1.50669`, along with ν_d `64.17` and n_F − n_C `0.008054`. These are catalogue values with no uncertainty, and the notes say a given melt varies. The tests check that n falls as wavelength rises and that the sheet's own Abbe definition, (n_d − 1)/(n_F − n_C), reproduces 64.17. IAPWS R9-97 adds water's index at 0 °C and 0.1 MPa at 0.2265, 0.589, and 1.014 µm. Those are the release's program-verification values, calculated from its formulation, and Table 2's uncertainty estimate is kept in the notes.
+
+The standard frequencies come from the CIPM list. The I₂-stabilised He-Ne laser has f = `473 612 353 604(10)` kHz and λ = `632 991 212.579(13)` fm, and their product matches c within those uncertainties. The 2025 list (active since 27 March 2026) gives ⁸⁷Sr `429 228 004 229 872.992` Hz and ¹⁷¹Yb `518 295 836 590 863.632` Hz, each with a relative standard uncertainty of `1.7 × 10⁻¹⁶`. That brings in a second relative kind, *relative standard uncertainty*, which is stored as printed and never turned into hertz.
+
+This adds 25 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.80.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.81.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

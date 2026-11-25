@@ -960,3 +960,11 @@ COVERAGE.md counts the board by domain, and a test keeps it honest. Mechanics, o
 That is 35 records.
 
 `python -m unittest discover -s tests -v` finished 301 tests, 0 failures, about 139.29 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — optics pgi-0.81.0
+
+Added the ASD reference lines behind the glass letters, N-BK7's indices, Abbe number, and principal dispersion, the IAPWS water indices, the I₂ 633 nm frequency and wavelength, and the 2025 CIPM ⁸⁷Sr and ¹⁷¹Yb frequencies. There is a new relative-uncertainty kind.
+
+That is 25 records.
+
+`python -m unittest discover -s tests -v` finished 306 tests, 0 failures, about 95.02 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

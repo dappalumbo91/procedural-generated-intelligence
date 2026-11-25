@@ -48,6 +48,7 @@ for _domain, _names in {
     "nuclear": ("ame2020",),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987"),
+    "optics": ("schott", "iapws1997", "bipm2003", "bipm2025"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987"),
     "thermodynamics and statistical": ("iapws1992", "iapws2011", "its90", "formula"),
     "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914"),
@@ -77,6 +78,8 @@ def domain(record_id: str) -> str:
         if rest.startswith("bbn."):
             return "cosmology"
         return "QED and precision" if rest in {"a_mu", "a_e", "proton_radius"} else "particle"
+    elif head == "asd512" and rest.startswith("line."):
+        return "optics"
     elif head == "known":
         if record_id in _KNOWN:
             return _KNOWN[record_id]

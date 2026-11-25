@@ -38,6 +38,7 @@ UNCERTAINTY_KINDS = frozenset(
         "68.3% credible interval",
         "95% interval",
         "maximum relative uncertainty, ppm as printed",
+        "relative standard uncertainty",
     }
 )
 _NONE_KIND = "no uncertainty printed"
@@ -45,6 +46,7 @@ _TRUNCATED_KIND = "exact, printed truncated"
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval", "68.3% credible interval", "95% interval"})
 _SPLIT_KIND = "statistical and systematic, printed separately"
 _RELATIVE_PPM_KIND = "maximum relative uncertainty, ppm as printed"
+_RELATIVE_KINDS = {_RELATIVE_PPM_KIND: 10**6, "relative standard uncertainty": 1}
 
 
 @dataclass(frozen=True)
@@ -96,13 +98,13 @@ class Quantity:
 
     @property
     def uncertainty(self) -> Fraction | None:
-        if self.exact or self.uncertainty_kind in (_NONE_KIND, _RELATIVE_PPM_KIND):
+        if self.exact or self.uncertainty_kind == _NONE_KIND or self.uncertainty_kind in _RELATIVE_KINDS:
             return None
         return parse_decimal(self.uncertainty_text)
 
     @property
     def lower_uncertainty(self) -> Fraction | None:
-        if self.exact or self.uncertainty_kind in (_NONE_KIND, _RELATIVE_PPM_KIND):
+        if self.exact or self.uncertainty_kind == _NONE_KIND or self.uncertainty_kind in _RELATIVE_KINDS:
             return None
         if self.lower_text:
             return parse_decimal(self.lower_text)
@@ -110,10 +112,10 @@ class Quantity:
 
     @property
     def relative_uncertainty(self) -> Fraction | None:
-        """Only for a source that prints its uncertainty as parts per million of the value."""
-        if self.uncertainty_kind != _RELATIVE_PPM_KIND:
+        """Only for a source that prints its uncertainty relative to the value (as ppm, or as a bare ratio)."""
+        if self.uncertainty_kind not in _RELATIVE_KINDS:
             return None
-        return parse_decimal(self.uncertainty_text) / 10**6
+        return parse_decimal(self.uncertainty_text) / _RELATIVE_KINDS[self.uncertainty_kind]
 
     @property
     def systematic(self) -> Fraction | None:
@@ -2722,7 +2724,117 @@ THERMO_FLUIDS: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS
+def _asd_line_query(spectrum: str, low: str, high: str) -> str:
+    return (
+        f"https://physics.nist.gov/cgi-bin/ASD/lines1.pl?spectra={spectrum.replace(' ', '+')}&output_type=0&low_w={low}&upp_w={high}&unit=1&de=0&format=2"
+        "&line_out=0&remove_js=on&en_unit=0&output=0&bibrefs=1&page_size=15&show_obs_wl=1&show_calc_wl=1&unc_out=1&order_out=0&show_av=2"
+        "&tsb_value=0&A_out=0&intens_out=on&allowed_out=1&forbid_out=1&conf_out=on&term_out=on&enrg_out=on&J_out=on&submit=Retrieve+Data"
+    )
+
+
+def _line(key: str, name: str, spectrum: str, symbol: str, value: str, unc: str, low: str, high: str, row: str, *, phrases: tuple[str, ...], extra: tuple[str, ...] = ()) -> Quantity:
+    query = _asd_line_query(spectrum, low, high)
+    return _q(f"asd512.line.{key}", name, symbol, value, unc, "nm",
+              kind="uncertainty as printed, level not stated" if unc else "no uncertainty printed",
+              source=ASD_SOURCE.replace("Ionization Energies Data.", f"Lines Data, {spectrum}."), edition=ASD_EDITION, url=query, retrieved_from=query,
+              keys=("spectral line", "reference line"), phrases=phrases + ("reference spectral lines", "fraunhofer lines"),
+              notes=(f"ASD row: {row}.", "This is the observed air wavelength." + (" ASD prints no uncertainty for it." if not unc else ""), _HALPHA_NOTE) + extra)
+
+
+_SCHOTT_SOURCE = "SCHOTT AG, Optical Glass Data Sheet, SCHOTT N-BK7, 'As of 02/01/2014, Subject to change', glass code 517642.251."
+_SCHOTT_URL = (
+    "https://shop.schott.com/medias/schott-datasheet-n-bk7-eng.pdf?context=bWFzdGVyfHJvb3R8NjkxODAwfGFwcGxpY2F0aW9uL3BkZnxoZTUvaDM4Lzg4MTAzMTYxMDM3MTAucGRmfGJjNmI4ZjFmY2Q1NjMxMTE0MjkzMTUwOGRmMTUzOTg2NWJjZTgzMjA0OTc2NTNiMThjN2RhMjI4NGZmMWM4MWU"
+)
+_SCHOTT_NOTE = "Catalogue (nominal) value for the glass type; a given melt differs within SCHOTT's tolerance classes, and the data sheet prints no uncertainty."
+
+
+def _bk7(key: str, label: str, wavelength: str, value: str) -> Quantity:
+    return _q(f"schott.nbk7.n_{key}", f"refractive index of SCHOTT N-BK7 at {wavelength} nm ({label})", f"n_{label}(N-BK7)", value, "", "",
+              kind="no uncertainty printed", source=_SCHOTT_SOURCE, edition="SCHOTT data sheet N-BK7 (2014)", url=_SCHOTT_URL, retrieved_from=_SCHOTT_URL,
+              keys=("refractive index", "optical glass"), phrases=("refractive index of n-bk7", "bk7 refractive index", "refractive indices", "optical glass"),
+              notes=(f"The Refractive Indices table prints {label} at {wavelength} nm as {value}.", _SCHOTT_NOTE))
+
+
+_IAPWS_RINDEX_URL = "https://iapws.org/documents/release/Rindex.download"
+
+
+def _water_n(key: str, micron: str, value: str, table2: str) -> Quantity:
+    return _q(f"iapws1997.h2o.n_{key}", f"refractive index of liquid water at {micron} um, 0 degC, 0.1 MPa (formulation value)", "n(H2O)", value, "", "",
+              kind="no uncertainty printed",
+              source="IAPWS R9-97, Release on the Refractive Index of Ordinary Water Substance as a Function of Wavelength, Temperature and Pressure, Erlangen (1997), Table 3.",
+              edition="IAPWS R9-97", url=_IAPWS_RINDEX_URL, retrieved_from=_IAPWS_RINDEX_URL,
+              keys=("refractive index",), phrases=("refractive index of water", "water refractive index", "refractive indices"),
+              notes=(f"Table 3 prints {value} at {micron} um, 0 degC, 0.1 MPa. Table 3 values are calculated from the formulation, Eq. (1), and are given for program verification.",
+                     f"Table 2 gives the formulation's estimated absolute uncertainty for this range as {table2}; the release says the estimate is the largest departure of the most reliable data from the formulation."))
+
+
+_BIPM_SF = "https://www.bipm.org/en/publications/mises-en-pratique/standard-frequencies"
+_BIPM_I2 = "https://www.bipm.org/documents/20126/41549560/M-e-P_I2_633.pdf/c4c25f25-ae65-e05d-402a-9bfc84c715c3"
+_BIPM_SR = "https://www.bipm.org/documents/20126/288515313/87Sr_429THz_2025/bbd827f7-3e1e-5fbe-6bd8-0eadd9b5b674"
+_BIPM_YB = "https://www.bipm.org/documents/20126/288516347/171Yb_518THz_2025/73007ecc-49f5-4d1d-d8ee-6793a4748598"
+_I2_SOURCE = "BIPM, Mise en pratique of the metre, Recommended values of standard frequencies: Iodine (lambda ~ 633 nm), 127I2 a16 or f component, R(127) 11-5 transition, MEP 2003, Sect. 2 Source data."
+
+OPTICS: tuple[Quantity, ...] = (
+    _line("na_d2", "sodium D2 line, 3s 2S1/2 - 3p 2P3/2", "Na I", "lambda_air(Na D2)", "588.995095", "0.000003", "588", "590",
+          "Na I, 2p6.3s 2S 1/2 - 2p6.3p 2P* 3/2, Ritz 588.995094(3) nm, intensity 80000, A_ki 6.16e+07 s^-1", phrases=("sodium d lines", "sodium d2", "na d lines")),
+    _line("na_d1", "sodium D1 line, 3s 2S1/2 - 3p 2P1/2", "Na I", "lambda_air(Na D1)", "589.592424", "0.000003", "588", "590",
+          "Na I, 2p6.3s 2S 1/2 - 2p6.3p 2P* 1/2, Ritz 589.592424(3) nm, intensity 40000, A_ki 6.14e+07 s^-1", phrases=("sodium d lines", "sodium d1", "na d lines")),
+    _line("hg_e", "mercury green line (Fraunhofer e), 6s6p 3P2 - 6s7s 3S1", "Hg I", "lambda_air(Hg e)", "546.0750", "0.0001", "546", "546.2",
+          "Hg I, 5d10.6s.6p 3P* 2 - 5d10.6s.7s 3S 1, Ritz 546.07498(9) nm, intensity 6000", phrases=("mercury green line", "mercury e line")),
+    _line("hg_g", "mercury blue line (Fraunhofer g), 6s6p 3P1 - 6s7s 3S1", "Hg I", "lambda_air(Hg g)", "435.8335", "0.0001", "435.7", "435.9",
+          "Hg I, 5d10.6s.6p 3P* 1 - 5d10.6s.7s 3S 1, Ritz 435.83363(8) nm, intensity 12000", phrases=("mercury blue line", "mercury g line")),
+    _line("he_d", "helium yellow line (Fraunhofer d), 1s2p 3P - 1s3d 3D blend", "He I", "lambda_air(He d)", "587.5621", "", "587.5", "587.6",
+          "He I, observed 587.5621 nm, shared by four 1s.2p 3P* - 1s.3d 3D fine-structure components with Ritz wavelengths 587.561397 to 587.564036 nm", phrases=("helium d line", "helium yellow line"),
+          extra=("The d line is the wavelength at which glass catalogues quote n_d; SCHOTT prints it as 587.6 nm.",)),
+    _line("cd_c_prime", "cadmium red line (C'), 5s5p 1P1 - 5s5d 1D2", "Cd I", "lambda_air(Cd C')", "643.84695", "", "643.8", "643.9",
+          "Cd I, 4d10.5s.5p 1P* 1 - 4d10.5s.5d 1D 2, Ritz 643.84695 nm, intensity 2000; ASD prints no wavelength uncertainty in this table", phrases=("cadmium red line",)),
+    _line("cd_f_prime", "cadmium blue line (F'), 5s5p 3P1 - 5s6s 3S1", "Cd I", "lambda_air(Cd F')", "479.99123", "", "479.9", "480.0",
+          "Cd I, 4d10.5s.5p 3P* 1 - 4d10.5s.6s 3S 1, Ritz 479.99121 nm, intensity 300", phrases=("cadmium blue line",)),
+    _line("h_beta", "hydrogen Balmer H-beta (Fraunhofer F), n = 2 - 4 blend", "H I", "lambda_air(H-beta)", "486.135", "0.005", "486.1", "486.2",
+          "H I, lower level 2, upper level 4, Ritz 486.1333(3) nm, intensity 180000, A_ki 8.4193e+06 s^-1", phrases=("h-beta", "h beta", "balmer beta", "hydrogen f line")),
+    _bk7("d", "d", "587.6", "1.51680"),
+    _bk7("big_d", "D", "589.3", "1.51673"),
+    _bk7("e", "e", "546.1", "1.51872"),
+    _bk7("f", "F", "486.1", "1.52238"),
+    _bk7("c", "C", "656.3", "1.51432"),
+    _bk7("g", "g", "435.8", "1.52668"),
+    _bk7("632_8", "632.8", "632.8", "1.51509"),
+    _bk7("1060", "1060.0", "1060.0", "1.50669"),
+    _q("schott.nbk7.abbe_d", "Abbe number of SCHOTT N-BK7 at d", "nu_d(N-BK7)", "64.17", "", "", kind="no uncertainty printed",
+       source=_SCHOTT_SOURCE, edition="SCHOTT data sheet N-BK7 (2014)", url=_SCHOTT_URL, retrieved_from=_SCHOTT_URL,
+       keys=("abbe number", "optical glass"), phrases=("abbe number", "abbe number of n-bk7", "dispersion of bk7", "optical glass"),
+       notes=("Printed in the header as nu_d = 64.17.", _SCHOTT_NOTE)),
+    _q("schott.nbk7.principal_dispersion", "principal dispersion n_F - n_C of SCHOTT N-BK7", "n_F - n_C (N-BK7)", "0.008054", "", "", kind="no uncertainty printed",
+       source=_SCHOTT_SOURCE, edition="SCHOTT data sheet N-BK7 (2014)", url=_SCHOTT_URL, retrieved_from=_SCHOTT_URL,
+       keys=("dispersion", "optical glass"), phrases=("principal dispersion", "dispersion of bk7", "optical glass"),
+       notes=("Printed in the header as n_F - n_C = 0.008054, to one more decimal than the tabulated indices.", _SCHOTT_NOTE)),
+    _water_n("226_5nm", "0.226 50", "1.394 527", "5 x 10^-4 (0.21 to 0.40 um, 0 to 100 degC, ambient, liquid)"),
+    _water_n("589nm", "0.589 00", "1.334 344", "< 6 x 10^-5 (0.40 to 0.70 um, -12 to 5 degC, ambient, liquid)"),
+    _water_n("1014nm", "1.013 98", "1.326 135", "1 x 10^-3 (0.70 to 1.1 um, ambient, liquid)"),
+    _q("bipm2003.i2_633.frequency", "iodine-stabilised He-Ne laser frequency, 633 nm, R(127) 11-5 f component", "f(I2 633)", "473 612 353 604", "10", "kHz",
+       kind="standard uncertainty", printed="473 612 353 604(10)", source=_I2_SOURCE, edition="CIPM MEP 2003, I2 633 nm", url=_BIPM_I2, retrieved_from=_BIPM_I2,
+       keys=("standard frequency", "he-ne laser", "metre"), phrases=("iodine stabilized he-ne", "633 nm standard", "standard frequencies", "he-ne laser frequency"),
+       notes=("Sect. 2 prints the adopted value f = 473 612 353 604 (10) kHz, u_c/y = 2.1 x 10^-11; Sect. 1 lists it as the CIPM recommended value under stated operating conditions.",
+              "The MEP notes that the +- figures in the operating conditions are tolerances, not uncertainties.")),
+    _q("bipm2003.i2_633.wavelength", "iodine-stabilised He-Ne laser vacuum wavelength, 633 nm, R(127) 11-5 f component", "lambda(I2 633)", "632 991 212.579", "0.013", "fm",
+       kind="standard uncertainty", printed="632 991 212.579(13)", source=_I2_SOURCE, edition="CIPM MEP 2003, I2 633 nm", url=_BIPM_I2, retrieved_from=_BIPM_I2,
+       keys=("standard frequency", "he-ne laser", "metre"), phrases=("iodine stabilized he-ne", "633 nm standard", "he-ne laser wavelength"),
+       notes=("Sect. 2 prints lambda = 632 991 212.579 (13) fm, u_c/y = 2.1 x 10^-11, 'for which' the adopted frequency; Sect. 1 rounds it to 632 991 212.58 fm.",)),
+    _q("bipm2025.sr87.frequency", "87Sr 5s2 1S0 - 5s5p 3P0 clock transition frequency (CIPM recommended)", "f(87Sr)", "429 228 004 229 872.992", "1.7 e-16", "Hz",
+       kind="relative standard uncertainty", source="BIPM, Recommended values of standard frequencies, Strontium 87 atom (f ~ 429 THz), approved by the CCTF in September 2025, active on March 27, 2026.",
+       edition="CIPM list of standard frequencies, 2025", url=_BIPM_SR, retrieved_from=_BIPM_SR,
+       keys=("standard frequency", "optical clock", "strontium"), phrases=("strontium clock frequency", "optical clock frequencies", "standard frequencies"),
+       notes=("Printed as f(87Sr) = 429 228 004 229 872.992 Hz, equivalent to lambda = 698 445 709.612 754 425 fm, with a relative standard uncertainty of 1.7 x 10^-16. It is a secondary representation of the second.",
+              "The 2021 list (CCTF PSFS 2) gave 429 228 004 229 872.99 Hz with 1.9 x 10^-16; it is not stored separately.")),
+    _q("bipm2025.yb171.frequency", "171Yb 6s2 1S0 - 6s6p 3P0 clock transition frequency (CIPM recommended)", "f(171Yb)", "518 295 836 590 863.632", "1.7 e-16", "Hz",
+       kind="relative standard uncertainty", source="BIPM, Recommended values of standard frequencies, Ytterbium 171 atom (f ~ 518 THz), approved by the CCTF in September 2025, active on March 27, 2026.",
+       edition="CIPM list of standard frequencies, 2025", url=_BIPM_YB, retrieved_from=_BIPM_YB,
+       keys=("standard frequency", "optical clock", "ytterbium"), phrases=("ytterbium clock frequency", "optical clock frequencies", "standard frequencies"),
+       notes=("Printed as f(171Yb) = 518 295 836 590 863.632 Hz, equivalent to lambda = 578 419 575.916 162 499 fm, with a relative standard uncertainty of 1.7 x 10^-16. It is a secondary representation of the second.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS
 
 
@@ -2755,7 +2867,7 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
         if item.uncertainty_kind == _NONE_KIND:
             if item.uncertainty_text or item.lower_text or item.printed:
                 raise ValueError(f"{item.id} prints no uncertainty, so it cannot carry one")
-        elif item.uncertainty_kind == _RELATIVE_PPM_KIND:
+        elif item.uncertainty_kind in _RELATIVE_KINDS:
             if item.lower_text or item.printed or not item.relative_uncertainty or item.relative_uncertainty <= 0:
                 raise ValueError(f"{item.id} needs one positive ppm figure and nothing else")
         elif not item.exact:

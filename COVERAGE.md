@@ -12,7 +12,7 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | mechanics | 0 |
 | thermodynamics and statistical | 34 |
 | electromagnetism | 7 |
-| optics | 0 |
+| optics | 25 |
 | atomic | 54 |
 | molecular and chemistry | 55 |
 | nuclear | 79 |
@@ -26,7 +26,7 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | null results and bounds | 16 |
 | SI defining constants | 7 |
 | foundations and status | 9 |
-| **total** | **517** |
+| **total** | **542** |
 <!-- counts:end -->
 
 ## Audit at pgi-0.79.0 (482 records)
@@ -38,7 +38,7 @@ This was the board when the audit was taken, before the batch 8 fills:
 | mechanics | 0 |
 | thermodynamics and statistical | 11 |
 | electromagnetism | 7 |
-| optics | 0 |
+| optics | reference lines, N-BK7 and water indices, and the I₂ 633 nm, ⁸⁷Sr, and ¹⁷¹Yb standard frequencies (batch 8); fused-silica (Malitson 1965) and air (Ciddor 1996) indices; Verdet and thermo-optic constants; the rest of the CIPM frequency list |
 | atomic | 54 |
 | molecular and chemistry | 55 |
 | nuclear | 79 |

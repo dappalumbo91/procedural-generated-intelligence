@@ -1293,6 +1293,51 @@ class CoverageTests(unittest.TestCase):
         self.assertEqual(block, table())
 
 
+class OpticsTests(unittest.TestCase):
+    BK7 = (("g", 4358), ("f", 4861), ("e", 5461), ("d", 5876), ("big_d", 5893), ("632_8", 6328), ("c", 6563), ("1060", 10600))
+
+    def test_glass_lines_are_the_asd_lines(self) -> None:
+        for line, label in (("he_d", "587.6"), ("hg_e", "546.1"), ("h_beta", "486.1"), ("hg_g", "435.8"), ("cd_c_prime", "643.8"), ("cd_f_prime", "480.0")):
+            self.assertEqual(round(quantity(f"asd512.line.{line}").value, 1), Fraction(label), line)
+        self.assertEqual(round(quantity("asd512.h_alpha.blend").value, 1), Fraction("656.3"))
+        d2, d1 = quantity("asd512.line.na_d2"), quantity("asd512.line.na_d1")
+        self.assertLess(d2.value + d2.uncertainty, d1.value - d1.uncertainty)
+
+    def test_bk7_dispersion_and_abbe_number(self) -> None:
+        indices = [quantity(f"schott.nbk7.n_{key}").value for key, _ in self.BK7]
+        self.assertEqual(indices, sorted(indices, reverse=True))
+        n_d, n_f, n_c = (quantity(f"schott.nbk7.n_{k}").value for k in ("d", "f", "c"))
+        dispersion = quantity("schott.nbk7.principal_dispersion").value
+        self.assertLessEqual(abs((n_f - n_c) - dispersion), Fraction(1, 10**5))
+        self.assertEqual(round((n_d - 1) / dispersion, 2), quantity("schott.nbk7.abbe_d").value)
+
+    def test_water_index_falls_with_wavelength(self) -> None:
+        values = [quantity(f"iapws1997.h2o.n_{k}").value for k in ("226_5nm", "589nm", "1014nm")]
+        self.assertEqual(values, sorted(values, reverse=True))
+
+    def test_standard_frequencies(self) -> None:
+        f, lam = quantity("bipm2003.i2_633.frequency"), quantity("bipm2003.i2_633.wavelength")
+        c = quantity("codata2022.c").value
+        product = f.value * 1000 * lam.value / 10**15
+        allowance = c * (f.uncertainty / f.value + lam.uncertainty / lam.value)
+        self.assertLessEqual(abs(product - c), allowance)
+        for id in ("bipm2025.sr87.frequency", "bipm2025.yb171.frequency"):
+            item = quantity(id)
+            self.assertIsNone(item.uncertainty)
+            self.assertEqual(item.relative_uncertainty, Fraction(17, 10**17))
+
+    def test_optics_asks_link(self) -> None:
+        session = unfold(Request(ask="what are the sodium d lines", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"asd512.line.na_d1", "asd512.line.na_d2"} <= linked)
+        session = unfold(Request(ask="what is the refractive index of n-bk7", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertIn("schott.nbk7.n_d", linked)
+        session = unfold(Request(ask="list the optical clock frequencies", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"bipm2025.sr87.frequency", "bipm2025.yb171.frequency"} <= linked)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
