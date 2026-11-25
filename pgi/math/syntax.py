@@ -1,0 +1,431 @@
+from __future__ import annotations
+
+import re
+from dataclasses import dataclass
+
+
+class ParseError(Exception):
+    pass
+
+
+@dataclass(frozen=True)
+class IntLit:
+    n: int
+
+
+@dataclass(frozen=True)
+class Var:
+    name: str
+
+
+@dataclass(frozen=True)
+class App:
+    op: str
+    args: tuple[Term, ...]
+
+
+Term = IntLit | Var | App
+
+
+@dataclass(frozen=True)
+class Eq:
+    left: Term
+    right: Term
+
+
+_WORDS = (
+    (re.compile(r"\bdivided by\b"), "/"),
+    (re.compile(r"\bplus\b"), "+"),
+    (re.compile(r"\bminus\b"), "-"),
+    (re.compile(r"\btimes\b"), "*"),
+)
+
+
+def prepare_ask(ask: str) -> tuple[str, str] | None:
+    text = ask.strip()
+    kind = "value"
+    for prefix, name in (
+        ("what is ", "value"),
+        ("compute ", "value"),
+        ("simplify ", "simplify"),
+        ("prove ", "prove"),
+    ):
+        if text.startswith(prefix):
+            kind = name
+            text = text[len(prefix) :].strip()
+            break
+    for pattern, symbol in _WORDS:
+        text = pattern.sub(symbol, text)
+    if not text:
+        return None
+    return kind, text
+
+
+def parse_term(text: str) -> Term | None:
+    try:
+        return _Parser(text).parse_term()
+    except ParseError:
+        return None
+
+
+def parse_equation(text: str) -> Eq | None:
+    left_text, right_text = _split_eq(text)
+    if right_text is None:
+        return None
+    left = parse_term(left_text)
+    right = parse_term(right_text)
+    if left is None or right is None:
+        return None
+    return Eq(left, right)
+
+
+def pretty(term: Term, parent: int = 0, right: bool = False) -> str:
+    if isinstance(term, IntLit):
+        return str(term.n)
+    if isinstance(term, Var):
+        return term.name
+    if term.op == "neg":
+        inner = pretty(term.args[0], 3, False)
+        body = f"(-{inner})"
+        return body
+    if term.op == "sqrt":
+        return f"sqrt({pretty(term.args[0])})"
+    if term.op == "set":
+        inner = ", ".join(pretty(arg) for arg in term.args)
+        return "{" + inner + "}"
+    if term.op == "sup":
+        shown = pretty(term.args[0])
+        if isinstance(term.args[0], App) and term.args[0].op in {"union", "inter"}:
+            shown = f"({shown})"
+        return f"sup {shown}"
+    if term.op == "collect":
+        binder = pretty(term.args[0])
+        predicate = pretty(term.args[2])
+        domain = term.args[1]
+        if isinstance(domain, App) and domain.op == "type":
+            return "{" + f"{binder}. {predicate}" + "}"
+        return "{" + f"{binder} in {pretty(domain)}. {predicate}" + "}"
+    if term.op == "le":
+        return f"{pretty(term.args[0])} <= {pretty(term.args[1])}"
+    if term.op == "lt":
+        return f"{pretty(term.args[0])} < {pretty(term.args[1])}"
+    if term.op == "eq":
+        return f"{pretty(term.args[0])} = {pretty(term.args[1])}"
+    if term.op == "type":
+        return "real"
+    if term.op == "not" and term.args:
+        return f"not {pretty(term.args[0])}"
+    if term.op in {"and", "or", "implies"} and len(term.args) == 2:
+        return f"{pretty(term.args[0])} {term.op} {pretty(term.args[1])}"
+    if term.op in {"union", "inter"}:
+        prec = 1 if term.op == "inter" else 0
+        left = pretty(term.args[0], prec, False)
+        right_text = pretty(term.args[1], prec, True)
+        body = f"{left} {term.op} {right_text}"
+        if prec < parent or (right and prec == parent):
+            return f"({body})"
+        return body
+    prec = 2 if term.op in {"mul", "div"} else 1
+    symbol = {"add": "+", "sub": "-", "mul": "*", "div": "/"}[term.op]
+    left = pretty(term.args[0], prec, False)
+    right_text = pretty(term.args[1], prec, True)
+    body = f"{left} {symbol} {right_text}"
+    if prec < parent or (right and prec == parent):
+        return f"({body})"
+    return body
+
+
+def pretty_eq(formula: Eq) -> str:
+    return f"{pretty(formula.left)} = {pretty(formula.right)}"
+
+
+def closed(term: Term, bound: frozenset[str] = frozenset()) -> bool:
+    if isinstance(term, IntLit):
+        return True
+    if isinstance(term, Var):
+        return term.name in bound
+    if isinstance(term, App) and term.op == "collect" and len(term.args) == 3:
+        binder = term.args[0]
+        name = binder.name if isinstance(binder, Var) else ""
+        return closed(term.args[1], bound) and closed(term.args[2], bound | {name})
+    return all(closed(arg, bound) for arg in term.args)
+
+
+def _split_eq(text: str) -> tuple[str, str | None]:
+    depth = 0
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char in "{(":
+            depth += 1
+        elif char in "})":
+            depth -= 1
+        elif char == "<" and index + 1 < len(text) and text[index + 1] == "=":
+            index += 2
+            continue
+        elif char == "=" and depth == 0:
+            return text[:index], text[index + 1 :]
+        index += 1
+    return text, None
+
+
+class _Parser:
+    def __init__(self, text: str) -> None:
+        self.tokens = _tokenize(text)
+        self.index = 0
+
+    def parse_term(self) -> Term:
+        term = self._expr()
+        if self.index != len(self.tokens):
+            raise ParseError("leftover")
+        return term
+
+    def _expr(self) -> Term:
+        node = self._inter()
+        while self._peek() == "union":
+            self._pop()
+            rhs = self._inter()
+            node = App("union", (node, rhs))
+        return node
+
+    def _inter(self) -> Term:
+        node = self._arith()
+        while self._peek() == "inter":
+            self._pop()
+            rhs = self._arith()
+            node = App("inter", (node, rhs))
+        return node
+
+    def _arith(self) -> Term:
+        node = self._term()
+        while self._peek() in {"+", "-"}:
+            op = self._pop()
+            rhs = self._term()
+            node = App("add" if op == "+" else "sub", (node, rhs))
+        return node
+
+    def _term(self) -> Term:
+        node = self._factor()
+        while self._peek() in {"*", "/"}:
+            op = self._pop()
+            rhs = self._factor()
+            node = App("mul" if op == "*" else "div", (node, rhs))
+        return node
+
+    def _factor(self) -> Term:
+        token = self._peek()
+        if token == "-":
+            self._pop()
+            inner = self._factor()
+            if isinstance(inner, IntLit):
+                return IntLit(-inner.n)
+            return App("neg", (inner,))
+        if token == "(":
+            self._pop()
+            node = self._expr()
+            if self._pop() != ")":
+                raise ParseError("paren")
+            return node
+        if token == "sqrt":
+            self._pop()
+            if self._pop() != "(":
+                raise ParseError("sqrt")
+            node = self._expr()
+            if self._pop() != ")":
+                raise ParseError("sqrt")
+            return App("sqrt", (node,))
+        if token == "sup":
+            self._pop()
+            return App("sup", (self._factor(),))
+        if token == "{":
+            return self._set()
+        if token is not None and token.isdigit():
+            self._pop()
+            return IntLit(int(token))
+        if token is not None and token[:1].isalpha() or (token or "").startswith("_"):
+            self._pop()
+            return Var(token or "")
+        raise ParseError("factor")
+
+    def _set(self) -> Term:
+        self._pop()
+        if self._peek() == "}":
+            self._pop()
+            return App("set", ())
+        if self._starts_collect():
+            return self._collect()
+        items: list[Term] = []
+        while True:
+            items.append(self._arith())
+            if self._peek() == ",":
+                self._pop()
+                continue
+            if self._peek() == "}":
+                self._pop()
+                return App("set", tuple(items))
+            raise ParseError("set")
+
+    def _starts_collect(self) -> bool:
+        token = self._peek()
+        if token is None or not (token[:1].isalpha() or token.startswith("_")):
+            return False
+        return self._ahead(1) in {"in", "."}
+
+    def _collect(self) -> Term:
+        binder = self._pop()
+        marker = self._pop()
+        if binder is None or marker not in {"in", "."}:
+            raise ParseError("set")
+        if marker == "in":
+            domain = self._expr()
+            if self._pop() != ".":
+                raise ParseError("set")
+        else:
+            domain = App("type", ())
+        predicate = self._predicate()
+        if self._pop() != "}":
+            raise ParseError("set")
+        return App("collect", (Var(binder), domain, predicate))
+
+    def _predicate(self) -> Term:
+        return self._implication()
+
+    def _implication(self) -> Term:
+        node = self._disjunction()
+        if self._peek() == "implies":
+            self._pop()
+            return App("implies", (node, self._predicate()))
+        return node
+
+    def _disjunction(self) -> Term:
+        node = self._conjunction()
+        while self._peek() == "or":
+            self._pop()
+            node = App("or", (node, self._conjunction()))
+        return node
+
+    def _conjunction(self) -> Term:
+        node = self._negation()
+        while self._peek() == "and":
+            self._pop()
+            node = App("and", (node, self._negation()))
+        return node
+
+    def _negation(self) -> Term:
+        if self._peek() == "not":
+            self._pop()
+            return App("not", (self._negation(),))
+        if self._peek() == "(" and self._paren_holds_predicate():
+            self._pop()
+            node = self._predicate()
+            if self._pop() != ")":
+                raise ParseError("set")
+            return node
+        return self._comparison()
+
+    def _comparison(self) -> Term:
+        left = self._expr()
+        op = self._peek()
+        if op not in {"<=", "=", "<"}:
+            raise ParseError("set")
+        self._pop()
+        right = self._expr()
+        name = {"<=": "le", "=": "eq", "<": "lt"}[op]
+        return App(name, (left, right))
+
+    def _paren_holds_predicate(self) -> bool:
+        depth = 0
+        offset = 0
+        while True:
+            token = self._ahead(offset)
+            if token is None:
+                return False
+            if token == "(":
+                depth += 1
+            elif token == ")":
+                depth -= 1
+                if depth == 0:
+                    return False
+            elif token in {"<=", "<", "=", "and", "or", "not", "implies"}:
+                return True
+            offset += 1
+
+    def _ahead(self, offset: int) -> str | None:
+        index = self.index + offset
+        if index >= len(self.tokens):
+            return None
+        return self.tokens[index]
+
+    def _peek(self) -> str | None:
+        if self.index >= len(self.tokens):
+            return None
+        return self.tokens[self.index]
+
+    def _pop(self) -> str | None:
+        token = self._peek()
+        if token is not None:
+            self.index += 1
+        return token
+
+
+def _tokenize(text: str) -> list[str]:
+    tokens: list[str] = []
+    index = 0
+    depth = 0
+    while index < len(text):
+        char = text[index]
+        if char.isspace():
+            index += 1
+            continue
+        if char.isdigit():
+            end = index + 1
+            while end < len(text) and text[end].isdigit():
+                end += 1
+            tokens.append(text[index:end])
+            index = end
+            continue
+        if char.isalpha() or char == "_":
+            end = index + 1
+            while end < len(text) and (text[end].isalnum() or text[end] == "_"):
+                end += 1
+            tokens.append(text[index:end])
+            index = end
+            continue
+        if char == "{":
+            depth += 1
+            tokens.append(char)
+            index += 1
+            continue
+        if char == "}":
+            depth = max(0, depth - 1)
+            tokens.append(char)
+            index += 1
+            continue
+        if char == ".":
+            if depth <= 0:
+                raise ParseError("character")
+            tokens.append(".")
+            index += 1
+            continue
+        if char == "<":
+            if depth > 0 and index + 1 < len(text) and text[index + 1] == "=":
+                tokens.append("<=")
+                index += 2
+                continue
+            if depth > 0:
+                tokens.append("<")
+                index += 1
+                continue
+            raise ParseError("character")
+        if char == "=":
+            if depth <= 0:
+                raise ParseError("character")
+            tokens.append("=")
+            index += 1
+            continue
+        if char in "+-*/(),":
+            tokens.append(char)
+            index += 1
+            continue
+        raise ParseError("character")
+    return tokens

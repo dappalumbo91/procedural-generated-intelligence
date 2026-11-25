@@ -1,0 +1,70 @@
+# Procedural Generated Intelligence
+
+A desktop project for an intelligence that unfolds from compact rules, seeds, and composition functions, the way *No Man's Sky* unfolds a planet from a seed.
+
+The founding brief is [CONCEPT.md](CONCEPT.md). The reaching goal is [GOAL.md](GOAL.md). What the kernel holds, and the results through this slice, are in [RESULTS.md](RESULTS.md). The runnable kernel is `pgi`, version `pgi-0.28.0`.
+
+## What this folder stores
+
+Generative rules, latent seeds, constraint grammars, and context-driven synthesis functions. A prompt arrives, and thoughts, reasoning chains, and world models unfold from those.
+
+Large language model design and other artificial intelligence systems are reference points while this is built. The working shape is a hybrid: compact learned modules supply intuition and representations, and procedural rule engines handle structure, verification, and on-demand expansion.
+
+## Layers
+
+1. Seed and context anchoring
+2. Layered generative rules: base, domain, detail
+3. Constraint solvers and co-occurrence filters
+4. On-demand expansion
+
+Opened 2026-11-24. Short name: PGI.
+
+## Run
+
+From this folder:
+
+```powershell
+python -m unittest discover -s tests -v
+python -m pgi --demo
+python -m pgi "why is the path risky?" --fact rain --fact above_freezing --lod 2 --seed 1
+python -m pgi "what is 17 plus 13?" --lod 2
+python -m pgi "what is 2 + 3 * 4"
+python -m pgi "prove x + y = y + x" --lod 2
+python -m pgi "what is length * width" --fact "length=4@meter stick" --fact "width=3@meter stick" --lod 2
+python -m pgi "prove 2 <= 5" --lod 2
+python -m pgi "prove 1 + 1 <= 3" --lod 2
+python -m pgi "what is 1/2 + 1/3" --lod 2
+python -m pgi "what is sqrt(2)" --lod 2
+python -m pgi "what is sup {1, sqrt(2)}" --lod 2
+python -m pgi "prove complete {1, sqrt(2)}" --lod 2
+python -m pgi "what is {x in {1, 2, 3}. x <= 2}" --lod 2
+python -m pgi "what is {x. x <= 2}" --lod 2
+python -m pgi "what is sup {x. x <= 2}" --lod 2
+python -m pgi "what happened with the opera neutrinos" --lod 2
+.\run.ps1
+```
+
+`--lod 0` is the outline. `--lod 1` names the claims. `--lod 2` unfolds the detail under those claims. `--zoom causal.slip_water=2` opens one node. `--journal journal.jsonl` appends a seed record.
+
+## Kernel
+
+`pgi` anchors a seed, saturates the active rule packs, then retracts any contradictory claims and the claims that rest on them. Rendering is a separate zoom. The claim set is already fixed before the outline is drawn.
+
+- `pgi/math/` is the kernel, version `pgi-0.28.0`. A theorem is built only by a checked rule. The integer laws are the ring shared by Lean 4.36, Isabelle2025-2 HOL, and Coq's ZArith: equality, congruence, commutativity, associativity, identities, inverses, and distributivity. Integer order adds reflexivity, transitivity, antisymmetry, addition on the left, `Int.le_of_eq`, a true numeral comparison, and the negation of a false one. A compound side is compared only after those equality rules reduce it.
+- Closed integer expressions reduce by those ring laws. Non-negative addition and subtraction also reconstruct the result from the digits, and the kernel keeps the step only when that reconstruction agrees with the ring operation. `2 + 3 * 4` is 14. `17 + 13 + 1` is 31. An exact integer quotient stays on that path.
+- Closed rationals are reduced fractions. The denominator is positive and the numerator carries the sign. Addition, subtraction, multiplication, negation, and division use the Lean `Rat` operations and the Isabelle `Rat.thy` lemmas, then reduce. Equality is Isabelle `eq_rat`. Comparison is Isabelle `le_rat`. A fraction that reduces to denominator 1 is an integer. `8 / 2` is 4. `8 / 3` is 8/3. `1/2 + 1/3` is 5/6. `8 / 0` stays open.
+- The continuum is the Cauchy quotient of the rationals from Isabelle `Real.thy`. A constant sequence is a rational. A positive square root is the bisection sequence whose width halves at every step. Square factors move into the coefficient. `sqrt(4)` is 2. `sqrt(2)` is the class `cauchy(sqrt(2))`. `sqrt(8)` is `2 * sqrt(2)`. `sqrt(2) * sqrt(2)` is 2. Comparison uses a strict rational enclosure of that sequence. A nested radical of one square-free integer is a tower `base^(odd/2^k)`. `sqrt(sqrt(2))` is `cauchy(sqrt(sqrt(2)))`, and its square is `sqrt(2)`. `sqrt(3 + 2*sqrt(2))` is `cauchy(1 + sqrt(2))` by `real_sqrt_unique`. `sqrt(2 + sqrt(2))` is `cauchy(sqrt(2 + sqrt(2)))` by the same rule, and its square is `2 + sqrt(2)`. `sqrt(sqrt(2) + sqrt(3))` is `cauchy(1/2 * sqrt(-2 + 2 * sqrt(3)) + 1/2 * sqrt(2 + 2 * sqrt(3)))` by the same rule, and its square is `sqrt(2) + sqrt(3)`. A negative radicand stays open. A sum of two different square roots stays that sum. `sqrt(sqrt(2) + sqrt(5))` is `cauchy(sqrt(sqrt(2) + sqrt(5)))` by the same rule, and its square is `sqrt(2) + sqrt(5)`. Its inverse is `1/3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))`. `sqrt(sqrt(2 + sqrt(2)))` is `cauchy(sqrt(sqrt(2 + sqrt(2))))` by the same rule, and its square is `sqrt(2 + sqrt(2))`. Its inverse is `sqrt(sqrt(20 + 14 * sqrt(2))) - 1/2 * sqrt(2 * sqrt(20 + 14 * sqrt(2)))`. `sqrt(sqrt(sqrt(2) + sqrt(5)))` is `cauchy(sqrt(sqrt(sqrt(2) + sqrt(5))))` by the same rule, and its square is `sqrt(sqrt(2) + sqrt(5))`. Its inverse is `1/3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))`. `sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))` by the same rule, and its square is `sqrt(sqrt(sqrt(2) + sqrt(5)))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))` by the same rule, and its square is `sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))` by the same rule, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))))` by the same rule, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))))` is that nested radical by `real_sqrt_unique`, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))`. Every further finite square root of this radical is the same rule, one square root deeper. Every further finite square root of one positive binomial nest is the same nested radical, one square root deeper. `sqrt(sqrt(sqrt(2 + sqrt(2))))` is that nested radical by `real_sqrt_unique`, and its square is `sqrt(sqrt(2 + sqrt(2)))`. The inverse of `sqrt(sqrt(2) + sqrt(3))` is `-1/2 * sqrt(-2 + 2 * sqrt(3)) + 1/2 * sqrt(2 + 2 * sqrt(3))`. A radicand the kernel cannot see as nonnegative stays open. Division by another element of this span multiplies by the inverse. `sqrt(2)/sqrt(3)` is `1/3 * sqrt(6)`, and `1/(1+sqrt(2))` is `-1 + sqrt(2)`. A product of radicals at different levels is one integer to the power `1/2^k`. `sqrt(2)*sqrt(sqrt(3))` is `sqrt(sqrt(12))`, and `sqrt(sqrt(2))/sqrt(sqrt(3))` is `1/3 * sqrt(sqrt(54))`. A divisor the kernel cannot see as nonzero stays open. Core Lean 4.36 has no `Real`.
+- A finite set is an enumeration of those reals, built by Isabelle `empty` and `insert`. Membership, union, intersection, inclusion, and extensional equality compare normal forms. `{2, 2, 1}` is `{1, 2}`. `{1, 2} union {2, 3}` is `{1, 2, 3}`. The least upper bound of a nonempty finite set is its maximum: `sup {1, sqrt(2)}` is `sqrt(2)`, and `sup {1, 2}` is 2. Isabelle `complete_real` is that statement for an arbitrary nonempty set that is bounded above. The arbitrary case stays open. The empty set has no least upper bound in that statement. Core Lean 4.36 has `EmptyCollection`, `Membership`, `Insert`, `Union`, `Inter`, and `Singleton`, and it has no `Set` or `Finset`.
+- A bounded quantifier is Isabelle `Ball` or `Bex` over a finite enumeration. `all x in {1, 2}. x <= 2` holds. A failing universal names its first counterexample. An existential names a witness. The empty universal holds and the empty existential fails, and that body is not evaluated. `prove complete {1, sqrt(2)}` states the finite least-upper-bound claim, with witness `sqrt(2)`. An unbounded quantifier stays open except for reflexivity, a closed equality witness, and leastness when the bound is a member. A bound strictly above the maximum is refuted at that maximum. The proof of `complete_real` for an arbitrary set stays outside this rule. A comprehension is a separate primitive. Core Lean 4.36 resolves `Exists`. `forall` is a keyword there.
+- A comprehension is Isabelle `Collect`. Separation `{x in {1, 2, 3}. x <= 2}` is the finite subset `{1, 2}`. The empty domain is empty, and that body is not evaluated. `{x. x = 2}` and `{x. sqrt(2) = x}` are the singletons of those closed terms, by `singleton_conv` and `singleton_conv2`. Membership in an unbounded comprehension is the predicate at that element. Two unbounded comprehensions with the same predicate are one set, by `Collect_cong`. An order ray is a separate primitive. Core Lean 4.36 does not resolve `Collect`, `Set.sep`, or `setOf`.
+- An arbitrary set is an order ray or the set of every real. `{x. x <= 2}` is `atMost(2)`. `{x. sqrt(2) <= x}` is `atLeast(sqrt(2))`. `{x. x = x}` and `{x. x <= x}` are `univ`, the set of every real. Inclusion follows the bounds by `atMost_subset_iff` and `atLeast_subset_iff`. A ray is not a finite enumeration, by `infinite_Iic` and `infinite_Ici`. `{x. x <= 2}` intersect `{x. 2 <= x}` is the singleton `{2}`. A proper overlap of a lower ray and an upper ray is the two-sided interval. `{x. 1 <= x}` intersect `{x. x <= 3}` is `atLeastAtMost(1, 3)`, and its supremum is 3 by `cSup_atLeastAtMost`, because the upper bound is a member. `{x. 1 <= x}` intersect `{x. x < 3}` has the same supremum by `cSup_atLeastLessThan`: the upper bound is not a member, and the kernel builds it by the Archimedean bisection. `sup {x. x <= 5}` is 5, and `prove complete {x. x <= 5}` is the least-upper-bound claim for that down-ray, by `cSup_atMost`. `{x. x < 5}` is `lessThan(5)`. The bound is not a member. `sup {x. x < 5}` is 5, and `prove complete {x. x < 5}` is the least-upper-bound claim for that open ray: the kernel runs the Archimedean bisection in the proof of `complete_real`, and `cSup_lessThan` names the result. An up-ray, open or closed, is not bounded above. A predicate that is not a lessThan ray or an interval with an open upper end stays outside that bisection. `{x. 1 <= x and x <= 3}` is that same closed interval, by `Collect_conj_eq`. The complement of an order ray is the opposite ray, by `Collect_neg_eq`. A disjunction of two closed equalities is their union, by `Collect_disj_eq`. Core Lean 4.36 does not resolve `Set.Iic`, `Set.Ici`, `Set.Iio`, or `Set.univ`.
+- GNU Octave 11.3.0 cross-checks closed integers that fit in the exact range of an IEEE double. Octave is not used for rationals, reals, sets, quantifiers, comprehensions, order rays, intervals, or boolean connectives.
+- A measurement enters as `--fact name=value@source`. Two sources that disagree on the same name are retracted together. A number with no source is not a measurement.
+- `pgi/packs/causal.py` is the first domain pack. It turns weather, cover, and light into path risk.
+- `rules/local.json` is the editable rule store. It ships as an empty list.
+- The same seed and rule version replay the same path. A new seed can reorder independent reasons and pick another legal detail line. It does not invent a missing fact.
+- A contradiction is retracted and listed. The two sides are not blended into one answer.
+- `pgi/corpus/records.py` is the link board. A sourced record unfolds when the ask names its subject. The record is not a settled answer. Re-asserting a forbidden law contests that law against the record. The board is the start of the reaching goal in [GOAL.md](GOAL.md). No physical constant is derived there.
+- An ask outside the packs stays an open gap. A predicate that is not a lessThan ray or an open-upper interval stays outside the bisection. A boolean connective whose sides the kernel cannot settle stays outside. A sum of two different square roots stays that sum. The inverse of `sqrt(sqrt(sqrt(2 + sqrt(2))))` stays outside. `sqrt(1 + sqrt(2) + sqrt(5))` stays outside. A nest times a pair stays outside. A radicand the kernel cannot see as nonnegative stays open. A divisor the kernel cannot see as nonzero stays open. An inequality on free variables stays open. An unbounded quantifier stays open unless a uniform reason covers it. Division by zero stays open. Physics laws are not in this slice.
+
+Level of detail changes what is shown. It does not recompute the claims.

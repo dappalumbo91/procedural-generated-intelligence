@@ -1,0 +1,133 @@
+# Overall goal
+
+Procedural Generated Intelligence is a procedural intelligence. Compact rules, seeds, and constraints unfold structure when a prompt arrives. A checked theorem is how a claim is allowed to settle. It is the discipline for connecting information. It is the end product only for a claim that has actually been proved.
+
+The reaching goal is a theory of reality in the sense of source code. Physical law is the rule. Observed reality is what that rule does when it runs. The theory is built from sourced information, mathematical proof, and recorded failures. It is aimed at the real world.
+
+That theory is not in this folder. Nothing here is a Theory of Everything. No particle mass, coupling, or cosmological number has been derived. A number enters as a sourced anchor or it stays out.
+
+The founding brief for the four layers is [CONCEPT.md](CONCEPT.md). This document is the reaching goal those layers are for.
+
+## The path
+
+The usual route writes a candidate Lagrangian or a candidate discrete dynamics and then asks whether nature matches it. This project runs the other way.
+
+Information is admitted only with a source. Rules link it to what is already on the board. A contradiction is retracted and written down. A known mistake stays blocked, so a later session cannot promote it into a law by forgetting why it failed. Mathematics is extended from the same strict systems already used for the integers, and a physical claim has to be earned in that mathematics. Measured parameters stay measured. Derived quantities stay derived. The two lists are different objects.
+
+The work is first principles from the ground up: primitive mathematics, then the relations those primitives support, then sourced observations, then only those physical claims that survive the criteria below.
+
+## What the source code would have to be
+
+A candidate that deserves the name has to meet the physical, structural, and empirical bars below. Meeting a bar means a proof or a sourced comparison inside this system. A paragraph that says the bar is desirable does not meet it.
+
+### Physical
+
+The rules have to recover gravity and spacetime: curved spacetime, or an emergent geometry and causal structure that does the same work, including frame-dragging, gravitational waves, and black-hole thermodynamics, including at singularities and extreme density.
+
+The rules have to recover quantum mechanics and the Standard Model: superposition, entanglement, uncertainty, the gauge symmetries, and the electromagnetic, weak, and strong interactions, with the particles and masses that are actually observed.
+
+Quantum theory and gravity have to be one framework. General relativity is classical on a geometry it helps determine. Quantum field theory is probabilistic on a background it does not determine. A source code that copies both assumptions into adjacent chapters has not unified them. The non-renormalizable ultraviolet divergences of perturbative Einstein gravity are a recorded obstruction, not a license to ignore them.
+
+At macroscopic scales and high entropy the same rules have to yield classical mechanics, the conservation of energy, momentum, charge, and angular momentum, and the thermodynamic arrow of time.
+
+### Structural
+
+The axiom list stays small. Particle masses, couplings, and one-off quirks of our universe are not typed in as lookup tables and then called laws. A constant is either derived from the compact rules, from boundary or initial data, or from a named symmetry breaking, or it is labeled a measured parameter. The label is part of the claim.
+
+Symmetries that nature uses, including Lorentz invariance, gauge invariance, and CPT, are either in the update rule or emerge across scales so reliably that energy and charge do not drift. A drift that appears only because a numerical scheme failed conservation is a bug in the scheme.
+
+Updates respect causal structure. Signals stay inside the light cone. Entanglement is allowed. Signaling by entanglement is not.
+
+The same rules have to coarse-grain. A Planck-scale step, an atom, a chemical reaction, a living system, and a cosmological evolution are different resolutions of one dynamics, through an explicit renormalization or coarse-graining map.
+
+The state space and the update are mathematically unambiguous. Rewrite rules, graph automata, path integrals, quantum circuits, and differential operators are all admissible shapes. A shape that can be read two ways is not admitted.
+
+### Empirical
+
+The rules have to agree with the precision record already in hand: quantum-electrodynamic comparisons, gravitational-wave observations, atomic clocks, collider measurements. A conflict with that record retracts the claim.
+
+Agreement with old data is the entrance condition. A candidate also has to name a new observation that could show it is wrong: a quantum-gravity signature, a dark-matter or dark-energy behavior, or a particle-physics constraint, stated tightly enough to fail.
+
+A rule can be computable and still be too expensive to run on a large system. The research program then needs an approximation, an effective theory, or a reduction that connects the micro-rule to a macroscopic observable, and that approximation is labeled as an approximation.
+
+## The five steps
+
+1. **Name the primitive state.** Say what exists at the bottom: fields, quantum states, causal graphs, strings, or informational degrees of freedom. The current primitive is the integer, plus a sourced observable of the form `name=value@source`.
+2. **Name the evolution or the relation.** Say how states update, interact, or constrain one another. Today this is the integer ring, integer order including compound expressions that reduce to integers, and the retraction of a contradiction.
+3. **Derive spacetime and the observables.** Show space, time, measurement, and particles coming out of that dynamics. Not started.
+4. **Recover known physics as limits.** Low energy, large scale, weak gravity, and decoherence have to give general relativity and the Standard Model back. Not started. An effective limit, once it exists, is linked as a limit. It is not relabeled as the source code.
+5. **Face experiments.** Keep every precision result that already stands. Publish new predictions that can fail. The board below is the start of step 5's negative half: claims that already failed stay failed.
+
+## How a claim is allowed to move
+
+| Standing | What it is | What a later rule may do with it |
+| --- | --- | --- |
+| Theorem | Built by a checked mathematical rule | Use it |
+| Definitional anchor | Fixed by a unit definition, with the defining body cited | Use the defined value; a rule that claims to have derived it is blocked |
+| Measured anchor | `name=value@source` with a non-empty source | Use it as data; two sources that disagree are both retracted |
+| Experimental bound | A cited limit, such as a lifetime lower bound | A model that sits on the wrong side of the bound is blocked |
+| Obstruction | A cited no-go or divergence | The blocked approach stays blocked |
+| Known mistake | A claim that was made and later failed, with the reason and the source | Re-asserting it contests the board; it does not become a law |
+| Open problem | A cited mismatch with no stored solution | Stays open; a ratio or a fix has to arrive as its own sourced record |
+| Effective limit | A coarser theory recovered in a named regime | Usable inside that regime; not promoted to the source code |
+| Hypothesis | A proposed link that is not yet a theorem | May be explored; may not be rendered as a settled result |
+
+A seed may reorder independent lines and choose a legal detail. A seed may not invent a fact, pick a winner in a clash, or turn a hypothesis into a theorem.
+
+Learned modules, if they are added later, supply intuition and candidate links. They do not override a retraction, a bound, or a checked proof.
+
+## Where the work stands
+
+Rule version `pgi-0.28.0`.
+
+In the kernel now:
+
+- Integer equality, the ring laws, digit reconstruction, and exact division, under the Lean 4.36 names and the matching Isabelle2025-2 HOL names. Coq ZArith names are recorded beside the equality laws and were not executed here.
+- Integer order for a reflexive claim, a transitive chain built in the kernel, antisymmetry, addition on the left, `Int.le_of_eq`, a true comparison of two numerals, and the negation of a false numeral comparison. A compound side is compared only after the equality kernel has reduced it. Two free variables still do not get a direction from totality.
+- Closed rationals. A value is a reduced fraction with a positive denominator. The field operations then reduce. Equality uses Isabelle `eq_rat`. Comparison uses Isabelle `le_rat`. A denominator of 1 is an integer. Division by zero stays open. A free variable is not given a field identity.
+- A constructed continuum for the sequences this kernel can check. Isabelle `Real.thy` builds a real as a Cauchy sequence of rationals modulo vanishing differences. Constant sequences are the rationals. A positive square root is a bisection sequence with a checked modulus, and its square differs from the radicand by a vanishing sequence. Square factors move into the coefficient. Order of these expressions is a strict rational enclosure. Core Lean 4.36 has no real type. A nested radical of one square-free integer is a tower `base^(odd/2^k)`. `sqrt(sqrt(2))` is that positive fourth root, and `sqrt(3 + 2*sqrt(2))` is `1 + sqrt(2)` by `real_sqrt_unique`. `sqrt(2 + sqrt(2))` is `sqrt(2 + sqrt(2))` by the same rule, and its square is `2 + sqrt(2)`. `sqrt(sqrt(2) + sqrt(3))` is `1/2 * sqrt(-2 + 2 * sqrt(3)) + 1/2 * sqrt(2 + 2 * sqrt(3))` by the same rule, and its square is `sqrt(2) + sqrt(3)`. A negative radicand stays open. A sum of two different square roots stays that sum. `sqrt(sqrt(2) + sqrt(5))` is `cauchy(sqrt(sqrt(2) + sqrt(5)))` by the same rule, and its square is `sqrt(2) + sqrt(5)`. Its inverse is `1/3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))`. `sqrt(sqrt(2 + sqrt(2)))` is `cauchy(sqrt(sqrt(2 + sqrt(2))))` by the same rule, and its square is `sqrt(2 + sqrt(2))`. Its inverse is `sqrt(sqrt(20 + 14 * sqrt(2))) - 1/2 * sqrt(2 * sqrt(20 + 14 * sqrt(2)))`. `sqrt(sqrt(sqrt(2) + sqrt(5)))` is `cauchy(sqrt(sqrt(sqrt(2) + sqrt(5))))` by the same rule, and its square is `sqrt(sqrt(2) + sqrt(5))`. Its inverse is `1/3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))`. `sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))` by the same rule, and its square is `sqrt(sqrt(sqrt(2) + sqrt(5)))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))` by the same rule, and its square is `sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))` by the same rule, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))` is `cauchy(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))))` by the same rule, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))))` is that nested radical by `real_sqrt_unique`, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))`. Every further finite square root of this radical is the same rule, one square root deeper. Every further finite square root of one positive binomial nest is the same nested radical, one square root deeper. `sqrt(sqrt(sqrt(2 + sqrt(2))))` is that nested radical by `real_sqrt_unique`, and its square is `sqrt(sqrt(2 + sqrt(2)))`. The inverse of `sqrt(sqrt(2) + sqrt(3))` is `-1/2 * sqrt(-2 + 2 * sqrt(3)) + 1/2 * sqrt(2 + 2 * sqrt(3))`. A radicand the kernel cannot see as nonnegative stays open. Division by another element of this span multiplies by the inverse. `sqrt(2)/sqrt(3)` is `1/3 * sqrt(6)`, and `1/(1+sqrt(2))` is `-1 + sqrt(2)`. A product of radicals at different levels is one integer to the power `1/2^k`. `sqrt(2)*sqrt(sqrt(3))` is `sqrt(sqrt(12))`, and `sqrt(sqrt(2))/sqrt(sqrt(3))` is `1/3 * sqrt(sqrt(54))`. A divisor the kernel cannot see as nonzero stays open. Isabelle's inverse of zero is refused.
+- Finite sets of those reals. Isabelle `empty` and `insert` build the enumeration. Membership, union, intersection, inclusion, and equality are checked by comparing elements. A repeated element is one member. The least upper bound of a nonempty finite set is its maximum, by `Max_in`, `Max_ge`, `cSup_eq_maximum`, and `cSup_eq_Max`. That is the finite case of `complete_real`. The empty set is outside that statement. An arbitrary set stays outside this rule. Core Lean 4.36 has the collection typeclasses and has no `Set` or `Finset` type.
+- Quantifiers over those enumerations. Isabelle `Ball` and `Bex` check `<=` and `=` at each member. The empty universal holds and the empty existential fails. `prove complete {1, sqrt(2)}` states the finite least-upper-bound claim: the witness is the maximum, checked with `ballI`, `bspec`, `Max_in`, `Max_ge`, and `Max_le_iff`. An unbounded quantifier stays open except for reflexivity, an equality witness that is the closed term, and leastness when the bound is a member. A bound strictly above the maximum is refuted by `spec` at that maximum. The proof of `complete_real` for an arbitrary set stays outside this rule. An order ray is a separate primitive. Core Lean 4.36 resolves `Exists`. `forall` is a keyword there.
+- Comprehensions. Isabelle `Collect` separates a finite enumeration by `<=` or `=`, and `finite_subset` keeps the result finite. `{x in {1, 2, 3}. x <= 2}` is `{1, 2}`. The empty domain is empty, and that body is not evaluated. `{x. x = a}` and `{x. a = x}` are the singleton of a closed term, by `singleton_conv` and `singleton_conv2`. An order ray is a separate primitive. Core Lean 4.36 does not resolve `Collect`.
+- Arbitrary sets. `{x. x <= a}` is atMost a. `{x. a <= x}` is atLeast a. `{x. x = x}` and `{x. x <= x}` are the set of every real. Inclusion and equality follow the bounds, and a shifted witness shows a ray is not a finite enumeration. `{x. x <= a}` intersect `{x. a <= x}` is the singleton of that bound. A proper overlap of a lower ray and an upper ray is the two-sided interval: `atLeastAtMost`, `greaterThanAtMost`, `atLeastLessThan`, or `greaterThanLessThan`. The supremum is the upper bound. A closed upper end is a member, so `cSup_eq_maximum` applies, named by `cSup_atLeastAtMost` or `cSup_greaterThanAtMost`. An open upper end is not a member. `cSup_atLeastLessThan` and `cSup_greaterThanLessThan` name that fact, and the kernel builds it by the Archimedean bisection. The supremum of an atMost ray is its bound, by `cSup_atMost`, because the bound is a member and an upper bound. `{x. x < a}` is lessThan a. The bound is not a member. The supremum is that bound, built by the Archimedean bisection in the proof of `complete_real`: a floor that fails to be an upper bound, a ceiling that is one, and midpoints whose width is the initial gap over a power of two. `cSup_lessThan` names that fact. `{x. a < x}` is greaterThan a and is not bounded above. A predicate that is not a lessThan ray or an interval with an open upper end stays outside that bisection. A conjunction of two comparisons is the intersection of those comprehensions, by Collect_conj_eq. The complement of an order ray is the opposite ray, by Collect_neg_eq. A disjunction of two closed equalities is their union, by Collect_disj_eq. Core Lean 4.36 does not resolve `Set.Iic`, `Set.Ici`, `Set.Iio`, or `Set.univ`.
+- Sourced observables. A bare number is not a measurement. Disagreeing sources retract.
+- A link board. Asking about a subject already on the board unfolds the sourced record. The record is not a settled answer. Re-asserting a forbidden law contests that law against the record.
+- The causal path-risk pack, seeds, level of detail, and clash retraction from the first kernel.
+
+Still outside the kernel, and required before a physical law can be written:
+
+- A set whose upper-bound predicate the kernel cannot decide. The bisection runs for a lessThan ray and for an interval whose upper end is open. A boolean connective whose sides the kernel cannot settle stays outside. A sum of two different square roots stays that sum. The inverse of `sqrt(sqrt(sqrt(2 + sqrt(2))))` stays outside. `sqrt(1 + sqrt(2) + sqrt(5))` stays outside. A nest times a pair stays outside. A radicand the kernel cannot see as nonnegative stays open. A divisor the kernel cannot see as nonzero stays open.
+- Linear algebra, manifolds, differential geometry, Hilbert space, and gauge theory.
+- Any encoding of general relativity or the Standard Model.
+- CODATA recommended values, the Particle Data Group listings, gravitational-wave catalogs, and atomic-clock comparisons. They will enter as sourced anchors or bounds. They will not be typed in as theorems.
+- The Mercury perihelion residual, in arcseconds, once a sourced reduction is admitted. Newtonian gravity is the historical effective theory that left that residual. The number itself is not stored, because it has not been admitted as an observable.
+- A stored spectral formula for the Rayleigh–Jeans tail. The failure itself is on the board. The formula is not.
+
+## The board
+
+The records live in `pgi/corpus/records.py`. Each one has a source. Experimental and definitional records also have the page or the DOI that was used. None of them emits a `value(...)` claim.
+
+| Id | Standing | What is linked |
+| --- | --- | --- |
+| `known.opera_timing` | Known mistake | The 2011 OPERA timing anomaly is not a superluminal neutrino. CERN's 8 June 2012 update: Borexino, ICARUS, LVD, and OPERA measured a time of flight consistent with light, and the original measurement is attributed to a faulty element of the fibre-optic timing system. |
+| `known.mechanical_ether_required` | Known mistake | A mechanical ether is not required for light. Michelson and Morley, American Journal of Science 34 (1887) 333–345, reported no significant Earth-ether drift at that sensitivity. FitzGerald and Lorentz kept an ether by adding contraction. Michelson and Morley did not themselves abandon the ether. |
+| `obstruction.perturbative_einstein` | Obstruction | Goroff and Sagnotti: the S-matrix of pure Einstein gravity diverges at two loops in four dimensions. Perturbative Einstein-Hilbert quantum gravity is not an ultraviolet-complete source code. The result does not choose the replacement. |
+| `bound.sk_proton` | Experimental bound | Super-Kamiokande, Phys. Rev. D 102, 112011 (2020): in 450 kton·years from April 1996 to May 2018, no candidates for `p → e+ π0`, and `τ/B > 2.4 × 10^34` years at 90% CL. One `p → μ+ π0` candidate is consistent with atmospheric-neutrino background, with `τ/B > 1.6 × 10^34` years at 90% CL. A model whose predicted partial lifetime sits below the matching bound is blocked. No grand-unified lifetime is stored. The bound does not exclude every unified model. |
+| `anchor.c_si` | Definitional anchor | The BIPM definition of the metre fixes `c` at `299792458` m/s exactly. That is a unit definition. It is not a number this system derived. |
+| `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |
+| `known.rayleigh_jeans` | Known mistake | Classical equipartition does not give the blackbody spectrum. Rayleigh, Phil. Mag. 49 (1900) 539–540. Jeans, Phil. Mag. 10 (1905) 91–98, and Proc. R. Soc. A 76 (1905) 545–552: the equipartition law sends the energy into waves of infinitesimal wavelength and is not the radiation found in nature. No spectral formula is stored. |
+| `primitive.integer_ring` | Math primitive | The integer ring already checked in `pgi/math`. It is arithmetic, not a physical law. |
+| `primitive.rationals` | Math primitive | Closed rationals are exact reduced fractions. Division by zero stays open. This is arithmetic, not a physical law. |
+| `primitive.continuum` | Math primitive | The continuum in this kernel is the Cauchy quotient of the rationals. Constant sequences and positive square-root sequences are admitted. The quantified finite least-upper-bound statement is the quantifier primitive. The proof for an arbitrary set stays outside. |
+| `primitive.finite_set` | Math primitive | A finite set is an enumeration of checked reals. The least upper bound of a nonempty finite set is its maximum. The empty set has none. An arbitrary set is outside this rule. |
+| `primitive.quantifier` | Math primitive | A bounded quantifier checks a predicate on a finite enumeration. The finite form of `complete_real` exhibits the maximum. An unbounded quantifier stays open unless a uniform reason covers it. A comprehension is a separate primitive. An order ray is a separate primitive. |
+| `primitive.comprehension` | Math primitive | Separation keeps the members of a finite enumeration that satisfy the predicate. The singleton equality comprehension is the closed term. An order ray is a separate primitive. |
+| `primitive.arbitrary_set` | Math primitive | An arbitrary set is an order ray, a two-sided interval, or the set of every real. `{x. x <= a}` is atMost a. `{x. a <= x}` is atLeast a. `{x. x < a}` is lessThan a. `{x. x = x}` is UNIV. The supremum of an atMost ray is its bound. The supremum of a lessThan ray is its bound, by the Archimedean bisection. The supremum of a two-sided interval is its upper bound. A conjunction of two comparisons is the intersection of those comprehensions. |
+
+Asking about one of these subjects prints the record and leaves the answer unsettled. Asserting the forbidden law, for example `law(neutrinos_exceed_c)` or `derived(c_si)`, contests that assertion against the record. The two sides are not averaged.
+
+## What a later session still has to do
+
+Keep admitting mathematics in the order the strict systems already use. A positive binomial `a + b*sqrt(n)` is settled by `real_sqrt_unique`. `sqrt(2+sqrt(2))` is `sqrt(2 + sqrt(2))`, and its square is `2 + sqrt(2)`. A square root of two square-free radicals denests by `real_sqrt_unique` when the difference of their squares is a rational square. `sqrt(sqrt(2)+sqrt(3))` is `1/2 * sqrt(-2 + 2*sqrt(3)) + 1/2 * sqrt(2 + 2*sqrt(3))`, and its square is `sqrt(2) + sqrt(3)`. `sqrt(sqrt(2)+sqrt(5))` is `sqrt(sqrt(2) + sqrt(5))` by `real_sqrt_unique`, and its square is `sqrt(2) + sqrt(5)`. Its inverse is `1/3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))`. `sqrt(sqrt(2+sqrt(2)))` is `sqrt(sqrt(2 + sqrt(2)))` by `real_sqrt_unique`, and its square is `sqrt(2 + sqrt(2))`. Its inverse is `sqrt(sqrt(20 + 14 * sqrt(2))) - 1/2 * sqrt(2 * sqrt(20 + 14 * sqrt(2)))`. `sqrt(sqrt(sqrt(2)+sqrt(5)))` is `sqrt(sqrt(sqrt(2) + sqrt(5)))` by `real_sqrt_unique`, and its square is `sqrt(sqrt(2) + sqrt(5))`. Its inverse is `1/3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))`. `sqrt(sqrt(sqrt(sqrt(2)+sqrt(5))))` is `sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))` by `real_sqrt_unique`, and its square is `sqrt(sqrt(sqrt(2) + sqrt(5)))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(2)+sqrt(5)))))` is `sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))` by `real_sqrt_unique`, and its square is `sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2)+sqrt(5))))))` is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))` by `real_sqrt_unique`, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5))))))`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2)+sqrt(5)))))))` is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))))` by `real_sqrt_unique`, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))`. Its inverse is `1/3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(3 * sqrt(-3 * sqrt(2) + 3 * sqrt(5)))))))`. Every further finite square root of this radical is the same nested radical, one square root deeper, by `real_sqrt_unique`. `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2)+sqrt(5))))))))` is that root, and its square is `sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(sqrt(2)+sqrt(5)))))))`. `sqrt(sqrt(sqrt(2+sqrt(2))))` is that nested radical by `real_sqrt_unique`, and its square is `sqrt(sqrt(2 + sqrt(2)))`. Every further finite square root of one positive binomial nest is the same rule, one square root deeper. The inverse of `sqrt(sqrt(2)+sqrt(3))` is `-1/2 * sqrt(-2 + 2 * sqrt(3)) + 1/2 * sqrt(2 + 2 * sqrt(3))`. The inverse of `sqrt(sqrt(sqrt(2+sqrt(2))))` stays outside. Keep admitting data the same way the board was admitted, one sourced record at a time, with the standing written on it. When a proposed physical rule appears, run it through the three bars and the five steps, and record the first bar it fails.
+
+A finished source code would be a small rule, plus named boundary data, whose limits reproduce the precision record and whose new predictions can be broken by an experiment. Until that exists, the honest output of this system is a linked board, a checked proof, or an open gap.
