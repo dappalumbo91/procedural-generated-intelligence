@@ -880,9 +880,38 @@ class ContinuumTests(unittest.TestCase):
         negative = run(Request(ask="what is sqrt(-sqrt(sqrt(sqrt(2) + sqrt(5))))", seed=1))
         self.assertIn("square root of a negative stays open", negative.text(lod=1))
         self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in negative.claims))
+        quotient_shown = (
+            '3/2 - sqrt(2) + 1/2 * sqrt(5) - 1/2 * sqrt(10)'
+            ' + 3/2 * sqrt(sqrt(2) + sqrt(5)) - sqrt(2 * sqrt(2) + 2 * sqrt(5))'
+            ' + 1/2 * sqrt(5 * sqrt(2) + 5 * sqrt(5)) - 1/2 * sqrt(10 * sqrt(2) + 10 * sqrt(5))'
+            ' + 3/2 * sqrt(sqrt(sqrt(2) + sqrt(5))) - sqrt(2 * sqrt(sqrt(2) + sqrt(5)))'
+            ' + 1/2 * sqrt(5 * sqrt(sqrt(2) + sqrt(5))) - 1/2 * sqrt(10 * sqrt(sqrt(2) + sqrt(5)))'
+            ' + 3/2 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))) - sqrt(2 * sqrt(17 * sqrt(2) + 11 * sqrt(5)))'
+            ' + 1/2 * sqrt(5 * sqrt(17 * sqrt(2) + 11 * sqrt(5))) - 1/2 * sqrt(10 * sqrt(17 * sqrt(2) + 11 * sqrt(5)))'
+            ' - 3/2 * sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))) + sqrt(2 * sqrt(sqrt(sqrt(2) + sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(sqrt(2) + sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(sqrt(2) + sqrt(5))))'
+            ' - 3/2 * sqrt(sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5)))) + sqrt(2 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))))'
+            ' - 3/2 * sqrt(sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5)))) + sqrt(2 * sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5))))'
+            ' - 3/2 * sqrt(sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5)))) + sqrt(2 * sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5))))'
+        )
         quotient = run(Request(ask="what is 1 / (1 + sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))", seed=1))
-        self.assertIn("this quotient stays outside", quotient.text(lod=1))
-        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in quotient.claims))
+        self.assertEqual(quotient.claims[0].atom, f"cauchy({quotient_shown})")
+        self.assertIn("inverse_unique", quotient.text(lod=2))
+        self.assertEqual(quotient.open_gaps, ())
+        quotient_back = run(
+            Request(
+                ask="prove (1 / (1 + sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))))) * (1 + sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))) = 1",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            quotient_back.claims[0].atom,
+            "identity(1 / (1 + sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))) * (1 + sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))) = 1)",
+        )
+        self.assertEqual(quotient_back.open_gaps, ())
         five = run(Request(ask="what is sqrt(1 + sqrt(2) + sqrt(5))", seed=1))
         self.assertEqual(five.claims[0].atom, "cauchy(sqrt(1 + sqrt(2) + sqrt(5)))")
         self.assertEqual(five.open_gaps, ())
@@ -1555,17 +1584,72 @@ class ContinuumTests(unittest.TestCase):
             )
         )
         self.assertEqual(reversed_ask.claims[0].atom, product.claims[0].atom)
+        peak = "sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))"
+        peak_shown = (
+            '3/2 - sqrt(2) + 1/2 * sqrt(5) - 1/2 * sqrt(10)'
+            ' + 3/2 * sqrt(sqrt(2) + sqrt(5)) - sqrt(2 * sqrt(2) + 2 * sqrt(5))'
+            ' + 1/2 * sqrt(5 * sqrt(2) + 5 * sqrt(5)) - 1/2 * sqrt(10 * sqrt(2) + 10 * sqrt(5))'
+            ' + 3/2 * sqrt(sqrt(sqrt(2) + sqrt(5))) - sqrt(2 * sqrt(sqrt(2) + sqrt(5)))'
+            ' + 1/2 * sqrt(5 * sqrt(sqrt(2) + sqrt(5))) - 1/2 * sqrt(10 * sqrt(sqrt(2) + sqrt(5)))'
+            ' + 3/2 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))) - sqrt(2 * sqrt(17 * sqrt(2) + 11 * sqrt(5)))'
+            ' + 1/2 * sqrt(5 * sqrt(17 * sqrt(2) + 11 * sqrt(5))) - 1/2 * sqrt(10 * sqrt(17 * sqrt(2) + 11 * sqrt(5)))'
+            ' - 3/2 * sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))) + sqrt(2 * sqrt(sqrt(sqrt(2) + sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(sqrt(2) + sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(sqrt(2) + sqrt(5))))'
+            ' - 3/2 * sqrt(sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5)))) + sqrt(2 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5))))'
+            ' - 3/2 * sqrt(sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5)))) + sqrt(2 * sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5))))'
+            ' - 3/2 * sqrt(sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5)))) + sqrt(2 * sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5))))'
+            ' - 1/2 * sqrt(5 * sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5)))) + 1/2 * sqrt(10 * sqrt(sqrt(3053 * sqrt(2) + 1931 * sqrt(5))))'
+        )
+        peak_inverse = run(Request(ask=f"what is 1 / (1 + {peak})", seed=1))
+        self.assertEqual(peak_inverse.claims[0].atom, f"cauchy({peak_shown})")
+        self.assertIn("inverse_unique", peak_inverse.text(lod=2))
+        self.assertEqual(peak_inverse.open_gaps, ())
+        peak_back = run(
+            Request(
+                ask=f"prove (1 / (1 + {peak})) * (1 + {peak}) = 1",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            peak_back.claims[0].atom,
+            f"identity(1 / (1 + {peak}) * (1 + {peak}) = 1)",
+        )
+        self.assertEqual(peak_back.open_gaps, ())
+        mixed = run(
+            Request(
+                ask="what is sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))) * sqrt(sqrt(2) + sqrt(5))",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            mixed.claims[0].atom,
+            "cauchy(sqrt(sqrt(sqrt(229 * sqrt(2) + 145 * sqrt(5)))))",
+        )
+        self.assertEqual(mixed.open_gaps, ())
+        high_product = run(
+            Request(
+                ask="what is sqrt(sqrt(sqrt(sqrt(2) + sqrt(5)))) * sqrt(sqrt(sqrt(2) + sqrt(5)))",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            high_product.claims[0].atom,
+            "cauchy(sqrt(sqrt(sqrt(17 * sqrt(2) + 11 * sqrt(5)))))",
+        )
+        self.assertEqual(high_product.open_gaps, ())
         fold = run(Request(ask="what is 1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))", seed=1))
         self.assertIn("this quotient stays outside", fold.text(lod=1))
         self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in fold.claims))
-        peak = run(
+        crest = run(
             Request(
                 ask="what is 1 / (1 + sqrt(sqrt(sqrt(sqrt(sqrt(2) + sqrt(5))))))",
                 seed=1,
             )
         )
-        self.assertIn("this quotient stays outside", peak.text(lod=1))
-        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in peak.claims))
+        self.assertIn("this quotient stays outside", crest.text(lod=1))
+        self.assertFalse(any(claim.atom.startswith("cauchy(") for claim in crest.claims))
 
     def test_integer_order_is_unchanged(self) -> None:
 
