@@ -992,3 +992,11 @@ Added the Galileo 5/6 redshift tests, Pound–Snider 1965, the Gravity Probe A a
 That is 15 records.
 
 `python -m unittest discover -s tests -v` finished 320 tests, 0 failures, about 137.59 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — nuclear half-lives and radii pgi-0.85.0
+
+Added DDEP and ENSDF half-lives for ³H, ¹⁴C, ⁴⁰K, ⁶⁰Co, ²³⁸U, and ²³²Th, ENSDF's neutron half-life, and 13 Angeli–Marinova charge radii. COVERAGE.md's nuclear row and top gap 5 are updated.
+
+That is 26 records.
+
+`python -m unittest discover -s tests -v` finished 324 tests, 0 failures, about 92.55 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

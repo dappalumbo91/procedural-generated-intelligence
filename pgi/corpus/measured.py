@@ -3058,7 +3058,67 @@ GPA_BOUND: tuple[Bound, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE
+_LIVECHART_URL = "https://www-nds.iaea.org/relnsd/v1/data?fields=ground_states&nuclides=all"
+_LIVECHART_NOTE = "Read from the IAEA LiveChart of Nuclides API, ground_states set (rows extracted 2023-10-18); the API guide credits charge radii to Angeli and Marinova (2013) and half-lives to ENSDF. The IAEA radii page itself is behind a browser check, so the API copy was read."
+_AM2013_SOURCE = "I. Angeli and K. P. Marinova, Table of experimental nuclear ground state charge radii: an update, At. Data Nucl. Data Tables 99, 69-95 (2013), doi:10.1016/j.adt.2011.12.006, as served by the IAEA LiveChart of Nuclides API"
+_DDEP_SOURCE = "LNE-LNHB/CEA, Table de Radionucleides (Decay Data Evaluation Project, DDEP), recommended data"
+
+
+def _am2013(key: str, nuclide: str, value: str, error: str) -> Quantity:
+    return _q(f"am2013.r_{key}", f"root-mean-square nuclear charge radius of {nuclide}", f"R({nuclide})", value, error, "fm",
+              kind="uncertainty as printed, level not stated", source=_AM2013_SOURCE, edition="ADNDT 99 (2013), via LiveChart API",
+              url="https://doi.org/10.1016/j.adt.2011.12.006", retrieved_from=_LIVECHART_URL, keys=("charge radius", "nuclear charge radius"),
+              phrases=("nuclear charge radii", "charge radius", "angeli marinova"),
+              notes=(f"The API row prints radius {value} and unc_r {error} (fm).", _LIVECHART_NOTE))
+
+
+def _ensdf(key: str, nuclide: str, value: str, error: str, unit: str, ensdf_style: str, cutoff: str) -> Quantity:
+    return _q(f"ensdf.t_half_{key}", f"half-life of {nuclide} (ENSDF)", f"T1/2({nuclide})", value, error, unit, kind="uncertainty as printed, level not stated",
+              source="Evaluated Nuclear Structure Data File (ENSDF), as served by the IAEA LiveChart of Nuclides API", edition=f"ENSDF, publication cut-off {cutoff}",
+              url="https://www.nndc.bnl.gov/ensdf/", retrieved_from=_LIVECHART_URL, keys=("half-life", "half life"), phrases=("nuclear half-lives", "half-lives", "half-life"),
+              notes=(f"The API row prints half_life {ensdf_style}; unc_hl is in ENSDF style (last digits), stored here as {error} {unit}.", _LIVECHART_NOTE))
+
+
+def _ddep(key: str, nuclide: str, value: str, error: str, unit: str, printed: str, pdf: str, evaluator: str, extra: tuple[str, ...] = ()) -> Quantity:
+    url = f"https://www.lnhb.fr/nuclides/{pdf}_tables.pdf"
+    return _q(f"ddep.t_half_{key}", f"half-life of {nuclide} (DDEP)", f"T1/2({nuclide})", value, error, unit, kind="uncertainty as printed, level not stated",
+              source=f"{_DDEP_SOURCE}, {pdf} tables, evaluation by {evaluator}", edition=f"DDEP {pdf} tables as served 2026-11-25", url=url, retrieved_from=url,
+              keys=("half-life", "half life"), phrases=("nuclear half-lives", "half-lives", "half-life"),
+              notes=(f"Section 2 prints {printed} (decimal comma, uncertainty in the last digits).",) + extra)
+
+
+NUCLEAR_DECAY_RADII: tuple[Quantity, ...] = (
+    _ddep("h3", "tritium", "12.312", "0.025", "a", "T1/2 (3H) : 12,312 (25) a", "H-3", "V. P. Chechev (KRI), 1998-2006"),
+    _ddep("c14", "carbon-14", "5700", "30", "a", "T1/2 (14C) : 5700 (30) a", "C-14", "V. P. Chechev and M. M. Be (KRI, LNHB), 1998-2012"),
+    _ddep("k40", "potassium-40", "1.2522 e9", "0.0027 e9", "a", "T1/2 (40K) : 1,2522 (27) 10^9 a", "K-40", "X. Mougeot (CEA-LNHB), 1998-2025",
+          ("The table asks to cite X. Mougeot et al., Metrologia 63 (2026) 019001.",)),
+    _ddep("co60", "cobalt-60", "5.2711", "0.0008", "a", "T1/2 (60Co) : 5,2711 (8) a", "Co-60", "R. G. Helmer (INEEL), 1998-2010"),
+    _ddep("u238", "uranium-238", "4.468 e9", "0.005 e9", "a", "T1/2 (238U) : 4,468 (5) 10^9 a", "U-238", "V. Chiste and M. M. Be (LNHB), 2005-2006"),
+    _ddep("th232", "thorium-232", "14.02 e9", "0.06 e9", "a", "T1/2 (232Th) : 14,02 (6) 10^9 a", "Th-232", "A. Arinc (NPL), 2008-2012"),
+    _ensdf("n", "the free neutron", "613.9", "0.6", "s", "613.9 (6) s", "31-Oct-2005"),
+    _ensdf("h3", "tritium", "12.32", "0.02", "a", "12.32 (2) Y", "30-Jun-2015"),
+    _ensdf("c14", "carbon-14", "5700", "30", "a", "5700 (30) Y", "1-JUL-1990"),
+    _ensdf("k40", "potassium-40", "1.248 e9", "0.003 e9", "a", "1.248E+9 (3) Y", "30-Sep-2015"),
+    _ensdf("co60", "cobalt-60", "1925.28", "0.14", "d", "1925.28 (14) d", "31-Dec-2012"),
+    _ensdf("u238", "uranium-238", "4.468 e9", "0.006 e9", "a", "4.468E9 (6) Y", "1-Jun-2014"),
+    _ensdf("th232", "thorium-232", "1.40 e10", "0.01 e10", "a", "1.40E10 (1) Y", "1-Nov-2004"),
+    _am2013("p", "the proton (1H)", "0.8783", "0.0086"),
+    _am2013("d", "the deuteron (2H)", "2.1421", "0.0088"),
+    _am2013("t", "the triton (3H)", "1.7591", "0.0363"),
+    _am2013("he4", "4He", "1.6755", "0.0028"),
+    _am2013("c12", "12C", "2.4702", "0.0022"),
+    _am2013("c14", "14C", "2.5025", "0.0087"),
+    _am2013("o16", "16O", "2.6991", "0.0052"),
+    _am2013("k40", "40K", "3.4381", "0.0028"),
+    _am2013("ca40", "40Ca", "3.4776", "0.0019"),
+    _am2013("ca48", "48Ca", "3.4771", "0.0020"),
+    _am2013("pb208", "208Pb", "5.5012", "0.0013"),
+    _am2013("th232", "232Th", "5.7848", "0.0124"),
+    _am2013("u238", "238U", "5.8571", "0.0033"),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND
 
 

@@ -15,7 +15,7 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | optics | 25 |
 | atomic | 54 |
 | molecular and chemistry | 55 |
-| nuclear | 79 |
+| nuclear | 105 |
 | particle | 88 |
 | condensed matter | 11 |
 | fluids | 12 |
@@ -26,7 +26,7 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | null results and bounds | 17 |
 | SI defining constants | 7 |
 | foundations and status | 9 |
-| **total** | **604** |
+| **total** | **630** |
 <!-- counts:end -->
 
 ## Audit at pgi-0.79.0 (482 records)
@@ -66,7 +66,7 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 | optics | reference lines, N-BK7 and water indices, and the I₂ 633 nm, ⁸⁷Sr, and ¹⁷¹Yb standard frequencies (batch 8); fused-silica (Malitson 1965) and air (Ciddor 1996) indices; Verdet and thermo-optic constants; the rest of the CIPM frequency list |
 | atomic | excited-state lifetimes and oscillator strengths; polarizabilities; alkali D-line frequencies; ionization energies above krypton; isotope shifts |
 | molecular and chemistry | vibrational frequencies and rotational constants; dipole moments; standard electrode potentials; solubility products; enthalpies of combustion; more pKa values |
-| nuclear | half-lives (3H, 14C, 40K, 238U); charge radii (Angeli-Marinova); thermal neutron cross sections; nuclear spins and quadrupole moments; fission and fusion Q-values |
+| nuclear | DDEP and ENSDF half-lives for 3H, 14C, 40K, 60Co, 238U, and 232Th, ENSDF's neutron half-life, and Angeli-Marinova charge radii for 13 nuclei (batch 9); half-lives of short-lived and medically used isotopes; the rest of the Angeli-Marinova table and newer laser-spectroscopy radii; thermal neutron cross sections; nuclear spins and quadrupole moments; fission and fusion Q-values |
 | particle | the Z lineshape from the 2006 LEP combination and PDG 2026 (Gamma_Z, sigma_had0, R_l0, A_FB0l, N_nu, sin^2 theta_eff; batch 9); PDG's R_l; the heavy-flavour asymmetries and A_l from SLD; heavier meson and baryon masses; branching ratios; the top width; measured cross sections |
 | condensed matter | elastic constants and Debye temperatures; thermal conductivities; more superconductors (MgB2, H3S); lattice constants beyond silicon; magnetic moments |
 | fluids | water properties and air sound speed (batch 8); viscosity and thermal conductivity of air and the noble gases; seawater (TEOS-10); diffusion coefficients |
@@ -82,6 +82,6 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 2. Optics had nothing: no reference spectral lines and no refractive indices.
 3. Fluids had nothing: no transport properties and no sound speeds.
 4. Electromagnetism is thin and holds only unit constants. It has no geomagnetic field and no material constants.
-5. Nuclear half-lives and charge radii are missing, even though nuclear masses are well covered.
+5. Nuclear half-lives and charge radii are missing, even though nuclear masses are well covered. Batch 9 added a starter set of DDEP and ENSDF half-lives and 13 Angeli-Marinova radii.
 6. The Z lineshape is missing, so electroweak precision rests on masses and G_F alone. Batch 9 added the LEP 2006 combination and PDG 2026's Gamma_Z, sigma_had0, and A_FB0l.
 7. Gravitational redshift is missing, so the clock test of GR is absent. Batch 9 added Galileo 5/6, Pound-Snider, and the GP-A agreement level.

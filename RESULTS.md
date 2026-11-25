@@ -517,9 +517,17 @@ The Z lineshape comes from the 2006 LEP/SLD combination, Table 2.13 with lepton 
 
 This adds 15 records.
 
+### Nuclear half-lives and charge radii
+
+Nuclear data had masses but no clocks and no sizes. Half-lives now come from two evaluations side by side. The DDEP tables from LNHB give ³H `12.312(25)` a, ¹⁴C `5700(30)` a, ⁴⁰K `1.2522(27) × 10⁹` a (a 2025 evaluation), ⁶⁰Co `5.2711(8)` a, ²³⁸U `4.468(5) × 10⁹` a, and ²³²Th `14.02(6) × 10⁹` a. ENSDF, read through the IAEA LiveChart API, gives the same six plus the free neutron, `613.9(6)` s. The board stores ENSDF's ⁶⁰Co in days as printed (`1925.28(14)` d) and doesn't convert it to years, so that pair is not compared. The other five pairs agree within their combined uncertainties, and a test checks them. ENSDF's neutron entry has a 2005 publication cut-off, and the board doesn't set it against the PDG lifetime.
+
+Charge radii come from Angeli and Marinova (2013), via the same API, because the IAEA radii page is behind a browser check. There are 13 nuclei: the proton, deuteron, triton, ⁴He, ¹²C, ¹⁴C, ¹⁶O, ⁴⁰K, ⁴⁰Ca, ⁴⁸Ca, ²⁰⁸Pb, ²³²Th, and ²³⁸U. Two features show directly. ⁴⁰Ca and ⁴⁸Ca have the same radius within errors (`3.4776(19)` and `3.4771(20)` fm), even with eight extra neutrons. And the table's proton radius, `0.8783(86)` fm, sits above the muonic-hydrogen value already on the board (`0.84087(39)` fm) by more than their combined uncertainty. That is the proton-radius puzzle as the data stood before CODATA moved, and both values stay.
+
+This adds 26 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.84.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.85.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

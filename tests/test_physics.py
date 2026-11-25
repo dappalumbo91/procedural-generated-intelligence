@@ -1461,6 +1461,38 @@ class RedshiftZPoleTests(unittest.TestCase):
         self.assertTrue({"lep2005.gamma_z", "lep2005.sigma_had0", "lep2005.r_l0", "lep2005.a_fb0_l"} <= self._linked("what are the z lineshape parameters"))
 
 
+class NuclearDecayRadiiTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_ddep_and_ensdf_half_lives_agree_where_units_match(self) -> None:
+        for key in ("h3", "c14", "k40", "u238", "th232"):
+            a, b = quantity(f"ddep.t_half_{key}"), quantity(f"ensdf.t_half_{key}")
+            self.assertEqual(a.unit, b.unit)
+            self.assertLessEqual(abs(a.value - b.value), a.uncertainty + b.uncertainty, key)
+        self.assertEqual(quantity("ddep.t_half_co60").unit, "a")
+        self.assertEqual(quantity("ensdf.t_half_co60").unit, "d")
+
+    def test_half_lives_span_from_minutes_to_the_age_scale(self) -> None:
+        self.assertEqual(quantity("ensdf.t_half_n").unit, "s")
+        ordered = [quantity(f"ddep.t_half_{k}").value for k in ("co60", "h3", "c14", "k40", "u238", "th232")]
+        self.assertEqual(ordered, sorted(ordered))
+
+    def test_charge_radii(self) -> None:
+        ca40, ca48 = quantity("am2013.r_ca40"), quantity("am2013.r_ca48")
+        self.assertLessEqual(abs(ca40.value - ca48.value), ca40.uncertainty + ca48.uncertainty)
+        heavy = [quantity(f"am2013.r_{k}").value for k in ("pb208", "th232", "u238")]
+        self.assertEqual(heavy, sorted(heavy))
+        self.assertGreater(quantity("am2013.r_t").value, quantity("am2013.r_he4").value)
+        old, muonic = quantity("am2013.r_p"), quantity("antognini2013.proton_charge_radius")
+        self.assertGreater(old.value - old.uncertainty, muonic.value + muonic.uncertainty)
+
+    def test_nuclear_asks_link(self) -> None:
+        self.assertTrue({"ddep.t_half_c14", "ensdf.t_half_c14", "ddep.t_half_u238"} <= self._linked("list the nuclear half-lives"))
+        self.assertTrue({"am2013.r_pb208", "am2013.r_ca48", "am2013.r_he4"} <= self._linked("list the nuclear charge radii"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
