@@ -1048,3 +1048,11 @@ Replaced COVERAGE.md's hand-written gap list and top-gaps text with a generated 
 That is no new records.
 
 `python -m unittest discover -s tests -v` finished 344 tests, 0 failures, about 106.71 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — optics pgi-0.92.0
+
+Added the Malitson fused-silica Sellmeier coefficients, the NIST EMT Ciddor and Edlén air indices, Sivaramakrishnan and Turvey Verdet constants, and seven NIST ASD lines (Ne 632.8, Hg 253.7 and 404.7, Ca II K and H, and the K D lines). COVERAGE.md's optics gaps for fused silica, air, and Verdet constants closed themselves.
+
+That is 25 records.
+
+`python -m unittest discover -s tests -v` finished 348 tests, 0 failures, about 99.17 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

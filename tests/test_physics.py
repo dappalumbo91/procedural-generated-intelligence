@@ -1671,6 +1671,41 @@ class ParticleExtrasTests(unittest.TestCase):
         self.assertTrue({"lep2005.a_fb0_b", "lep2005.r_b0"} <= self._linked("list the z heavy flavour asymmetries"))
 
 
+class OpticsExtrasTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_malitson_formula_is_normal_dispersion_over_its_range(self) -> None:
+        b = [quantity(f"malitson1965.fused_silica.b{i}").value for i in (1, 2, 3)]
+        c = [quantity(f"malitson1965.fused_silica.c{i}").value for i in (1, 2, 3)]
+
+        def n2(lam: Fraction) -> Fraction:
+            return 1 + sum(bi * lam**2 / (lam**2 - ci**2) for bi, ci in zip(b, c))
+
+        grid = [Fraction(k, 100) for k in (21, 30, 40, 50, 60, 80, 100, 150, 200, 300, 371)]
+        values = [n2(lam) for lam in grid]
+        self.assertTrue(all(v > 1 for v in values))
+        self.assertEqual(values, sorted(values, reverse=True))
+
+    def test_air_index_rows(self) -> None:
+        q = lambda k: quantity(f"nist_emt.air_n.ciddor.{k}").value
+        self.assertTrue(q("20c_0rh_101325_300nm") > q("20c_0rh_101325_633nm") > q("20c_0rh_101325_1700nm"))
+        self.assertTrue(q("20c_0rh_60_633nm") < q("20c_0rh_101325_633nm") < q("20c_0rh_120_633nm"))
+        # Table 1 prints the Ciddor - Edlen difference at this row as 0.1 x 10^-8.
+        self.assertEqual(q("20c_0rh_101325_633nm") - quantity("nist_emt.air_n.edlen.20c_0rh_101325_633nm").value, Fraction(1, 10**9))
+
+    def test_verdet_rises_toward_the_ultraviolet(self) -> None:
+        v = [quantity(f"sivaramakrishnan1956.fused_silica.verdet_{a}a").value for a in (5780, 5461, 4358, 3650)]
+        self.assertEqual(v, sorted(v))
+
+    def test_asks_link(self) -> None:
+        self.assertIn("malitson1965.fused_silica.b1", self._linked("what is the refractive index of fused silica"))
+        self.assertIn("nist_emt.air_n.ciddor.20c_0rh_101325_633nm", self._linked("what is the refractive index of air"))
+        self.assertTrue({"turvey1993.water.verdet_643nm", "sivaramakrishnan1956.fused_silica.verdet_5461a"} <= self._linked("list the verdet constants"))
+        self.assertIn("asd512.line.ne_632_8", self._linked("what is the he-ne laser line wavelength"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

@@ -583,9 +583,19 @@ It has two parts. `coverage.HELD` describes what each domain holds by id prefix,
 
 This adds no records.
 
+### Optics: fused silica, air, Verdet constants, and more lines
+
+Fused silica now has its standard dispersion formula: Malitson's 1965 three-term Sellmeier coefficients at 20 °C, B = `0.6961663`, `0.4079426`, `0.8974794` and C = `0.0684043`, `0.1162414`, `9.896161` µm. The JOSA page is blocked from the box, so they come from the refractiveindex.info reprint, which cites the paper and its 0.21–3.71 µm range. A test evaluates the formula exactly on a grid across that range and checks that n² stays above 1 and falls with wavelength.
+
+The refractive index of air comes from NIST's comparison of the Ciddor and modified Edlén equations. In dry air at 20 °C and 101.325 kPa, Ciddor gives `1.000271800` at 633 nm and Edlén gives `1.000271799`, a difference the table prints as 0.1×10⁻⁸. Ciddor also gives `1.000286581` at 300 nm and `1.000268479` at 1700 nm, plus the 633 nm value at 60 and 120 kPa and at 100% humidity. The page's k = 2 uncertainty estimate (about 2×10⁻⁸ in a lab) is in the notes, because Table 1 itself prints none.
+
+The board also has its first Verdet constants. Sivaramakrishnan's 1956 fused-quartz measurements rise from `0.01540` arcmin cm⁻¹ Oe⁻¹ at 5780 Å to `0.04224` at 3650 Å. Turvey's water value is `3.98 ± 0.03` µrad A⁻¹ at 643.3 nm. Seven more NIST lines join the reference set: the He-Ne neon line, two mercury lines, the calcium H and K lines, and the potassium D doublet.
+
+This adds 25 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.91.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.92.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

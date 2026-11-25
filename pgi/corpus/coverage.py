@@ -51,7 +51,7 @@ for _domain, _names in {
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84"),
     "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971"),
-    "optics": ("schott", "iapws1997", "bipm2003", "bipm2025"),
+    "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998"),
     "thermodynamics and statistical": ("iapws1992", "iapws2011", "its90", "formula"),
     "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1965", "chou2010", "bothwell2022", "ciufolini2016", "williams2004", "hofmann2018"),
@@ -134,6 +134,9 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("Schott N-BK7 indices and dispersion", ("schott.",)),
         ("water refractive index (IAPWS)", ("iapws1997.",)),
         ("CIPM standard frequencies (I2 633 nm, Sr, Yb)", ("bipm2003.", "bipm2025.")),
+        ("fused-silica Sellmeier coefficients (Malitson 1965)", ("malitson1965.",)),
+        ("refractive index of air, Ciddor and modified Edlen (NIST)", ("nist_emt.",)),
+        ("Verdet constants of fused silica and water", ("sivaramakrishnan1956.", "turvey1993.")),
     ),
     "atomic": (
         ("NIST first and second ionization energies", ("asd512.ie.", "asd512.ie2.")),

@@ -3417,7 +3417,96 @@ PARTICLE_EXTRAS: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS
+def _line2(key: str, name: str, spectrum: str, symbol: str, value: str, unc: str, low: str, high: str, row: str, phrases: tuple[str, ...]) -> Quantity:
+    return _line(key, name, spectrum, symbol, value, unc, low, high, row, phrases=phrases, extra=("Added in batch 11.",))
+
+
+_MALITSON_SOURCE = ("I. H. Malitson, Interspecimen comparison of the refractive index of fused silica, J. Opt. Soc. Am. 55, 1205-1208 (1965), doi:10.1364/JOSA.55.001205, "
+                    "Sellmeier formula as reprinted in the refractiveindex.info database (CC0), file main/SiO2/nk/Malitson.yml")
+_MALITSON_COPY = "https://raw.githubusercontent.com/polyanskiy/refractiveindex.info-database/master/database/data/main/SiO2/nk/Malitson.yml"
+_MALITSON_NOTE = ("The reprint gives the formula n^2 - 1 = B1 L^2/(L^2 - C1^2) + B2 L^2/(L^2 - C2^2) + B3 L^2/(L^2 - C3^2), L in micrometres, for fused silica at 20 degC (293 K), "
+                  "with coefficients printed as '0 0.6961663 0.0684043 0.4079426 0.1162414 0.8974794 9.896161'. It says the formula 'is reported in Ref. 1 for the 0.21-3.71 um wavelength range'. "
+                  "The original JOSA page was not reachable (the publisher blocks the box).")
+
+
+def _malitson(key: str, name: str, symbol: str, value: str, unit: str) -> Quantity:
+    return _q(f"malitson1965.fused_silica.{key}", f"fused silica Sellmeier {name} (Malitson 1965, 20 degC)", symbol, value, "", unit, kind="no uncertainty printed",
+              source=_MALITSON_SOURCE, edition="J. Opt. Soc. Am. 55 (1965); refractiveindex.info reprint", url="https://doi.org/10.1364/JOSA.55.001205", retrieved_from=_MALITSON_COPY,
+              keys=("refractive index", "fused silica"), phrases=("fused silica", "fused silica refractive index", "refractive index of fused silica", "sellmeier", "malitson"),
+              notes=(_MALITSON_NOTE,))
+
+
+_EMT_URL = "https://emtoolbox.nist.gov/Wavelength/Documentation.asp"
+_EMT_SOURCE = "J. A. Stone and J. H. Zimmerman, Index of Refraction of Air, NIST Engineering Metrology Toolbox documentation (last updated 2019-07-01), Table 1"
+_EMT_NOTE = ("Table 1 compares the Ciddor equation and NIST's modified Edlen equation at listed conditions, 'assuming 450 umol/mol CO2 concentration'. "
+             "The page estimates that 'under typical laboratory atmospheric conditions the relative expanded uncertainty (coverage factor k=2) of both equations is about 2x10^-8', "
+             "rising to as much as 1x10^-7 for Ciddor's equation far from standard conditions. Table 1 itself prints no uncertainty.")
+
+
+def _air_n(key: str, method: str, t: str, rh: str, p: str, nm: str, value: str) -> Quantity:
+    who = "Ciddor (1996) equation" if method == "ciddor" else "modified Edlen equation"
+    return _q(f"nist_emt.air_n.{method}.{key}", f"refractive index of air at {t} degC, {rh}% RH, {p} kPa, {nm} nm ({who})", f"n_air({nm} nm)", value, "", "",
+              kind="no uncertainty printed", source=_EMT_SOURCE, edition="NIST EMT, Refractive Index of Air documentation", url=_EMT_URL, retrieved_from=_EMT_URL,
+              keys=("refractive index", "air"), phrases=("refractive index of air", "air refractive index", "index of refraction of air", "ciddor equation" if method == "ciddor" else "edlen equation"),
+              notes=(f"Table 1 row: {t} degC, {rh} %, {p} kPa, {nm} nm.", _EMT_NOTE))
+
+
+_SIVA_SOURCE = "V. Sivaramakrishnan, Dispersion of Faraday rotation in fused quartz, Proc. Indian Acad. Sci. A 44, 206-215 (1956), Table I"
+_SIVA_URL = "https://www.ias.ac.in/public/Volumes/seca/044/04/0206-0215.pdf"
+
+
+def _siva(angstrom: str, value: str) -> Quantity:
+    return _q(f"sivaramakrishnan1956.fused_silica.verdet_{angstrom}a", f"Verdet constant of fused silica (fused quartz) at {angstrom} angstrom, measured", f"V({angstrom} A)", value, "", "arcmin cm^-1 Oe^-1",
+              kind="no uncertainty printed", source=_SIVA_SOURCE, edition="Proc. Indian Acad. Sci. A 44 (1956), scanned text", url=_SIVA_URL, retrieved_from=_SIVA_URL,
+              keys=("verdet constant", "faraday rotation", "fused silica"), phrases=("verdet constant", "verdet constant of fused silica", "faraday rotation", "magneto-optic"),
+              notes=(f"Table I ('Magneto-Optical Data for Fused Quartz') prints {value} min./cm./Oersted in the 'Exp.' column at {angstrom} A, beside a calculated value from the author's dispersion formula, which is not stored.",
+                     "The scale was set by comparing against water, taking 0.01547 min/cm/Oe at 5461 A and 25 degC from Rodger and Watson. The text is OCR of a scan; digits were read where the scan is clean."))
+
+
+OPTICS_EXTRAS: tuple[Quantity, ...] = (
+    _malitson("b1", "coefficient B1", "B1", "0.6961663", ""),
+    _malitson("c1", "resonance wavelength C1", "C1", "0.0684043", "um"),
+    _malitson("b2", "coefficient B2", "B2", "0.4079426", ""),
+    _malitson("c2", "resonance wavelength C2", "C2", "0.1162414", "um"),
+    _malitson("b3", "coefficient B3", "B3", "0.8974794", ""),
+    _malitson("c3", "resonance wavelength C3", "C3", "9.896161", "um"),
+    _air_n("20c_0rh_101325_633nm", "ciddor", "20", "0", "101.325", "633", "1.000271800"),
+    _air_n("20c_0rh_101325_633nm", "edlen", "20", "0", "101.325", "633", "1.000271799"),
+    _air_n("20c_0rh_101325_300nm", "ciddor", "20", "0", "101.325", "300", "1.000286581"),
+    _air_n("20c_0rh_101325_1700nm", "ciddor", "20", "0", "101.325", "1700", "1.000268479"),
+    _air_n("20c_0rh_60_633nm", "ciddor", "20", "0", "60", "633", "1.000160924"),
+    _air_n("20c_0rh_120_633nm", "ciddor", "20", "0", "120", "633", "1.000321916"),
+    _air_n("20c_100rh_100_633nm", "ciddor", "20", "100", "100", "633", "1.000267394"),
+    _siva("5780", "0.01540"),
+    _siva("5461", "0.01731"),
+    _siva("4358", "0.02837"),
+    _siva("3650", "0.04224"),
+    _q("turvey1993.water.verdet_643nm", "Verdet constant of deionized water at 643.3 nm and 19 +- 3 degC", "V(H2O, 643.3 nm)", "3.98", "0.03", "urad A^-1",
+       kind="uncertainty as printed, level not stated",
+       source="K. Turvey, Determination of Verdet constant from combined ac and dc measurements, Rev. Sci. Instrum. 64, 1561-1568 (1993), doi:10.1063/1.1144027, Table I",
+       edition="Rev. Sci. Instrum. 64 (1993), scanned copy", url="https://doi.org/10.1063/1.1144027", retrieved_from="https://physlab.org/wp-content/uploads/2016/04/Turvey.pdf",
+       keys=("verdet constant", "faraday rotation"), phrases=("verdet constant", "verdet constant of water", "faraday rotation", "magneto-optic"),
+       notes=("Table I prints 'Overall mean from the 25 determinations: 3.98 +- 0.03' in urad A^-1 (the scan's OCR renders the micro sign as 'p').",
+              "The abstract gives standard errors of the mean of 0.3% and 0.4% for the two methods, plus 0.4% systematic uncertainty from instrument calibration; the text also quotes a literature survey value of 3.97 +- 0.02 urad A^-1, not stored.",
+              "In these units V is the rotation per ampere-turn of the solenoid, i.e. the Verdet constant in rad T^-1 m^-1 times mu_0.")),
+    _line2("ne_632_8", "neon red line (the He-Ne laser line), 3p - 5s", "Ne I", "lambda_air(Ne 632.8)", "632.81646", "0.00004", "632.7", "632.9",
+           "Ne I, 2s2.2p5.(2P*<1/2>).3p 2[3/2] 2 - 2s2.2p5.(2P*<1/2>).5s 2[1/2]* 1, Ritz 632.81639(6) nm, intensity 3000, A_ki 3.39e+06 s^-1", ("neon 632.8", "he-ne laser line", "helium-neon line")),
+    _line2("hg_253_7", "mercury resonance line, 6s2 1S0 - 6s6p 3P1", "Hg I", "lambda_air(Hg 253.7)", "253.6521", "0.0001", "253.6", "253.7",
+           "Hg I, 5d10.6s2 1S 0 - 5d10.6s.6p 3P* 1, Ritz 253.65209(5) nm, intensity 900000, A_ki 8.40e+06 s^-1", ("mercury 253.7", "mercury resonance line", "mercury uv line")),
+    _line2("hg_h", "mercury violet line (the glass-catalogue h line), 6s6p 3P0 - 6s7s 3S1", "Hg I", "lambda_air(Hg h)", "404.6565", "0.0001", "404.6", "404.7",
+           "Hg I, 5d10.6s.6p 3P* 0 - 5d10.6s.7s 3S 1, Ritz 404.65643(8) nm, intensity 12000, A_ki 2.07e+07 s^-1", ("mercury violet line", "mercury h line")),
+    _line2("ca_ii_k", "ionized calcium K line, 4s 2S1/2 - 4p 2P3/2", "Ca II", "lambda_air(Ca II K)", "393.366", "", "393.3", "393.4",
+           "Ca II, 3p6.4s 2S 1/2 - 3p6.4p 2P* 3/2, Ritz 393.3663 nm, intensity 230, A_ki 1.47e+08 s^-1", ("calcium k line", "ca ii k", "fraunhofer k")),
+    _line2("ca_ii_h", "ionized calcium H line, 4s 2S1/2 - 4p 2P1/2", "Ca II", "lambda_air(Ca II H)", "396.847", "", "396.8", "396.9",
+           "Ca II, 3p6.4s 2S 1/2 - 3p6.4p 2P* 1/2, Ritz 396.8469 nm, intensity 220, A_ki 1.4e+08 s^-1", ("calcium h line", "ca ii h")),
+    _line2("k_d2", "potassium D2 line, 4s 2S1/2 - 4p 2P3/2", "K I", "lambda_air(K D2)", "766.489913", "", "766.4", "766.6",
+           "K I, 3p6.4s 2S 1/2 - 3p6.4p 2P* 3/2, Ritz 766.48991(3) nm, intensity 25r, A_ki 3.779e+07 s^-1", ("potassium d lines", "potassium d2")),
+    _line2("k_d1", "potassium D1 line, 4s 2S1/2 - 4p 2P1/2", "K I", "lambda_air(K D1)", "769.896456", "", "769.8", "770.0",
+           "K I, 3p6.4s 2S 1/2 - 3p6.4p 2P* 1/2, Ritz 769.89646(3) nm, intensity 24r, A_ki 3.734e+07 s^-1", ("potassium d lines", "potassium d1")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 
