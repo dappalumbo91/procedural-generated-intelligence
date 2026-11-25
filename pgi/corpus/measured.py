@@ -3118,8 +3118,67 @@ NUCLEAR_DECAY_RADII: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII
-BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND
+_HB100_SOURCE = "National Bureau of Standards, Copper Wire Tables, NBS Handbook 100 (1966), Sect. 1, International Annealed Copper Standard"
+_HB100_URL = "https://nvlpubs.nist.gov/nistpubs/Legacy/hb/nbshandbook100.pdf"
+_IACS_NOTE = "The International Annealed Copper Standard is an adopted reference value (IEC, 1913), not a measurement of any sample; the handbook prints it with no uncertainty."
+
+
+def _iacs(key: str, name: str, symbol: str, value: str, unit: str, printed: str) -> Quantity:
+    return _q(f"nbs1966.iacs_{key}", f"International Annealed Copper Standard {name}", symbol, value, "", unit, kind="no uncertainty printed",
+              source=_HB100_SOURCE, edition="NBS Handbook 100 (1966)", url=_HB100_URL, retrieved_from=_HB100_URL,
+              keys=("copper", "iacs"), phrases=("resistivity of copper", "copper resistivity", "annealed copper standard"),
+              notes=(f"Printed as {printed}.", _IACS_NOTE))
+
+
+_DIELEC_SOURCE = "IAPWS R8-97, Release on the Static Dielectric Constant of Ordinary Water Substance for Temperatures from 238 K to 873 K and Pressures up to 1000 MPa (Erlangen, 1997); formulation of D. P. Fernandez et al., J. Phys. Chem. Ref. Data 26, 1125-1169 (1997)"
+_DIELEC_URL = "https://iapws.org/documents/release/Dielec.download"
+_WILLIAMS_SOURCE = "E. R. Williams, J. E. Faller, and H. A. Hill, New experimental test of Coulomb's law: a laboratory upper limit on the photon rest mass, Phys. Rev. Lett. 26, 721-724 (1971), doi:10.1103/PhysRevLett.26.721."
+_WILLIAMS_FROM = "https://inspirehep.net/api/literature?q=doi:10.1103/PhysRevLett.26.721"
+
+EM_EXTRAS: tuple[Quantity, ...] = (
+    _codata("codata2022.g_0", "conductance quantum", "G_0", "7.748 091 729... e-5", "(exact)", "S", "conqu2e2sh",
+            keys=("conductance quantum",), phrases=("conductance quantum", "quantum of conductance"), notes=(_EXACT_DERIVED[0].replace("h, c, and k", "h and e"),)),
+    _codata("codata2022.g_0_inverse", "inverse of conductance quantum", "G_0^-1", "12 906.403 72...", "(exact)", "ohm", "invconqu",
+            keys=("conductance quantum",), phrases=("inverse conductance quantum",), notes=(_EXACT_DERIVED[0].replace("h, c, and k", "h and e"),)),
+    _iacs("volume_resistivity", "volume resistivity at 20 C", "rho_IACS", "1.7241", "microhm cm", "1.7241 microhm-cm at 20 C (Sect. 1); p. 10 also prints 'Volume resistivity of annealed copper at 20 C = 100/58 = 1.7241 microhm-cm'"),
+    _iacs("mass_resistivity", "mass resistivity at 20 C", "rho_m,IACS", "0.15328", "ohm g m^-2", "0.153 28 ohm-gram/meter2 at 20 C, 'the fundamental resistivity used in calculating the tables'"),
+    _iacs("density", "density at 20 C", "d_IACS", "8.89", "g cm^-3", "8.89 grams/cm3 at 20 C, as taken by the IEC"),
+    _iacs("temperature_coefficient", "temperature coefficient of resistance at 20 C", "alpha_20", "0.00393", "per degree C", "0.00393 at 20 C, as specified by the IEC for standard copper"),
+    _q("iapwsr897.h2o.eps_300k", "static dielectric constant of water at 300 K and 0.101 325 MPa (program-verification value)", "epsilon(300 K)", "77.74735", "", "",
+       kind="no uncertainty printed", source=_DIELEC_SOURCE + ", Table 4", edition="IAPWS R8-97 (1997)", url=_DIELEC_URL, retrieved_from=_DIELEC_URL,
+       keys=("dielectric constant", "permittivity"), phrases=("static permittivity of water", "dielectric constant of water", "relative permittivity of water"),
+       notes=("Table 4 prints 77.747 35 at 0.101 325 MPa and 300 K (density 55.317 35 mol/dm3). The release says 'the large number of digits is for the purpose of code verification; it does not reflect the uncertainty of the values'.",
+              "It is calculated from the formulation, not measured. The scanned release was read from rendered page images.")),
+    _q("iapwsr897.h2o.eps_323k", "static dielectric constant of water at 323 K and 0.101 325 MPa", "epsilon(323 K)", "69.96", "0.04", "",
+       kind="uncertainty as printed, level not stated", source=_DIELEC_SOURCE + ", Table 3", edition="IAPWS R8-97 (1997)", url=_DIELEC_URL, retrieved_from=_DIELEC_URL,
+       keys=("dielectric constant", "permittivity"), phrases=("static permittivity of water", "dielectric constant of water", "relative permittivity of water"),
+       notes=("Table 3 prints epsilon_pred = 69.96 and estimated absolute uncertainty U = 0.04 at 0.101 325 MPa, 323 K, 988.10 kg/m3.",
+              "Sect. 5 says the estimates 'could not be based on rigorous statistics'. The scanned release was read from rendered page images.")),
+    _q("iapwsr897.h2o.eps_373k", "static dielectric constant of water at 373 K and 0.101 325 MPa", "epsilon(373 K)", "55.57", "0.2", "",
+       kind="uncertainty as printed, level not stated", source=_DIELEC_SOURCE + ", Table 3", edition="IAPWS R8-97 (1997)", url=_DIELEC_URL, retrieved_from=_DIELEC_URL,
+       keys=("dielectric constant", "permittivity"), phrases=("static permittivity of water", "dielectric constant of water", "relative permittivity of water"),
+       notes=("Table 3 prints epsilon_pred = 55.57 and U = 0.2 at 0.101 325 MPa, 373 K, 958.46 kg/m3.", "Sect. 5 says the estimates 'could not be based on rigorous statistics'.")),
+    _q("williams1971.coulomb_q", "deviation q from Coulomb's inverse-square law, 1/r^(2+q)", "q", "2.7 e-16", "3.1 e-16", "",
+       kind="uncertainty as printed, level not stated", source=_WILLIAMS_SOURCE, edition="Phys. Rev. Lett. 26 (1971)", url="https://doi.org/10.1103/PhysRevLett.26.721",
+       retrieved_from=_WILLIAMS_FROM, keys=("coulomb's law", "inverse square law"), phrases=("coulomb's law tests", "coulomb inverse square", "test of coulomb's law", "null results"),
+       notes=("The abstract prints q = (2.7 +- 3.1) x 10^-16 for a deviation of the form 1/r^(2+q), and calls it a null result.",)),
+    _q("williams1971.photon_mass_sq", "photon rest mass squared from the Coulomb's-law test (Proca)", "mu^2", "1.04 e-19", "1.2 e-19", "cm^-2",
+       kind="uncertainty as printed, level not stated", source=_WILLIAMS_SOURCE, edition="Phys. Rev. Lett. 26 (1971)", url="https://doi.org/10.1103/PhysRevLett.26.721",
+       retrieved_from=_WILLIAMS_FROM, keys=("coulomb's law", "photon mass"), phrases=("coulomb's law tests", "test of coulomb's law"),
+       notes=("The abstract prints mu^2 = (1.04 +- 1.2) x 10^-19 cm^-2, from the Proca equations.",)),
+)
+
+COULOMB_BOUNDS: tuple[Bound, ...] = (
+    _null_bound("bound.plimpton1936.coulomb_exponent", "relative deviation of the exponent 2 in Coulomb's law", "|delta n|/2", "1 e-9", "",
+                source="S. J. Plimpton and W. E. Lawton, A very accurate test of Coulomb's law of force between charges, Phys. Rev. 50, 1066 (1936), doi:10.1103/PhysRev.50.1066.",
+                edition="Phys. Rev. 50 (1936)", url="https://doi.org/10.1103/PhysRev.50.1066", retrieved_from="https://inspirehep.net/api/literature?q=doi:10.1103/PhysRev.50.1066",
+                keys=("coulomb's law", "inverse square law"), phrases=("coulomb's law tests", "test of coulomb's law", "coulomb inverse square"),
+                conditions=("The abstract says the exponent 2 'has been found experimentally to be correct to within 1 part in 10^9'. It states no confidence level; this record reads that as a bound on the relative deviation of the exponent.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS
+BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 
 def quantity(id: str) -> Quantity:

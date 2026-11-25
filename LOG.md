@@ -1000,3 +1000,11 @@ Added DDEP and ENSDF half-lives for ³H, ¹⁴C, ⁴⁰K, ⁶⁰Co, ²³⁸U, an
 That is 26 records.
 
 `python -m unittest discover -s tests -v` finished 324 tests, 0 failures, about 92.55 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — EM extras pgi-0.86.0
+
+Added the conductance quantum and its inverse, the International Annealed Copper Standard, IAPWS R8-97 water permittivities, the Williams–Faller–Hill Coulomb test, and the Plimpton–Lawton exponent bound. COVERAGE.md's electromagnetism row and top gap 4 are updated.
+
+That is 12 records.
+
+`python -m unittest discover -s tests -v` finished 329 tests, 0 failures, about 98.63 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

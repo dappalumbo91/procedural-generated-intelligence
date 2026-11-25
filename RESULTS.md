@@ -525,9 +525,21 @@ Charge radii come from Angeli and Marinova (2013), via the same API, because the
 
 This adds 26 records.
 
+### Electromagnetism extras: conductance quantum, copper, water permittivity, Coulomb's law
+
+The conductance quantum is in now. Its NIST page code turned out to be `conqu2e2sh`, which batch 8 couldn't find. G₀ = `7.748 091 729... × 10⁻⁵` S and its inverse, `12 906.403 72...` Ω, are both exact and printed truncated, and the tests check G₀ = 2e²/h and its inverse against the truncation bounds.
+
+Copper comes from NBS Handbook 100's International Annealed Copper Standard: `1.7241` µΩ cm at 20 °C (the handbook also prints it as 100/58), a mass resistivity of `0.15328` Ω g m⁻², a density of `8.89` g cm⁻³, and a temperature coefficient of `0.00393` per °C. These are adopted reference values, not measurements, and the notes say so. Matula's 1979 measured resistivity tables are a scan with no text layer, so measured copper is still a gap.
+
+Water's static permittivity comes from IAPWS R8-97, a scanned release read from page images. The board stores `69.96 ± 0.04` at 323 K and `55.57 ± 0.2` at 373 K, both at 0.101 325 MPa. Those uncertainties are the release's own estimates, which it says 'could not be based on rigorous statistics'. It also stores the code-verification value `77.747 35` at 300 K, which reflects the formulation's digits, not its accuracy. A test checks that ε falls as temperature rises.
+
+Coulomb's law has two tests. Williams, Faller, and Hill (1971) found q = `(2.7 ± 3.1) × 10⁻¹⁶` for a 1/r^(2+q) force, a null result, along with a Proca photon mass squared of `(1.04 ± 1.2) × 10⁻¹⁹` cm⁻². Plimpton and Lawton (1936) found the exponent correct 'within 1 part in 10⁹', which is stored as a bound and labelled as the board's reading of that phrase. The tests check that q is within its uncertainty of zero and inside the 1936 bound.
+
+This adds 12 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.85.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.86.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

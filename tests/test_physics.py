@@ -1493,6 +1493,40 @@ class NuclearDecayRadiiTests(unittest.TestCase):
         self.assertTrue({"am2013.r_pb208", "am2013.r_ca48", "am2013.r_he4"} <= self._linked("list the nuclear charge radii"))
 
 
+class EmExtrasTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_conductance_quantum_definitions(self) -> None:
+        e, h = quantity("codata2022.e").value, quantity("codata2022.h").value
+        low, high = quantity("codata2022.g_0").truncation_bounds
+        self.assertTrue(low <= 2 * e * e / h < high)
+        low, high = quantity("codata2022.g_0_inverse").truncation_bounds
+        self.assertTrue(low <= h / (2 * e * e) < high)
+
+    def test_iacs_is_one_over_58(self) -> None:
+        rho = quantity("nbs1966.iacs_volume_resistivity").value
+        self.assertLess(abs(rho - Fraction(100, 58)), Fraction(1, 10**4))
+        self.assertIsNone(quantity("nbs1966.iacs_volume_resistivity").uncertainty)
+
+    def test_water_permittivity_falls_with_temperature(self) -> None:
+        values = [quantity(f"iapwsr897.h2o.eps_{t}k").value for t in (300, 323, 373)]
+        self.assertEqual(values, sorted(values, reverse=True))
+
+    def test_coulomb_tests_are_null(self) -> None:
+        q = quantity("williams1971.coulomb_q")
+        self.assertLessEqual(abs(q.value), q.uncertainty)
+        plimpton = next(item for item in BOUNDS if item.id == "bound.plimpton1936.coulomb_exponent").upper
+        self.assertLess(q.value + q.uncertainty, plimpton)
+
+    def test_em_extras_asks_link(self) -> None:
+        self.assertIn("codata2022.g_0", self._linked("what is the conductance quantum"))
+        self.assertIn("nbs1966.iacs_volume_resistivity", self._linked("what is the resistivity of copper"))
+        self.assertTrue({"iapwsr897.h2o.eps_300k", "iapwsr897.h2o.eps_323k"} <= self._linked("what is the static permittivity of water"))
+        self.assertIn("williams1971.coulomb_q", self._linked("list the coulomb's law tests"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

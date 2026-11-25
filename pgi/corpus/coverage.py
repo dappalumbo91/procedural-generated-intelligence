@@ -30,7 +30,7 @@ DOMAINS: tuple[str, ...] = (
 
 _CODATA = {
     "SI defining constants": {"delta_nu_cs", "h", "e", "k", "n_a", "k_cd"},
-    "electromagnetism": {"mu_0", "epsilon_0", "r_k", "k_j", "r_k_90", "k_j_90", "f_faraday", "z_0", "phi_0", "g_0", "mu_b"},
+    "electromagnetism": {"mu_0", "epsilon_0", "r_k", "k_j", "r_k_90", "k_j_90", "f_faraday", "z_0", "phi_0", "g_0", "g_0_inverse", "mu_b"},
     "QED and precision": {"alpha", "alpha_inverse", "r_inf", "a_0", "ryd_hc_ev", "a_e", "a_mu", "r_p", "m_p_over_m_e"},
     "particle": {"m_e", "m_p", "m_n", "m_e_c2_mev", "m_p_c2_mev", "m_n_c2_mev", "g_f"},
     "nuclear": {"e_b_deuteron", "m_d", "m_d_u", "m_d_c2_mev", "m_alpha", "m_alpha_u", "m_alpha_c2_mev", "mu_n_nuclear", "mu_p", "mu_n",
@@ -49,7 +49,7 @@ for _domain, _names in {
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84"),
-    "electromagnetism": ("igrf14",),
+    "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971"),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987"),
     "thermodynamics and statistical": ("iapws1992", "iapws2011", "its90", "formula"),
