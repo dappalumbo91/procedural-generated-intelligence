@@ -852,3 +852,10 @@ The tests check σ = 2π⁵k⁴/(15h³c²) with an exact Machin enclosure of π.
 That is 3 new records, and batch 4 is complete.
 
 `python -m unittest discover -s tests -v` finished 231 tests, 0 failures, about 69.11 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+## 2026-11-25 — finite-dimensional Hilbert space pgi-0.68.0
+
+Finite-dimensional inner product spaces over Q(i) and Q(√d, i) are exact. An inverse is kept only when it multiplies back to 1. The inner product is ⟨u, v⟩ = u† v, conjugate-linear in the first argument, and is kept only when it is conjugate-symmetric, linear in the second argument, and positive definite. Gram–Schmidt is kept only when the result is orthonormal. A matrix is Hermitian only when A† = A, and unitary only when both A† A and A A† are the identity. The Pauli matrices satisfy [σ_i, σ_j] = 2 i ε_ijk σ_k, checked exactly. `commutator(pauli(x), pauli(y))` is `2 * i * pauli(z)`. A 2×2 Hermitian spectral decomposition is kept only when H = U D U† with U unitary, D real diagonal, and eigenvector norms positive rationals. `spectral(pauli(x)) * eigendiag(pauli(x)) * dagger(spectral(pauli(x)))` is `pauli(x)`. Tensor products are the Kronecker product. `ket(0)`, `ket(1)`, `ket(+)`, and `ket(-)` are unit vectors, and |+⟩ and |−⟩ are eigenvectors of σ_x. `i * i` is `-1`. A polynomial derivative in the variable i is not treated as the imaginary unit. A 3×3 spectral decomposition, a linearly dependent Gram–Schmidt input, and mixing two different square-free radicands stay open.
+
+The next mathematics is gauge theory. Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 240 tests, 0 failures, about 65.27 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

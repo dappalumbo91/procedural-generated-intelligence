@@ -149,7 +149,7 @@ def pretty(term: Term, parent: int = 0, right: bool = False) -> str:
         return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
     if term.op == "matrix":
         return "[" + ", ".join(pretty(arg) for arg in term.args) + "]"
-    if term.op in {"det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues", "d", "partial", "diff", "transition", "compose", "jacobian", "identity", "chart", "metric", "embedding", "pullback", "vector", "apply", "dot", "christoffel", "riemann", "ricci", "scalar"}:
+    if term.op in {"det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues", "trace", "d", "partial", "diff", "transition", "compose", "jacobian", "identity", "chart", "metric", "embedding", "pullback", "vector", "apply", "dot", "christoffel", "riemann", "ricci", "scalar", "pauli", "sigma", "ket", "bra", "inner", "braket", "dagger", "commutator", "comm", "tensor", "gramschmidt", "spectral", "eigendiag", "hermitian", "unitary"}:
         inner = ", ".join(pretty(arg) for arg in term.args)
         return f"{term.op}({inner})"
     if term.op == "pow" and len(term.args) == 2:
@@ -356,7 +356,12 @@ class _Parser:
             return App(name, ())
         args: list[Term] = []
         while True:
-            args.append(self._expr())
+            token = self._peek()
+            if token in {"+", "-"} and self._ahead(1) in {",", ")"}:
+                self._pop()
+                args.append(Var(token))
+            else:
+                args.append(self._expr())
             if self._peek() == ",":
                 self._pop()
                 continue

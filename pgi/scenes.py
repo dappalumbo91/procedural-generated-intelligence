@@ -266,6 +266,12 @@ def demo_text() -> str:
         "=== scalar curvature of the unit 2-sphere ===",
         unfold(Request(ask="what is scalar(metric(s2, north))", lod=2, seed=1)).text(lod=2),
         "",
+        "=== Pauli commutation ===",
+        unfold(Request(ask="prove commutator(pauli(x), pauli(y)) = 2 * i * pauli(z)", lod=2, seed=1)).text(lod=2),
+        "",
+        "=== a spin-1/2 inner product ===",
+        unfold(Request(ask="what is inner(ket(plus), ket(minus))", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]

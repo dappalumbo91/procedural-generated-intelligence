@@ -106,6 +106,10 @@ def _claim_block(support: Support, index: int, lod: int) -> list[str]:
         lines.append(f"   {support.atom} is the exact rational")
     elif support.atom.startswith("cauchy("):
         lines.append(f"   {support.atom} is the constructed real")
+    elif support.atom.startswith("cmatrix("):
+        lines.append(f"   {support.atom} is the exact complex matrix")
+    elif support.atom.startswith("cnum("):
+        lines.append(f"   {support.atom} is the exact complex scalar")
     elif support.atom.startswith("matrix("):
         lines.append(f"   {support.atom} is the exact rational matrix")
     elif support.atom.startswith("charpoly("):
