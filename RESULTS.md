@@ -306,9 +306,15 @@ Sun `J2`: INPOP19a `(2.010 ± 0.010) × 10^−7` (± 1σ column), and INPOP21a w
 
 The tests check that every printed PPN and perihelion interval contains zero, that the tighter acceptance window sits inside the looser one, that the overlap sits inside the INPOP20a WRSS intervals, and that the B-INPOP limits grow with the level. A `ppn gamma` ask links INPOP, Cassini, and B-INPOP together with nothing retracted. The Cassini record gains a note that Mariani et al. read its `±2.3 × 10^−5` as 1σ. Its label stays `level not stated` because Bertotti et al. do not say. That is 10 new quantities and 3 new bounds, 13 new records.
 
+### NIST ASD first ionization energies, Na to Kr
+
+The first ionization energies of the 26 neutral atoms from sodium to krypton are on the board. They come from the same source as the H to Ne rows: NIST ASD version 5.12, Ionization Energies Data, queried in eV with the uncertainty, configuration, level, and bibliography columns. The Na-Kr query URL is on every record. Values and uncertainties are kept as served. Na `5.13907696 ± 0.00000025`, Mg `7.646236 ± 0.000004`, Al `5.985769 ± 0.000003`, Si `8.15168 ± 0.00003`, P `10.486686 ± 0.000015`, S `10.3600167 ± 0.0000014`, Cl `12.967633 ± 0.000016`, Ar `15.7596119 ± 0.0000005`. K `4.34066373 ± 0.00000009`, Ca `6.1131549210 ± 0.0000000005`, Sc `6.56149 ± 0.00006`, Ti `6.828120 ± 0.000012`, V `6.746187 ± 0.000021`, Cr `6.76651 ± 0.00004`, Mn `7.4340380 ± 0.0000012`, Fe `7.9024681 ± 0.0000012`, Co `7.88101 ± 0.00012`, Ni `7.639878 ± 0.000017`, Cu `7.726380 ± 0.000004`, Zn `9.394197 ± 0.000006`, Ga `5.9993020 ± 0.0000012`, Ge `7.899435 ± 0.000012`, As `9.78855 ± 0.00025`, Se `9.752368 ± 0.000006`, Br `11.81381 ± 0.00006`, Kr `13.9996055 ± 0.0000020` eV.
+
+None of the 26 values is in brackets or parentheses, so all are evaluated experimental values in ASD's own terms. The level of the uncertainty column is not stated, as before. The tests check every row's uncertainty, and that the alkali metal is lowest and the noble gas highest in each period, as printed. They also check Calcium's `0.0000000005` eV uncertainty exactly. The ionization rows no longer share a generic key, so an ask about one element links only that element. That is 26 new records, and the board now holds 36 ASD rows.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.58.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.59.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

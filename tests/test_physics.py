@@ -418,6 +418,22 @@ class AsdIonizationTests(unittest.TestCase):
         # A loose window only: the gap from the reduced-mass ratio is far below alpha^2.
         self.assertLess(abs(ratio - reduced), alpha**2)
 
+    def test_third_and_fourth_rows_load_as_printed(self) -> None:
+        period3 = ("na", "mg", "al", "si", "p", "s", "cl", "ar")
+        period4 = ("k", "ca", "sc", "ti", "v", "cr", "mn", "fe", "co", "ni", "cu", "zn", "ga", "ge", "as", "se", "br", "kr")
+        for period, alkali, noble in ((period3, "na", "ar"), (period4, "k", "kr")):
+            energies = {symbol: quantity(f"asd512.ie.{symbol}").value for symbol in period}
+            self.assertEqual(min(energies, key=energies.get), alkali)
+            self.assertEqual(max(energies, key=energies.get), noble)
+        for symbol in period3 + period4:
+            item = quantity(f"asd512.ie.{symbol}")
+            self.assertGreater(item.uncertainty, 0, symbol)
+            self.assertIn("spectra=Na-Kr", item.url)
+            self.assertNotIn("parentheses", " ".join(item.notes))
+        self.assertEqual(quantity("asd512.ie.ca").uncertainty, Fraction(5, 10**10))
+        self.assertEqual(quantity("asd512.ie.fe").value_text, "7.9024681")
+        self.assertEqual(len([item for item in QUANTITIES if item.id.startswith("asd512.ie.")]), 36)
+
     def test_an_ask_links_the_row(self) -> None:
         session = unfold(Request(ask="what is the ionization energy of neon", seed=1))
         text = session.text(lod=2)

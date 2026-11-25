@@ -842,6 +842,11 @@ ASD_SOURCE = (
     "Ionization Energies Data."
 )
 ASD_EDITION = "NIST ASD version 5.12 (7 November 2024)"
+ASD_QUERY_NA_KR = (
+    "https://physics.nist.gov/cgi-bin/ASD/ie.pl?spectra=Na-Kr&submit=Retrieve+Data&units=1&format=2&order=0"
+    "&at_num_out=on&sp_name_out=on&ion_charge_out=on&el_name_out=on&seq_out=on&shells_out=on&level_out=on"
+    "&ion_conf_out=on&e_out=0&unc_out=on&biblio=on"
+)
 ASD_QUERY = (
     "https://physics.nist.gov/cgi-bin/ASD/ie.pl?spectra=H-Ne&submit=Retrieve+Data&units=1&format=2&order=0"
     "&at_num_out=on&sp_name_out=on&ion_charge_out=on&el_name_out=on&seq_out=on&shells_out=on&level_out=on"
@@ -856,6 +861,7 @@ _ASD_EV = (
 
 def _asd(id: str, z: int, element: str, spectrum: str, value_text: str, uncertainty_text: str, *, notes: tuple[str, ...]) -> Quantity:
     lower = element.lower()
+    query = ASD_QUERY if z <= 10 else ASD_QUERY_NA_KR
     return _q(
         id,
         f"first ionization energy of {lower} ({spectrum}, Z = {z})",
@@ -866,9 +872,9 @@ def _asd(id: str, z: int, element: str, spectrum: str, value_text: str, uncertai
         kind="uncertainty as printed, level not stated",
         source=ASD_SOURCE,
         edition=ASD_EDITION,
-        url=ASD_QUERY,
-        retrieved_from=ASD_QUERY,
-        keys=("ionization",),
+        url=query,
+        retrieved_from=query,
+        keys=(),
         phrases=(f"ionization energy of {lower}", f"{lower} ionization energy", f"ionisation energy of {lower}"),
         notes=notes,
     )
@@ -934,6 +940,162 @@ ASD_IONIZATION: tuple[Quantity, ...] = (
          notes=(
             'ASD ground shells 1s2.2s2.2p6, ground level 1S0, ionized level 2p5 2P*<3/2>.',
             'ASD bibliography codes: L8826,L1407.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.na", 11, "Sodium", "Na I", "5.13907696", "0.00000025",
+         notes=(
+            'ASD ground shells [Ne].3s, ground level 2S<1/2>, ionized level 2p6 1S<0>.',
+            'ASD bibliography codes: L10921,L9648.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.mg", 12, "Magnesium", "Mg I", "7.646236", "0.000004",
+         notes=(
+            'ASD ground shells [Ne].3s2, ground level 1S0, ionized level 3s 2S<1/2>.',
+            'ASD bibliography codes: L10635,L6969.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.al", 13, "Aluminum", "Al I", "5.985769", "0.000003",
+         notes=(
+            'ASD ground shells [Ne].3s2.3p, ground level 2P*<1/2>, ionized level 3s2 1S<0>.',
+            'ASD bibliography codes: L7215,L10321.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.si", 14, "Silicon", "Si I", "8.15168", "0.00003",
+         notes=(
+            'ASD ground shells [Ne].3s2.3p2, ground level 3P0, ionized level 3p 2P*<1/2>.',
+            'ASD bibliography codes: L5815.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.p", 15, "Phosphorus", "P I", "10.486686", "0.000015",
+         notes=(
+            'ASD ground shells [Ne].3s2.3p3, ground level 4S*<3/2>, ionized level 3p2 3P<0>.',
+            'ASD bibliography codes: L5148.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.s", 16, "Sulfur", "S I", "10.3600167", "0.0000014",
+         notes=(
+            'ASD ground shells [Ne].3s2.3p4, ground level 3P<2>, ionized level 3p3 4S*<3/2>.',
+            'ASD bibliography codes: L23116.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.cl", 17, "Chlorine", "Cl I", "12.967633", "0.000016",
+         notes=(
+            'ASD ground shells [Ne].3s2.3p5, ground level 2P*<3/2>, ionized level 3p4 3P<2>.',
+            'ASD bibliography codes: L19191.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.ar", 18, "Argon", "Ar I", "15.7596119", "0.0000005",
+         notes=(
+            'ASD ground shells [Ne].3s2.3p6, ground level 1S0, ionized level 3p5 2P*<3/2>.',
+            'ASD bibliography codes: L9217.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.k", 19, "Potassium", "K I", "4.34066373", "0.00000009",
+         notes=(
+            'ASD ground shells [Ar].4s, ground level 2S<1/2>, ionized level 3p6 1S<0>.',
+            'ASD bibliography codes: L5451,L5783,L7185.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.ca", 20, "Calcium", "Ca I", "6.1131549210", "0.0000000005",
+         notes=(
+            'ASD ground shells [Ar].4s2, ground level 1S0, ionized level 4s 2S<1/2>.',
+            'ASD bibliography codes: L22848.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.sc", 21, "Scandium", "Sc I", "6.56149", "0.00006",
+         notes=(
+            'ASD ground shells [Ar].3d.4s2, ground level 2D<3/2>, ionized level 3d.4s 3D<1>.',
+            'ASD bibliography codes: L7185,L2110.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.ti", 22, "Titanium", "Ti I", "6.828120", "0.000012",
+         notes=(
+            'ASD ground shells [Ar].3d2.4s2, ground level 3F<2>, ionized level 3d2.4s 4F<3/2>.',
+            'ASD bibliography codes: L17996.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.v", 23, "Vanadium", "V I", "6.746187", "0.000021",
+         notes=(
+            'ASD ground shells [Ar].3d3.4s2, ground level 4F<3/2>, ionized level 3d4 5D<0>.',
+            'ASD bibliography codes: L17712,L20010.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.cr", 24, "Chromium", "Cr I", "6.76651", "0.00004",
+         notes=(
+            'ASD ground shells [Ar].3d5.4s, ground level 7S<3>, ionized level 3d5 6S<5/2>.',
+            'ASD bibliography codes: L7185,L2832.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.mn", 25, "Manganese", "Mn I", "7.4340380", "0.0000012",
+         notes=(
+            'ASD ground shells [Ar].3d5.4s2, ground level 6S<5/2>, ionized level 3d5.4s 7S<3>.',
+            'ASD bibliography codes: L19057.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.fe", 26, "Iron", "Fe I", "7.9024681", "0.0000012",
+         notes=(
+            'ASD ground shells [Ar].3d6.4s2, ground level 5D<4>, ionized level 3d6.4s 6D<9/2>.',
+            'ASD bibliography codes: L7743c109.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.co", 27, "Cobalt", "Co I", "7.88101", "0.00012",
+         notes=(
+            'ASD ground shells [Ar].3d7.4s2, ground level 4F<9/2>, ionized level 3d8 3F<4>.',
+            'ASD bibliography codes: L10545.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.ni", 28, "Nickel", "Ni I", "7.639878", "0.000017",
+         notes=(
+            'ASD ground shells [Ar].3d8.4s2, ground level 3F<4>, ionized level 3d9 2D<5/2>.',
+            'ASD bibliography codes: L12369.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.cu", 29, "Copper", "Cu I", "7.726380", "0.000004",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s, ground level 2S<1/2>, ionized level 3d10 1S<0>.',
+            'ASD bibliography codes: L14897.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.zn", 30, "Zinc", "Zn I", "9.394197", "0.000006",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s2, ground level 1S0, ionized level 4s 2S<1/2>.',
+            'ASD bibliography codes: L13951.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.ga", 31, "Gallium", "Ga I", "5.9993020", "0.0000012",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s2.4p, ground level 2P*<1/2>, ionized level 4s2 1S<0>.',
+            'ASD bibliography codes: L5566.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.ge", 32, "Germanium", "Ge I", "7.899435", "0.000012",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s2.4p2, ground level 3P0, ionized level 4p 2P*<1/2>.',
+            'ASD bibliography codes: L3935,L12369.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.as", 33, "Arsenic", "As I", "9.78855", "0.00025",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s2.4p3, ground level 4S*<3/2>, ionized level 4p2 3P<0>.',
+            'ASD bibliography codes: L1351.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.se", 34, "Selenium", "Se I", "9.752368", "0.000006",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s2.4p4, ground level 3P<2>, ionized level 4p3 4S*<3/2>.',
+            'ASD bibliography codes: L21645.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.br", 35, "Bromine", "Br I", "11.81381", "0.00006",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s2.4p5, ground level 2P*<3/2>, ionized level 4p4 3P<2>.',
+            'ASD bibliography codes: L351,L67.',
+            _ASD_EV,
+         )),
+    _asd("asd512.ie.kr", 36, "Krypton", "Kr I", "13.9996055", "0.0000020",
+         notes=(
+            'ASD ground shells [Ar].3d10.4s2.4p6, ground level 1S0, ionized level 4p5 2P*<3/2>.',
+            'ASD bibliography codes: L12196.',
             _ASD_EV,
          )),
 )

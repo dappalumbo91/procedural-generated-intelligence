@@ -764,3 +764,13 @@ The uncertainty kinds gain `99.7% interval` and `acceptance interval`. Every pri
 The next slice is the NIST ASD first ionization energies, Na to Kr.
 
 `python -m unittest discover -s tests -v` finished 195 tests, 0 failures, about 65.82 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — NIST ASD first ionization energies, Na to Kr pgi-0.59.0
+
+The first ionization energies Na I to Kr I are on the board. They come from NIST ASD version 5.12, Ionization Energies Data, in eV, with the query URL on each record and each row's own ASD uncertainty, bibliography codes, and levels. Values are kept as served: Na `5.13907696(25)` through Kr `13.9996055(20)` eV. No row in this range is bracketed or parenthesized.
+
+In each period the alkali metal is lowest and the noble gas highest, as printed. Calcium's `5 × 10^−10` eV uncertainty loads exactly. The generic `ionization` key is dropped from the ASD rows, because with 36 rows it linked every element to every ask. Each row now links by its element's phrases only. That is 26 new records.
+
+The next slice is AME2020 atomic masses.
+
+`python -m unittest discover -s tests -v` finished 196 tests, 0 failures, about 54.75 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
