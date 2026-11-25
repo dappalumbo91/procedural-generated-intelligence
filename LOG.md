@@ -878,3 +878,11 @@ There are two new uncertainty kinds. `no uncertainty printed` stores nothing whe
 The tests are data-only, as Damian asked, with no derivations: completeness, printed forms, the two Z-order inversions (Ar/K and Co/Ni), 298 K above 0 K, and overlapping sources agreeing to their printed digits. That is 54 new records. The next slice is condensed matter.
 
 `python -m unittest discover -s tests -v` finished 251 tests, 0 failures, about 73.14 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — condensed matter: Si lattice, band gaps, superconductors, R_K and K_J, iron, water pgi-0.71.0
+
+Condensed matter is on the board. CODATA 2022 gives Si a, d220, and V_m, 1σ. R_K and K_J are exact and printed truncated, and R_K-90 and K_J-90 are exact. Ioffe band gaps at 300 K, read from the Internet Archive because ioffe.ru did not answer: Si 1.12, Ge 0.661, GaAs 1.424 eV. NIST SRM 767a T_c: Nb 9.2488, Pb 7.19974, Al 1.18074 K. YBCO is 93 K from the Wu et al. title. Fe Curie is 1044 ± 2 K (Arajs & Colvin). IAPWS gives the critical point T_c 647.096 ± 0.100 K, p_c 22.064 ± 0.005 MPa, ρ_c 322 ± 3, and the triple point 273.16 K and 611.657 Pa.
+
+The tests are data-only. They check CODATA's own Si table definitions against the printed values, that the 1990 conventional values sit outside the SI truncation intervals, and the printed orderings. Nothing is derived from theory. That is 20 new records. The next slice is particle physics.
+
+`python -m unittest discover -s tests -v` finished 256 tests, 0 failures, about 83.44 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

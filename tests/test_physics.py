@@ -874,6 +874,52 @@ class ChemistryTests(unittest.TestCase):
         self.assertEqual(linked, {"iupac_pka.phenol", "crc91.pka.phenol"})
 
 
+class CondensedMatterTests(unittest.TestCase):
+    def test_silicon_lattice_entries_match_codata_table_definitions(self) -> None:
+        # CODATA's own table defines d220 = a/sqrt(8) and V_m = N_A a^3 / 8; check the printed values against those definitions.
+        a, d, vm = quantity("codata2022.a_si"), quantity("codata2022.d220_si"), quantity("codata2022.vm_si")
+        self.assertLessEqual((a.value**2 - 8 * d.value**2) ** 2, (2 * a.value * a.uncertainty + 16 * d.value * d.uncertainty) ** 2)
+        n_a = quantity("codata2022.n_a").value
+        self.assertLessEqual(abs(n_a * a.value**3 / 8 - vm.value), vm.uncertainty + 3 * n_a * a.value**2 * a.uncertainty / 8)
+
+    def test_quantum_electrical_constants(self) -> None:
+        for id in ("codata2022.r_k", "codata2022.k_j"):
+            self.assertTrue(quantity(id).truncated, id)
+        for id in ("codata2022.r_k_90", "codata2022.k_j_90"):
+            item = quantity(id)
+            self.assertTrue(item.exact and not item.truncated, id)
+        low, high = quantity("codata2022.r_k").truncation_bounds
+        self.assertFalse(low <= quantity("codata2022.r_k_90").value < high)
+        low, high = quantity("codata2022.k_j").truncation_bounds
+        self.assertFalse(low <= quantity("codata2022.k_j_90").value < high)
+
+    def test_printed_condensed_matter_values(self) -> None:
+        gaps = {m: quantity(f"ioffe.{m}.band_gap_300k").value for m in ("si", "ge", "gaas")}
+        self.assertEqual(sorted(gaps, key=gaps.get), ["ge", "si", "gaas"])
+        tc = {e: quantity(f"srm767a.{e}.tc").value for e in ("niobium", "lead", "aluminum")}
+        self.assertEqual(sorted(tc, key=tc.get), ["aluminum", "lead", "niobium"])
+        self.assertGreater(quantity("wu1987.ybco.tc").value, 10 * tc["niobium"])
+        for id in ("srm767a.niobium.tc", "wu1987.ybco.tc", "ioffe.si.band_gap_300k", "iapws2011.h2o.t_t", "iapws2011.h2o.p_t"):
+            self.assertIsNone(quantity(id).uncertainty, id)
+        self.assertEqual(quantity("arajs1964.fe.curie").uncertainty, 2)
+
+    def test_water_triple_point_sits_below_the_critical_point(self) -> None:
+        t_t, p_t = quantity("iapws2011.h2o.t_t"), quantity("iapws2011.h2o.p_t")
+        t_c, p_c = quantity("iapws1992.h2o.t_c"), quantity("iapws1992.h2o.p_c")
+        self.assertLess(t_t.value, t_c.value - t_c.uncertainty)
+        self.assertLess(p_t.value, (p_c.value - p_c.uncertainty) * 10**6)
+        self.assertEqual(quantity("iapws1992.h2o.rho_c").uncertainty, 3)
+
+    def test_condensed_matter_asks_link(self) -> None:
+        session = unfold(Request(ask="list the superconducting transition temperatures", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertEqual(linked, {"srm767a.niobium.tc", "srm767a.lead.tc", "srm767a.aluminum.tc", "wu1987.ybco.tc"})
+        session = unfold(Request(ask="what is the critical point of water", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertEqual(linked, {"iapws1992.h2o.t_c", "iapws1992.h2o.p_c", "iapws1992.h2o.rho_c"})
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

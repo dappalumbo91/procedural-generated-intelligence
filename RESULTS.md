@@ -371,9 +371,23 @@ The phenol pKa is `9.994` at 25 °C. It is the Reliable entry in the IUPAC Digit
 
 The tests are data-only. All 36 elements are present, and every value matches its printed concise form. Each interval is ordered. Going up in Z, atomic weight rises except at exactly two places, Ar → K and Co → Ni. CCCBDB's 298 K atomization energy exceeds its 0 K value for all five molecules, and CO's is the largest. Overlapping sources agree to their printed digits: phenol 9.994 against 9.99, water 13.995 against 13.99, and JANAF methane within Gurvich's ±0.3. The atomic-weight ask links all 36 elements, and the phenol ask links exactly the two phenol rows. That is 54 new records.
 
+### Condensed matter: silicon lattice, band gaps, superconductors, quantum electrical constants, iron, water
+
+The condensed-matter anchors are on the board, each as printed.
+
+Silicon, from CODATA 2022: lattice parameter `a = 5.431 020 511(89) × 10^−10` m, {220} spacing `d220 = 1.920 155 716(32) × 10^−10` m, and molar volume `1.205 883 199(60) × 10^−5` m³/mol. All are 1σ, for an ideal crystal of natural Si in vacuum at 22.5 °C. The von Klitzing constant `25 812.807 45...` Ω and the Josephson constant `483 597.848 4... × 10^9` Hz/V are exact and printed truncated, so they use the 0.67 truncation kind. The exact conventional values R_K-90 `25 812.807` and K_J-90 `483 597.9 × 10^9` are stored as separate records.
+
+The band gaps at 300 K come from the Ioffe NSM archive: Si `1.12`, Ge `0.661`, GaAs `1.424` eV, with no uncertainty printed. ioffe.ru did not answer from the box, so the Internet Archive copies were read. The Si and GaAs pages print 300 K in the figure caption. For Ge the 300 K label comes from its Basic Parameters page, and a note says so.
+
+Superconducting transitions come from the NIST SRM 767a certificate (1992), measured on device PP: Nb `9.2488` K, Pb `7.19974` K, Al `1.18074` K. The certificate gives the transition widths and a ±0.3 mK reproducibility, but no uncertainty on T_c itself. YBCO is `93` K, as printed in the title of Wu et al., PRL 58, 908 (1987). The abstract was not reachable.
+
+Iron's ferromagnetic Curie temperature is `1044 ± 2` K, from Arajs and Colvin, J. Appl. Phys. 35, 2424 (1964). Water's critical point comes from IAPWS R2-83(1992): T_c `647.096 + δ₁` K with `δ₁ = 0.000 ± 0.100`, p_c `22.064 + 0.27δ₁ ± 0.005` MPa (the coupling is kept in a note), and ρ_c `322 ± 3` kg/m³. These are estimated uncertainties with no level stated. The triple point is `273.16` K and `611.657` Pa, from IAPWS R14-08(2011), with no uncertainty printed.
+
+The tests are data-only. The silicon entries satisfy CODATA's own table definitions, d220 = a/√8 and V_m = N_A a³/8, within the printed uncertainties. R_K-90 and K_J-90 fall outside the truncation intervals of R_K and K_J. The orderings are checked: Ge < Si < GaAs, Al < Pb < Nb, and YBCO more than ten times Nb. The triple point lies below the critical point. The superconductor and critical-point asks link exactly their records. That is 20 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.70.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.71.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

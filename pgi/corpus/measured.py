@@ -1882,7 +1882,122 @@ CHEMISTRY: tuple[Quantity, ...] = (
        notes=("WebBook row: Delta_fH(gas) -74.6 +- 0.3 kJ/mol, Review, Manion, 2002, 'adopted recommendation of Gurvich, Veyts, et al., 1991'.",)),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY
+
+# ---- Batch 5: condensed matter ----
+
+_SI_X_RAY = (
+    "CODATA 2022 Table XXXIV lists a, d220 = a/sqrt(8), and V_m(Si) = N_A a^3/8 for an ideal single crystal of naturally occurring Si, "
+    "free of impurities and imperfections, in vacuum at 22.5 C."
+)
+_QHE_NOTE = (
+    "CODATA lists this constant as exact in the 2019 SI and prints leading digits followed by '...'; those digits are stored as printed.",
+)
+_CONVENTIONAL_NOTE = (
+    "CODATA lists this conventional value as exact, under its own name, separate from the SI constant.",
+)
+IOFFE_SOURCE = "Ioffe Institute, NSM Archive - Physical Properties of Semiconductors, {name}: Band structure and carrier concentration, Basic Parameters."
+_IOFFE_ARCHIVE = {
+    "Si": "https://web.archive.org/web/20250209210838/http://www.ioffe.ru/SVA/NSM/Semicond/Si/bandstr.html",
+    "Ge": "https://web.archive.org/web/20241224191848/http://www.ioffe.ru/SVA/NSM/Semicond/Ge/bandstr.html",
+    "GaAs": "https://web.archive.org/web/20250123110509/http://www.ioffe.ru/SVA/NSM/Semicond/GaAs/bandstr.html",
+}
+_IOFFE_REACH = "ioffe.ru did not answer from this machine on 2026-11-25; the page was read from the Internet Archive copy named in retrieved_from."
+SRM767A_SOURCE = (
+    "NIST Certificate, Standard Reference Material 767a, Superconductive Thermometric Fixed Point Device, Device No. PP, "
+    "Gaithersburg, MD, February 14, 1992 (revision of certificate dated 8-13-90)."
+)
+_SRM767A_URL = "https://tsapps.nist.gov/srmext/certificates/archives/767a.%20Feb%2014,%201992.pdf"
+_SRM767A_NOTE = (
+    "The certificate prints the measured transition temperature with no uncertainty. It certifies each transition reproducible to +-0.3 mK "
+    "when measured as recommended, on ITS-90 after the 1990 conversion from IPTS-68; the thermometer was calibrated against EPT-76."
+)
+IAPWS_CRIT_SOURCE = (
+    "IAPWS R2-83(1992), Revised Release on the Values of Temperature, Pressure and Density of Ordinary and Heavy Water Substances "
+    "at their Respective Critical Points, Table 1; method and uncertainties in J. M. H. Levelt Sengers et al., J. Phys. Chem. Ref. Data 14, 193 (1985)."
+)
+_IAPWS_CRIT_URL = "https://iapws.org/technical-guidance/release/crits.download"
+_IAPWS_CRIT_NOTE = "The release calls these 'estimated uncertainties' and states no level."
+IAPWS_MELT_SOURCE = (
+    "IAPWS R14-08(2011), Revised Release on the Pressure along the Melting and Sublimation Curves of Ordinary Water Substance, Section 3.1."
+)
+_IAPWS_MELT_URL = "https://iapws.org/technical-guidance/release/MeltSub.download"
+
+
+def _ioffe_gap(mol: str, value: str, extra: str) -> Quantity:
+    return _q(
+        f"ioffe.{mol.lower()}.band_gap_300k", f"band gap of {mol} at 300 K", f"E_g({mol})", value, "", "eV",
+        kind="no uncertainty printed", source=IOFFE_SOURCE.format(name=mol), edition="Ioffe NSM Archive",
+        url=f"https://www.ioffe.ru/SVA/NSM/Semicond/{mol}/bandstr.html", retrieved_from=_IOFFE_ARCHIVE[mol],
+        phrases=(f"band gap of {mol.lower()}", f"{mol.lower()} band gap", "semiconductor band gaps"),
+        notes=(f"Basic Parameters table: 'Energy gap {value} eV'.", extra, _IOFFE_REACH),
+    )
+
+
+def _srm_tc(element: str, value: str, width: str) -> Quantity:
+    return _q(
+        f"srm767a.{element.lower()}.tc", f"superconducting transition temperature of {element}", f"T_c({element})", value, "", "K",
+        kind="no uncertainty printed", source=SRM767A_SOURCE, edition="NIST SRM 767a (1992)", url=_SRM767A_URL, retrieved_from=_SRM767A_URL,
+        phrases=(f"{element.lower()} superconducting", f"superconducting transition of {element.lower()}", "superconducting transition temperatures"),
+        notes=(f"Row: {element}, measured transition temp. T_c = {value} K, measured transition width W = {width} mK.", _SRM767A_NOTE),
+    )
+
+
+CONDENSED_MATTER: tuple[Quantity, ...] = (
+    _codata("codata2022.a_si", "lattice parameter of silicon", "a", "5.431 020 511 e-10", "0.000 000 089 e-10", "m", "asil",
+            keys=("silicon",), phrases=("silicon lattice", "lattice parameter of silicon", "lattice constant of silicon"), notes=(_SI_X_RAY,)),
+    _codata("codata2022.d220_si", "lattice spacing of ideal Si (220)", "d_220", "1.920 155 716 e-10", "0.000 000 032 e-10", "m", "d220sil",
+            keys=("silicon",), phrases=("silicon lattice", "d220", "220 lattice spacing"), notes=(_SI_X_RAY,)),
+    _codata("codata2022.vm_si", "molar volume of silicon", "V_m(Si)", "1.205 883 199 e-5", "0.000 000 060 e-5", "m^3 mol^-1", "mvolsil",
+            keys=("silicon",), phrases=("molar volume of silicon",), notes=(_SI_X_RAY,)),
+    _codata("codata2022.r_k", "von Klitzing constant", "R_K", "25 812.807 45...", "(exact)", "ohm", "rk",
+            keys=("klitzing",), phrases=("von klitzing", "quantum hall resistance", "quantum electrical standards"), notes=_QHE_NOTE),
+    _codata("codata2022.k_j", "Josephson constant", "K_J", "483 597.848 4... e9", "(exact)", "Hz V^-1", "kjos",
+            keys=("josephson",), phrases=("josephson constant", "quantum electrical standards"), notes=_QHE_NOTE),
+    _codata("codata2022.r_k_90", "conventional value of von Klitzing constant", "R_K-90", "25 812.807", "(exact)", "ohm", "rk90",
+            keys=("klitzing",), phrases=("von klitzing", "conventional electrical units"), notes=_CONVENTIONAL_NOTE),
+    _codata("codata2022.k_j_90", "conventional value of Josephson constant", "K_J-90", "483 597.9 e9", "(exact)", "Hz V^-1", "kj90",
+            keys=("josephson",), phrases=("josephson constant", "conventional electrical units"), notes=_CONVENTIONAL_NOTE),
+    _ioffe_gap("Si", "1.12", "The band-structure figure caption reads 'Band structure of Si at 300 K. Eg = 1.12 eV'."),
+    _ioffe_gap("Ge", "0.661", "The bandstr page does not print a temperature beside this table; the Ioffe Ge Basic Parameters page is headed 'Basic Parameters at 300 K'."),
+    _ioffe_gap("GaAs", "1.424", "The band-structure figure caption reads '... of GaAs. 300 K Eg = 1.42 eV'."),
+    _srm_tc("Niobium", "9.2488", "23"),
+    _srm_tc("Lead", "7.19974", "0.2"),
+    _srm_tc("Aluminum", "1.18074", "0.3"),
+    _q("wu1987.ybco.tc", "superconducting transition of the Y-Ba-Cu-O system, as titled", "T_c(Y-Ba-Cu-O)", "93", "", "K",
+       kind="no uncertainty printed",
+       source="M. K. Wu, J. R. Ashburn, C. J. Torng, P. H. Hor, R. L. Meng, L. Gao, Z. J. Huang, Y. Q. Wang, and C. W. Chu, Superconductivity at 93 K in a new mixed-phase Y-Ba-Cu-O compound system at ambient pressure, Phys. Rev. Lett. 58, 908 (1987), doi:10.1103/PhysRevLett.58.908.",
+       edition="Phys. Rev. Lett. 58 (1987)", url="https://doi.org/10.1103/PhysRevLett.58.908", retrieved_from="https://api.crossref.org/works/10.1103/PhysRevLett.58.908",
+       phrases=("ybco", "y-ba-cu-o", "yttrium barium copper oxide", "high-temperature superconductor", "superconducting transition temperatures"),
+       notes=("The value is the one printed in the title. The APS page is behind a bot check and Crossref carries no abstract, so the abstract's transition range was not read.", "PubMed 10035069 indexes the title with 'Yb-Ba-Cu-O'; the Crossref and DOI title read 'Y-Ba-Cu-O'.")),
+    _q("arajs1964.fe.curie", "ferromagnetic Curie temperature of iron", "T_FC(Fe)", "1044", "2", "K",
+       kind="uncertainty as printed, level not stated",
+       source="S. Arajs and R. V. Colvin, Ferromagnetic-Paramagnetic Transition in Iron, J. Appl. Phys. 35, 2424-2426 (1964), doi:10.1063/1.1702873, abstract.",
+       edition="J. Appl. Phys. 35 (1964)", url="https://doi.org/10.1063/1.1702873", retrieved_from="https://api.crossref.org/works/10.1063/1.1702873",
+       phrases=("curie temperature of iron", "iron curie", "curie point of iron"),
+       notes=("Printed as 'The temperature T_FC, appearing as an abrupt decrease in the sigma vs T curves, occurs at 1044+-2 K', for an iron sphere in fields from 180 to 1360 Oe.",)),
+    _q("iapws1992.h2o.t_c", "critical temperature of ordinary water", "T_c(H2O)", "647.096", "0.100", "K",
+       kind="uncertainty as printed, level not stated", source=IAPWS_CRIT_SOURCE, edition="IAPWS R2-83(1992)", url=_IAPWS_CRIT_URL, retrieved_from=_IAPWS_CRIT_URL,
+       phrases=("critical point of water", "water critical point", "critical temperature of water"),
+       notes=("Printed as (647.096 + delta_1) K on ITS-90, with delta_1 = 0.000 +- 0.100.", _IAPWS_CRIT_NOTE, "The release adds that the number of decimal places bears no relation to the accuracy with which T_c is known.")),
+    _q("iapws1992.h2o.p_c", "critical pressure of ordinary water", "p_c(H2O)", "22.064", "0.005", "MPa",
+       kind="uncertainty as printed, level not stated", source=IAPWS_CRIT_SOURCE, edition="IAPWS R2-83(1992)", url=_IAPWS_CRIT_URL, retrieved_from=_IAPWS_CRIT_URL,
+       phrases=("critical point of water", "water critical point", "critical pressure of water"),
+       notes=("Printed as (22.064 + 0.27 delta_1 +- 0.005) MPa: the +-0.005 is stored, and the 0.27 delta_1 term ties p_c to the T_c uncertainty through the vapor-pressure curve.", _IAPWS_CRIT_NOTE)),
+    _q("iapws1992.h2o.rho_c", "critical density of ordinary water", "rho_c(H2O)", "322", "3", "kg m^-3",
+       kind="uncertainty as printed, level not stated", source=IAPWS_CRIT_SOURCE, edition="IAPWS R2-83(1992)", url=_IAPWS_CRIT_URL, retrieved_from=_IAPWS_CRIT_URL,
+       phrases=("critical point of water", "water critical point", "critical density of water"),
+       notes=("Printed as (322 +- 3) kg m^-3.", _IAPWS_CRIT_NOTE)),
+    _q("iapws2011.h2o.t_t", "triple-point temperature of ordinary water (solid-liquid-gas)", "T_t(H2O)", "273.16", "", "K",
+       kind="no uncertainty printed", source=IAPWS_MELT_SOURCE, edition="IAPWS R14-08(2011)", url=_IAPWS_MELT_URL, retrieved_from=_IAPWS_MELT_URL,
+       phrases=("triple point of water", "water triple point"),
+       notes=("Printed as 'T* = T_t = 273.16 K and p* = p_t = 611.657 Pa; T_t and p_t are the values of the \"normal\" triple point (S-L-G)'. T is on ITS-90.",)),
+    _q("iapws2011.h2o.p_t", "triple-point pressure of ordinary water (solid-liquid-gas)", "p_t(H2O)", "611.657", "", "Pa",
+       kind="no uncertainty printed", source=IAPWS_MELT_SOURCE, edition="IAPWS R14-08(2011)", url=_IAPWS_MELT_URL, retrieved_from=_IAPWS_MELT_URL,
+       phrases=("triple point of water", "water triple point"),
+       notes=("Printed in Section 3.1 with no uncertainty. IAPWS-95 (R6-95(2018)) separately reports that its equation of state yields p_t = 611.654 771 Pa; that calculated value is not stored.",)),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS
 
 
