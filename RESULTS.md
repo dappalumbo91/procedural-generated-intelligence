@@ -575,9 +575,17 @@ The top quark's width is now stored as PDG prints it, `1.42 +0.19 −0.15` GeV, 
 
 This adds 22 records.
 
+### Coverage: the gap list is now generated from the board
+
+COVERAGE.md's gap list had gone stale: it said optics had no reference lines or refractive indices, but 0.81 had already added the NIST lines and the N-BK7 and water indices. The hand-written text is gone. `python -m pgi.corpus.coverage gaps` now builds the whole section from the board.
+
+It has two parts. `coverage.HELD` describes what each domain holds by id prefix, and the counts come from the board. Every record has to fall under an entry, and every entry has to match at least one record, so an undescribed record or an emptied entry fails the tests. `coverage.GAPS` lists what's missing, and each gap carries the terms or id prefixes that would close it. A gap stops being listed as soon as a record in its own domain matches. A record in another domain doesn't count, which stops the GW170817 bound, for example, from closing the gravitational-wave-events gap. The tests check that COVERAGE.md's generated block equals the generator's output, and that a gap closes when a matching probe record is added but not when the probe sits in another domain.
+
+This adds no records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.90.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.91.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

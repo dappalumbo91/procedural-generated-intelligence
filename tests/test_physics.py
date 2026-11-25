@@ -1292,6 +1292,36 @@ class CoverageTests(unittest.TestCase):
         block = text.split("<!-- counts:start -->\n", 1)[1].split("\n<!-- counts:end -->", 1)[0]
         self.assertEqual(block, table())
 
+    def test_gap_text_is_generated_from_the_board(self) -> None:
+        from pathlib import Path
+
+        from pgi.corpus.coverage import gap_table
+
+        text = (Path(__file__).resolve().parents[1] / "COVERAGE.md").read_text(encoding="utf-8")
+        block = text.split("<!-- gaps:start -->\n", 1)[1].split("\n<!-- gaps:end -->", 1)[0]
+        self.assertEqual(block, gap_table())
+
+    def test_every_record_is_described_and_every_entry_is_used(self) -> None:
+        from pgi.corpus.coverage import held
+        from pgi.corpus.records import RECORDS
+
+        self.assertEqual(sum(n for entries in held().values() for _, n in entries), len(RECORDS))
+
+    def test_a_gap_closes_when_a_matching_record_lands(self) -> None:
+        from dataclasses import replace
+
+        from pgi.corpus.coverage import GAPS, closing, open_gaps
+        from pgi.corpus.records import RECORDS
+
+        gap = next(g for g in GAPS["optics"] if "verdet" in g.terms)
+        if gap in open_gaps()["optics"]:
+            probe = replace(next(r for r in RECORDS if r.id.startswith("schott.")), id="schott.probe", title="Verdet constant probe")
+            self.assertEqual(closing(gap, "optics", RECORDS + (probe,)), ["schott.probe"])
+            self.assertNotIn(gap, open_gaps(RECORDS + (probe,))["optics"])
+        # A matching record in another domain does not close the gap.
+        other = replace(next(r for r in RECORDS if r.id.startswith("ame2020.")), id="ame2020.probe", title="Verdet constant probe")
+        self.assertEqual(closing(gap, "optics", (other,)), [])
+
 
 class OpticsTests(unittest.TestCase):
     BK7 = (("g", 4358), ("f", 4861), ("e", 5461), ("d", 5876), ("big_d", 5893), ("632_8", 6328), ("c", 6563), ("1060", 10600))

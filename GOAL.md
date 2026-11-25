@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.90.0`.
+Rule version `pgi-0.91.0`.
 
 In the kernel now:
 

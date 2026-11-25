@@ -5,6 +5,7 @@ domain is on the board. `python -m pgi.corpus.coverage` prints the count table."
 from __future__ import annotations
 
 from collections import Counter
+from dataclasses import dataclass
 
 from pgi.corpus.records import RECORDS
 
@@ -103,5 +104,309 @@ def table(ids: tuple[str, ...] | None = None) -> str:
     return "\n".join(lines)
 
 
+# What each domain holds, by id prefix. Every record must fall under exactly one entry of its own domain
+# (longest prefix wins), so a new record without a description here fails the coverage test.
+HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
+    "mechanics": (
+        ("standard gravity", ("codata2022.g_n",)),
+        ("GRS80 Earth model", ("grs80.",)),
+        ("absolute g at Kibble-balance sites", ("leaman2015.", "liu2024.")),
+        ("IERS Conventions (2010) Earth constants, precession, and Love numbers", ("iers2010.",)),
+        ("EOP 20 C04 rotation rate and length of day", ("iersc04.",)),
+        ("WGS 84", ("wgs84.",)),
+    ),
+    "thermodynamics and statistical": (
+        ("CODATA radiation and gas constants", ("codata2022.",)),
+        ("Planck and Rayleigh-Jeans spectra", ("formula.", "known.rayleigh_jeans")),
+        ("water critical and triple points", ("iapws1992.", "iapws2011.")),
+        ("ITS-90 fixed points and the He-4 lambda point", ("its90.",)),
+    ),
+    "electromagnetism": (
+        ("CODATA electromagnetic constants", ("codata2022.",)),
+        ("the mechanical-ether known mistake", ("known.mechanical_ether_required",)),
+        ("IGRF-14 dipole coefficients", ("igrf14.",)),
+        ("IACS copper standard", ("nbs1966.",)),
+        ("water's relative permittivity (IAPWS)", ("iapwsr897.",)),
+        ("Coulomb inverse-square tests", ("williams1971.",)),
+    ),
+    "optics": (
+        ("NIST ASD reference lines", ("asd512.line.",)),
+        ("Schott N-BK7 indices and dispersion", ("schott.",)),
+        ("water refractive index (IAPWS)", ("iapws1997.",)),
+        ("CIPM standard frequencies (I2 633 nm, Sr, Yb)", ("bipm2003.", "bipm2025.")),
+    ),
+    "atomic": (
+        ("NIST first and second ionization energies", ("asd512.ie.", "asd512.ie2.")),
+        ("H-alpha components", ("asd512.h_alpha.",)),
+        ("electron affinities", ("rk2002.", "blondel2001.")),
+    ),
+    "molecular and chemistry": (
+        ("dissociation energies", ("cccbdb.", "holsch2019.")),
+        ("bond lengths", ("hh1979.",)),
+        ("heats of formation", ("codata_key.", "janaf1998.", "gurvich1991.")),
+        ("pKa values", ("crc91.", "iupac_pka.")),
+        ("IUPAC atomic weights", ("iupac2021.",)),
+        ("water ionization constant", ("iapws2024.",)),
+    ),
+    "nuclear": (
+        ("AME2020 masses and binding energies", ("ame2020.",)),
+        ("CODATA deuteron, alpha, and nucleon moments", ("codata2022.",)),
+        ("DDEP and ENSDF half-lives", ("ddep.", "ensdf.")),
+        ("Angeli-Marinova charge radii", ("am2013.",)),
+    ),
+    "particle": (
+        ("CODATA particle masses and G_F", ("codata2022.",)),
+        ("PDG boson, lepton, and quark masses, couplings, and CKM", ("pdg2026.",)),
+        ("PDG light hadron masses", ("pdg2026.m_pi", "pdg2026.m_k", "pdg2026.m_eta", "pdg2026.m_rho", "pdg2026.m_omega", "pdg2026.m_p", "pdg2026.m_n", "pdg2026.m_lambda", "pdg2026.m_delta")),
+        ("PDG neutrino mixing", ("pdg2026.nu.",)),
+        ("PDG lifetimes and widths", ("pdg2026.neutron_lifetime", "pdg2026.tau_lifetime", "pdg2026.b_plus", "pdg2026.b0_", "pdg2026.bs_", "pdg2026.pi_plus_", "pdg2026.pi0_", "pdg2026.k_", "pdg2026.mu_lifetime", "pdg2026.gamma_h", "pdg2026.gamma_t")),
+        ("PDG Z-pole values", ("pdg2026.gamma_z", "pdg2026.sigma_had0", "pdg2026.a_fb0", "pdg2026.r_", "pdg2026.z.")),
+        ("PDG Higgs signal strengths", ("pdg2026.higgs_mu.",)),
+        ("LEP/SLD Z-pole combination", ("lep2005.",)),
+        ("W mass by experiment", ("atlas2024.", "cdf2022.", "cms2026.")),
+        ("ATLAS and CMS global Higgs signal strengths", ("atlas2022.", "cms2022.")),
+        ("lattice alpha_s", ("flag2024.",)),
+        ("muon and neutron lifetimes by experiment", ("mulan2013.", "ucntau2021.", "ucntau2025.", "nist_beam2013.")),
+        ("the OPERA timing known mistake", ("known.opera_timing",)),
+    ),
+    "condensed matter": (
+        ("silicon lattice constants (CODATA)", ("codata2022.",)),
+        ("band gaps", ("ioffe.",)),
+        ("superconductor T_c", ("srm767a.", "nagamatsu2001.", "drozdov2015.", "wu1987.")),
+        ("iron Curie point", ("arajs1964.",)),
+        ("elastic constants and elastic Debye temperatures", ("knowles2017.", "migliori2008.", "kamm1964.", "vallin1964.")),
+        ("graphene transmittance", ("nair2008.",)),
+        ("quantum Hall universality", ("ribeiropalau2015.",)),
+    ),
+    "fluids": (
+        ("water properties at 20-25 C", ("webbook.",)),
+        ("water surface tension", ("iapws2014.",)),
+        ("speed of sound in air", ("wong1986.", "greenspan1987.")),
+        ("air, N2, and O2 viscosity and thermal conductivity", ("lemmon2004.",)),
+        ("liquid helium-4 densities and first and second sound", ("db1998.",)),
+    ),
+    "gravitation": (
+        ("Newtonian G and its input measurements", ("codata2022.g", "g_input.")),
+        ("Cassini, VLBI, ephemeris, and PPN tests", ("cassini.", "vlbi.", "inpop19a.", "inpop20a.", "inpop21a.", "ppn.")),
+        ("Mercury's perihelion", ("mercury.",)),
+        ("binary pulsars", ("double_pulsar.", "psr_b1913.")),
+        ("Gravity Probe B and LAGEOS/LARES frame dragging", ("gpb.", "ciufolini2016.")),
+        ("GW150914", ("gw150914.",)),
+        ("gravitational redshift (Galileo, Pound-Snider, optical clocks)", ("delva2018.", "herrmann2018.", "pound1965.", "chou2010.", "bothwell2022.")),
+        ("LLR Nordtvedt eta and Gdot/G", ("williams2004.", "hofmann2018.")),
+    ),
+    "astrophysics": (
+        ("IAU nominal and astronomical constants", ("iau2015.", "iau2012.", "iau2026.")),
+        ("Moon orbit and recession", ("nssdc.", "williams2016.")),
+        ("Sirius B", ("bond2017.", "joyce2018.")),
+        ("neutron star masses and radii", ("fonseca2021.", "riley2021.", "miller2021.", "salmi2024.", "dittmann2024.")),
+        ("solar irradiance", ("haberreiter2008.",)),
+    ),
+    "cosmology": (
+        ("Planck 2018 parameters", ("planck2018.",)),
+        ("SH0ES H0", ("sh0es2022.",)),
+        ("DESI DR2 dark energy", ("desi_dr2.",)),
+        ("CMB temperature", ("fixsen2009.",)),
+        ("primordial abundances", ("aver2021.", "cooke2018.", "fields2020.", "pdg2026.bbn.")),
+    ),
+    "QED and precision": (
+        ("CODATA alpha, Rydberg, and g-factors", ("codata2022.",)),
+        ("PDG g-2 and proton radius", ("pdg2026.",)),
+        ("muonic hydrogen and the proton radius", ("antognini2013.", "crema2013.", "bezginov2019.")),
+        ("hydrogen spectroscopy", ("lundeen1981.", "matveev2013.", "parthey2011.", "hellwig1970.")),
+        ("positronium", ("ishida2014.", "ritter1984.", "kataoka2009.", "alramadhan1994.")),
+        ("muonium", ("liu1999.",)),
+        ("electron and muon g-2 experiments", ("fan2023.", "fnal2025.")),
+        ("helium fine structure", ("zelevinsky2004.", "george2001.", "kato2018.", "heydarizadmotlagh2024.")),
+    ),
+    "null results and bounds": (("null results and upper bounds", ("bound.", "jila2023.", "abel2020.", "microscope2022.")),),
+    "SI defining constants": (("SI defining constants", ("codata2022.", "anchor.")),),
+    "foundations and status": (("primitives, obstructions, and open problems", ("primitive.", "obstruction.", "open.")),),
+}
+
+
+@dataclass(frozen=True)
+class Gap:
+    """An observable the board lacks. It closes itself once a record of its own domain matches one of
+    its terms: a term starting with "id:" matches a record-id prefix, any other term matches the
+    record's title, keys, or phrases (lower-cased). A closed gap stops being listed."""
+
+    text: str
+    terms: tuple[str, ...]
+
+
+GAPS: dict[str, tuple[Gap, ...]] = {
+    "mechanics": (
+        Gap("more absolute-gravity sites (the CCM key comparisons)", ("key comparison",)),
+        Gap("measured (not nominal) Love numbers from tides and SLR", ("measured love number",)),
+        Gap("Earth's moments of inertia", ("moment of inertia",)),
+    ),
+    "thermodynamics and statistical": (
+        Gap("pre-2019 Boltzmann-constant determinations (acoustic gas thermometry, DCGT, Johnson noise)", ("acoustic gas thermometry", "johnson noise")),
+        Gap("heat-capacity ratios of common gases", ("heat capacity ratio", "adiabatic index")),
+        Gap("second virial coefficients", ("virial coefficient",)),
+        Gap("latent heats", ("latent heat", "enthalpy of vaporization", "enthalpy of fusion")),
+        Gap("critical points beyond water", ("critical point of nitrogen", "critical point of carbon dioxide", "critical point of helium")),
+    ),
+    "electromagnetism": (
+        Gap("copper resistivity versus temperature", ("copper resistivity versus temperature",)),
+        Gap("silver resistivity", ("resistivity of silver",)),
+        Gap("gold resistivity", ("resistivity of gold",)),
+        Gap("aluminium resistivity", ("resistivity of aluminium", "resistivity of aluminum")),
+        Gap("tungsten resistivity", ("resistivity of tungsten",)),
+        Gap("relative permittivities of common solid dielectrics", ("permittivity of fused silica", "permittivity of ptfe", "permittivity of alumina", "permittivity of sapphire")),
+        Gap("magnetic susceptibilities", ("magnetic susceptibility",)),
+    ),
+    "optics": (
+        Gap("fused-silica refractive index (Malitson 1965)", ("fused silica",)),
+        Gap("refractive index of air (Ciddor 1996 or Edlen)", ("refractive index of air",)),
+        Gap("Verdet constants", ("verdet",)),
+        Gap("thermo-optic coefficients", ("thermo-optic",)),
+        Gap("the rest of the CIPM frequency list", ("ca40+", "hg199", "in115+")),
+    ),
+    "atomic": (
+        Gap("excited-state lifetimes and oscillator strengths", ("oscillator strength", "excited-state lifetime")),
+        Gap("static polarizabilities", ("polarizability",)),
+        Gap("ionization energies above krypton", ("ionization energy of rubidium", "ionization energy of cesium")),
+        Gap("isotope shifts", ("isotope shift",)),
+    ),
+    "molecular and chemistry": (
+        Gap("vibrational frequencies and rotational constants", ("vibrational frequency", "rotational constant")),
+        Gap("molecular dipole moments", ("dipole moment of",)),
+        Gap("standard electrode potentials", ("electrode potential",)),
+        Gap("solubility products", ("solubility product",)),
+        Gap("enthalpies of combustion", ("enthalpy of combustion",)),
+    ),
+    "nuclear": (
+        Gap("half-lives of short-lived and medical isotopes (e.g. Tc-99m, F-18)", ("tc-99m", "f-18")),
+        Gap("the rest of the Angeli-Marinova table and newer laser-spectroscopy radii", ("laser spectroscopy radius",)),
+        Gap("thermal neutron cross sections", ("thermal neutron cross section",)),
+        Gap("nuclear spins and quadrupole moments", ("nuclear quadrupole moment", "nuclear spin")),
+        Gap("fission and fusion Q-values", ("q-value", "fusion energy release")),
+    ),
+    "particle": (
+        Gap("charm meson masses (D)", ("d meson mass", "mass of the d meson")),
+        Gap("bottom meson masses (B)", ("b meson mass", "mass of the b meson")),
+        Gap("quarkonium masses (J/psi, Upsilon)", ("j/psi", "upsilon")),
+        Gap("strange baryon masses (Sigma, Xi, Omega)", ("sigma baryon", "xi baryon", "omega baryon")),
+        Gap("heavy baryon masses (Lambda_c, Lambda_b)", ("lambda_c", "lambda_b")),
+        Gap("Higgs branching ratios", ("higgs branching",)),
+        Gap("the Z invisible width and branching ratio", ("z invisible",)),
+        Gap("measured cross sections (e.g. top pair at 13 TeV)", ("top pair cross section",)),
+        Gap("ATLAS and CMS per-channel signal strengths", ("atlas signal strength by channel",)),
+    ),
+    "condensed matter": (
+        Gap("calorimetric Debye temperatures (Cu and Si have no reachable primary source yet)", ("calorimetric debye",)),
+        Gap("thermal conductivities of solids", ("thermal conductivity of copper", "thermal conductivity of silicon", "thermal conductivity of diamond")),
+        Gap("lattice constants beyond silicon", ("lattice constant of copper", "lattice constant of germanium", "lattice constant of aluminium", "lattice constant of gaas")),
+        Gap("magnetic moments of ferromagnets", ("saturation magnetization",)),
+    ),
+    "fluids": (
+        Gap("measured (not correlated) air transport data", ("measured air viscosity",)),
+        Gap("noble-gas transport properties", ("viscosity of argon", "viscosity of helium gas")),
+        Gap("seawater (TEOS-10)", ("seawater", "teos-10")),
+        Gap("diffusion coefficients", ("diffusion coefficient",)),
+        Gap("helium-4 viscosity and mutual friction", ("mutual friction", "helium ii viscosity")),
+    ),
+    "gravitation": (
+        Gap("Pound-Rebka 1960 itself (abstract not reachable)", ("pound-rebka 1960",)),
+        Gap("Takamoto 2020 Tokyo Skytree clock test", ("skytree",)),
+        Gap("Bothwell 2022 published-version numbers", ("bothwell published",)),
+        Gap("gravitational-wave events beyond GW150914, with masses and distances", ("id:gw170817.", "id:gw190521.", "id:gwtc3.", "id:gwtc4.")),
+    ),
+    "astrophysics": (
+        Gap("solar neutrino fluxes (Borexino)", ("borexino", "solar neutrino flux")),
+        Gap("Sgr A* mass and distance (GRAVITY)", ("sgr a*",)),
+        Gap("M87* and Sgr A* shadow sizes", ("shadow",)),
+        Gap("eclipsing-binary masses", ("eclipsing binary",)),
+        Gap("the solar abundance scale", ("solar abundance",)),
+    ),
+    "cosmology": (
+        Gap("DESI BAO distances", ("bao distance",)),
+        Gap("the baryon-to-photon ratio", ("baryon-to-photon",)),
+        Gap("weak-lensing S8 (KiDS, DES)", ("kids", "weak lensing")),
+        Gap("Omega_k", ("curvature density", "omega_k")),
+        Gap("the age of the universe", ("age of the universe",)),
+        Gap("the reionization redshift", ("reionization redshift",)),
+    ),
+    "QED and precision": (
+        Gap("the electron mass in u from Penning traps", ("penning",)),
+        Gap("He+ and HD+ spectroscopy", ("hd+", "he+ spectroscopy")),
+        Gap("positronium and muonium 1S-2S", ("positronium 1s-2s", "muonium 1s-2s")),
+        Gap("the 3He-4He isotope shift", ("helium isotope shift",)),
+        Gap("the antiproton-to-proton charge-to-mass ratio", ("antiproton",)),
+    ),
+    "null results and bounds": (
+        Gap("Lorentz-invariance (SME) limits", ("lorentz invariance", "sme coefficient")),
+        Gap("neutrinoless double-beta decay (KamLAND-Zen)", ("double-beta", "double beta")),
+        Gap("dark-matter cross sections (LZ)", ("dark matter cross section", "wimp")),
+        Gap("axion-photon coupling (CAST)", ("axion",)),
+        Gap("fifth-force (Eot-Wash) limits", ("fifth force", "eot-wash")),
+        Gap("drift of alpha from clocks", ("alpha drift", "variation of the fine-structure constant")),
+        Gap("neutron-antineutron and charge-equality limits", ("neutron-antineutron", "charge equality")),
+    ),
+    "SI defining constants": (),
+    "foundations and status": (),
+}
+
+_HEAD = "| Domain | Records | On the board | Still missing |"
+
+
+def _text(record) -> str:
+    return " | ".join((record.title, *record.keys, *record.phrases)).lower()
+
+
+def held(records=None) -> dict[str, list[tuple[str, int]]]:
+    """Each domain's HELD entries with their record counts. Raises if a record has no entry, or an entry is empty."""
+    records = RECORDS if records is None else records
+    out: dict[str, list[tuple[str, int]]] = {name: [] for name in DOMAINS}
+    tally: dict[tuple[str, str], int] = Counter()
+    for record in records:
+        name = domain(record.id)
+        best = max(((len(prefix), label) for label, prefixes in HELD[name] for prefix in prefixes if record.id.startswith(prefix)), default=None)
+        if best is None:
+            raise KeyError(f"no HELD entry in {name} for {record.id}")
+        tally[(name, best[1])] += 1
+    for name in DOMAINS:
+        for label, _ in HELD[name]:
+            if not tally[(name, label)]:
+                raise KeyError(f"HELD entry '{label}' in {name} matches no record")
+            out[name].append((label, tally[(name, label)]))
+    return out
+
+
+def closing(gap: Gap, name: str, records=None) -> list[str]:
+    """Ids of the records of domain `name` that close `gap`."""
+    records = RECORDS if records is None else records
+    hits = []
+    for record in records:
+        if domain(record.id) != name:
+            continue
+        text = _text(record)
+        if any(record.id.startswith(term[3:]) if term.startswith("id:") else term in text for term in gap.terms):
+            hits.append(record.id)
+    return hits
+
+
+def open_gaps(records=None) -> dict[str, list[Gap]]:
+    return {name: [gap for gap in GAPS[name] if not closing(gap, name, records)] for name in DOMAINS}
+
+
+def gap_table(records=None) -> str:
+    """The domain-by-domain gap table and the thinnest-domains list, built only from the board."""
+    have, missing, rows = held(records), open_gaps(records), counts(None if records is None else tuple(r.id for r in records))
+    lines = [_HEAD, "|---|---:|---|---|"]
+    for name in DOMAINS:
+        on = "; ".join(f"{label} ({n})" for label, n in have[name])
+        gone = "; ".join(gap.text for gap in missing[name]) or "nothing listed"
+        lines.append(f"| {name} | {rows[name]} | {on} | {gone} |")
+    lines += ["", "Thinnest domains that still have listed gaps, fewest records first:", ""]
+    thin = sorted((n, name) for name, n in rows.items() if missing[name])[:7]
+    lines += [f"{i}. {name} ({n} records): {missing[name][0].text}." for i, (n, name) in enumerate(thin, 1)]
+    return "\n".join(lines)
+
+
 if __name__ == "__main__":
-    print(table())
+    import sys
+
+    print(gap_table() if sys.argv[1:] == ["gaps"] else table())

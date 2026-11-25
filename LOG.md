@@ -1040,3 +1040,11 @@ Added SLD A_l and the LEP/SLD heavy-flavour fit from the 2006 LEP report, PDG 20
 That is 22 records.
 
 `python -m unittest discover -s tests -v` finished 341 tests, 0 failures, about 125.51 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — coverage gaps generated pgi-0.91.0
+
+Replaced COVERAGE.md's hand-written gap list and top-gaps text with a generated block. Added `HELD`, `GAPS`, `held()`, `closing()`, `open_gaps()`, and `gap_table()` to `pgi/corpus/coverage.py`, with three tests. The stale optics line, which said there were no reference lines or refractive indices, is gone.
+
+That is no new records.
+
+`python -m unittest discover -s tests -v` finished 344 tests, 0 failures, about 106.71 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
