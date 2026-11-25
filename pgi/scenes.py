@@ -242,6 +242,12 @@ def demo_text() -> str:
         "=== inverse checked by multiplying back ===",
         unfold(Request(ask="what is inv([[1, 2], [3, 4]])", lod=2, seed=1)).text(lod=2),
         "",
+        "=== characteristic polynomial ===",
+        unfold(Request(ask="what is charpoly([[1, 2], [3, 4]])", lod=2, seed=1)).text(lod=2),
+        "",
+        "=== real eigenvalues ===",
+        unfold(Request(ask="what is eigenvalues([[0, 2], [1, 0]])", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]

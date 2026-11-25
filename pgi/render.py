@@ -108,6 +108,12 @@ def _claim_block(support: Support, index: int, lod: int) -> list[str]:
         lines.append(f"   {support.atom} is the constructed real")
     elif support.atom.startswith("matrix("):
         lines.append(f"   {support.atom} is the exact rational matrix")
+    elif support.atom.startswith("charpoly("):
+        lines.append(f"   {support.atom} is the characteristic polynomial")
+    elif support.atom == "eigenvalues()":
+        lines.append("   eigenvalues() is the empty set of real eigenvalues")
+    elif support.atom.startswith("eigenvalues("):
+        lines.append(f"   {support.atom} are the real eigenvalues")
     elif support.atom.startswith("set("):
         lines.append(f"   {support.atom} is the finite set")
     elif " union " in support.atom:

@@ -7,7 +7,12 @@ cofactor expansion (the cofactor check runs through degree five).
 A rank is kept only when a pivot minor has nonzero determinant and
 every other row is the corresponding exact linear combination of the
 pivot rows. An inverse is kept only when both products with the
-source are the identity.
+source are the identity. The characteristic polynomial is
+`det(tI - A)`, monic, and is kept only when Faddeev–LeVerrier
+agrees with interpolation at enough points, the polynomial
+annihilates the matrix, and it matches the determinant at an
+extra point. Real eigenvalues are the real roots of that
+polynomial, isolated by the algebraic-number kernel.
 
 Isabelle HOL-Analysis `Determinants.thy` and Lean mathlib `Matrix.det`
 are the named determinant laws. Lean `Matrix.mul_nonsing_inv` and
@@ -22,6 +27,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from math import gcd, lcm
 
+from pgi.math.algebraic import (
+    AlgebraicReal,
+    from_ratio_coeffs,
+    roots_of_rational_polynomial,
+    show_algebraic,
+    show_poly,
+)
 from pgi.math.kernel import KernelError, NotExact
 from pgi.math.rational import Ratio, RatTheorem, eval_rat, rat_normalize
 from pgi.math.syntax import App, IntLit, Term, pretty
@@ -110,6 +122,29 @@ class InvTheorem:
             raise KernelError("Matrix.inv does not multiply back to the identity")
 
 
+@dataclass(frozen=True)
+class CharpolyTheorem:
+    value: tuple[Ratio, ...]
+    source: Matrix
+    detail: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not _charpoly_justified(self):
+            raise KernelError("Matrix.charpoly does not justify this polynomial")
+
+
+@dataclass(frozen=True)
+class EigenTheorem:
+    value: tuple[object, ...]
+    source: Matrix
+    poly: tuple[Ratio, ...]
+    detail: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not _eigen_justified(self):
+            raise KernelError("Matrix.eigenvalues does not justify these roots")
+
+
 def show_ratio(value: Ratio) -> str:
     if value.den == 1:
         return str(value.num)
@@ -122,6 +157,55 @@ def show_matrix(matrix: Matrix) -> str:
         inner = ", ".join(show_ratio(entry) for entry in row)
         rows.append(f"[{inner}]")
     return "[" + ", ".join(rows) + "]"
+
+
+def show_rat_poly(coeffs: tuple[Ratio, ...]) -> str:
+    if all(coeff.den == 1 for coeff in coeffs):
+        return show_poly(tuple(coeff.num for coeff in coeffs))
+    pieces: list[str] = []
+    for index, coeff in enumerate(coeffs):
+        if coeff.num == 0:
+            continue
+        shown = show_ratio(coeff)
+        if index == 0:
+            term = shown
+        elif index == 1:
+            if coeff == _ONE:
+                term = "x"
+            elif coeff == _neg(_ONE):
+                term = "-x"
+            else:
+                term = f"{shown} * x"
+        else:
+            if coeff == _ONE:
+                term = f"x^{index}"
+            elif coeff == _neg(_ONE):
+                term = f"-x^{index}"
+            else:
+                term = f"{shown} * x^{index}"
+        pieces.append(term)
+    if not pieces:
+        return "0"
+    body = pieces[-1]
+    for term in reversed(pieces[:-1]):
+        if term.startswith("-"):
+            body = f"{body} - {term[1:]}"
+        else:
+            body = f"{body} + {term}"
+    return body
+
+
+def show_eigenvalue(value: object) -> str:
+    if isinstance(value, Ratio):
+        return show_ratio(value)
+    if isinstance(value, AlgebraicReal):
+        from pgi.math.real import show_form, try_radical_form
+
+        form = try_radical_form(value.coeffs, value.index)
+        if form is not None:
+            return show_form(form)
+        return show_algebraic(value)
+    raise KernelError("unrecognized eigenvalue")
 
 
 def identity_matrix(size: int) -> Matrix:
@@ -275,6 +359,48 @@ def matrix_inv(source: Matrix) -> InvTheorem:
             "Lean Matrix.mul_nonsing_inv and Matrix.nonsing_inv_mul.",
             "Isabelle: a square matrix over a field is invertible exactly when its determinant is nonzero.",
         ),
+    )
+
+
+def matrix_charpoly(source: Matrix) -> CharpolyTheorem:
+    if not source.square:
+        raise NotExact("a non-square matrix has no characteristic polynomial here")
+    _check_size(source)
+    poly, lines = _characteristic_polynomial(source)
+    return CharpolyTheorem(
+        poly,
+        source,
+        (
+            *lines,
+            "The characteristic polynomial is det(tI - A), monic in t.",
+            "Lean mathlib Matrix.charpoly. Isabelle char_poly.",
+            "Faddeev–LeVerrier and interpolation have to agree, the polynomial has to annihilate the matrix, and it has to match the determinant at an extra point.",
+        ),
+    )
+
+
+def matrix_eigenvalues(source: Matrix) -> EigenTheorem:
+    poly = matrix_charpoly(source)
+    integer = from_ratio_coeffs(poly.value)
+    roots = roots_of_rational_polynomial(integer)
+    values = tuple(root for root, _multiplicity in roots)
+    lines = [
+        f"The characteristic polynomial is {show_rat_poly(poly.value)}.",
+        *poly.detail,
+    ]
+    if not values:
+        lines.append("This polynomial has no real root.")
+    else:
+        shown = ", ".join(show_eigenvalue(value) for value in values)
+        lines.append(f"The real roots, isolated by the algebraic-number kernel, are {shown}.")
+        for root, multiplicity in roots:
+            if multiplicity != 1:
+                lines.append(f"{show_eigenvalue(root)} has multiplicity {multiplicity}.")
+    return EigenTheorem(
+        values,
+        source,
+        poly.value,
+        tuple(lines),
     )
 
 
@@ -553,6 +679,138 @@ def _gauss_jordan_inv(matrix: Matrix) -> Matrix | None:
     return Matrix(tuple(tuple(row[n:]) for row in work))
 
 
+def _characteristic_polynomial(matrix: Matrix) -> tuple[tuple[Ratio, ...], tuple[str, ...]]:
+    leverrier = _leverrier(matrix)
+    interpolated = _interpolated_charpoly(matrix)
+    if leverrier != interpolated:
+        raise KernelError("Faddeev–LeVerrier and interpolation disagreed")
+    if leverrier[-1] != _ONE:
+        raise KernelError("the characteristic polynomial is not monic")
+    if len(leverrier) != matrix.nrows + 1:
+        raise KernelError("the characteristic polynomial has the wrong degree")
+    extra = Ratio(matrix.nrows + 1, 1)
+    if _eval_poly(leverrier, extra) != _shifted_det(matrix, extra):
+        raise KernelError("the characteristic polynomial missed an extra evaluation point")
+    if not _is_zero_matrix(_horner_matrix(leverrier, matrix)):
+        raise KernelError("the characteristic polynomial did not annihilate the matrix")
+    lines = (
+        f"Faddeev–LeVerrier produces {show_rat_poly(leverrier)}.",
+        "Interpolation through det(tI - A) at 0, 1, ..., n agrees.",
+        f"The same polynomial matches det(({matrix.nrows + 1})I - A).",
+        "Cayley–Hamilton: the polynomial annihilates the matrix.",
+    )
+    return leverrier, lines
+
+
+def _leverrier(matrix: Matrix) -> tuple[Ratio, ...]:
+    size = matrix.nrows
+    identity = identity_matrix(size)
+    coeffs: list[Ratio] = []
+    previous = matrix
+    for index in range(1, size + 1):
+        coeff = _neg(_div(_trace(previous), Ratio(index, 1)))
+        coeffs.append(coeff)
+        if index == size:
+            break
+        step = matrix_add(matrix_of(previous), matrix_smul(coeff, matrix_of(identity))).value
+        previous = matrix_mul(matrix_of(matrix), matrix_of(step)).value
+    # coeffs are c1..cn for t^n + c1 t^{n-1} + ... + cn; low-degree first with leading 1.
+    return tuple(reversed(coeffs)) + (_ONE,)
+
+
+def _interpolated_charpoly(matrix: Matrix) -> tuple[Ratio, ...]:
+    size = matrix.nrows
+    xs = [Ratio(index, 1) for index in range(size + 1)]
+    ys = [_shifted_det(matrix, point) for point in xs]
+    return _interpolate(xs, ys)
+
+
+def _shifted_det(matrix: Matrix, point: Ratio) -> Ratio:
+    shifted = matrix_sub(matrix_of(_scaled_identity(matrix.nrows, point)), matrix_of(matrix)).value
+    return _bareiss_det(shifted)
+
+
+def _scaled_identity(size: int, scalar: Ratio) -> Matrix:
+    return Matrix(tuple(tuple(scalar if i == j else _ZERO for j in range(size)) for i in range(size)))
+
+
+def _trace(matrix: Matrix) -> Ratio:
+    acc = _ZERO
+    for index in range(matrix.nrows):
+        acc = _add(acc, matrix.rows[index][index])
+    return acc
+
+
+def _interpolate(xs: list[Ratio], ys: list[Ratio]) -> tuple[Ratio, ...]:
+    if len(xs) != len(ys) or not xs:
+        raise KernelError("interpolation needs matching points")
+    coef = list(ys)
+    count = len(xs)
+    for step in range(1, count):
+        for index in range(count - 1, step - 1, -1):
+            coef[index] = _div(_sub(coef[index], coef[index - 1]), _sub(xs[index], xs[index - step]))
+    poly = [coef[-1]]
+    for index in range(count - 2, -1, -1):
+        poly = _times_x_plus(poly, _neg(xs[index]))
+        poly[0] = _add(poly[0], coef[index])
+    return tuple(poly)
+
+
+def _times_x_plus(coeffs: list[Ratio], constant: Ratio) -> list[Ratio]:
+    out = [_mul(constant, coeffs[0])]
+    for index in range(1, len(coeffs)):
+        out.append(_add(coeffs[index - 1], _mul(constant, coeffs[index])))
+    out.append(coeffs[-1])
+    return out
+
+
+def _eval_poly(coeffs: tuple[Ratio, ...], point: Ratio) -> Ratio:
+    acc = _ZERO
+    power = _ONE
+    for coeff in coeffs:
+        acc = _add(acc, _mul(coeff, power))
+        power = _mul(power, point)
+    return acc
+
+
+def _horner_matrix(coeffs: tuple[Ratio, ...], matrix: Matrix) -> Matrix:
+    acc = _scaled_identity(matrix.nrows, coeffs[-1])
+    for coeff in reversed(coeffs[:-1]):
+        acc = matrix_add(
+            matrix_mul(matrix_of(matrix), matrix_of(acc)),
+            matrix_of(_scaled_identity(matrix.nrows, coeff)),
+        ).value
+    return acc
+
+
+def _is_zero_matrix(matrix: Matrix) -> bool:
+    return all(entry.num == 0 for row in matrix.rows for entry in row)
+
+
+def _charpoly_justified(theorem: CharpolyTheorem) -> bool:
+    if not theorem.source.square:
+        return False
+    if theorem.value != _leverrier(theorem.source):
+        return False
+    if theorem.value != _interpolated_charpoly(theorem.source):
+        return False
+    if theorem.value[-1] != _ONE or len(theorem.value) != theorem.source.nrows + 1:
+        return False
+    extra = Ratio(theorem.source.nrows + 1, 1)
+    if _eval_poly(theorem.value, extra) != _shifted_det(theorem.source, extra):
+        return False
+    return _is_zero_matrix(_horner_matrix(theorem.value, theorem.source))
+
+
+def _eigen_justified(theorem: EigenTheorem) -> bool:
+    if theorem.poly != _leverrier(theorem.source):
+        return False
+    integer = from_ratio_coeffs(theorem.poly)
+    roots = roots_of_rational_polynomial(integer)
+    values = tuple(root for root, _multiplicity in roots)
+    return theorem.value == values
+
+
 def _mat_justified(theorem: MatTheorem) -> bool:
     value = theorem.value
     rule = theorem.rule
@@ -715,7 +973,7 @@ def _div(left: Ratio, right: Ratio) -> Ratio:
     return rat_normalize(left.num * right.den, left.den * right.num).value
 
 
-def lin_trace(result: MatTheorem | DetTheorem | RankTheorem | InvTheorem | RatTheorem) -> tuple[str, ...]:
+def lin_trace(result: MatTheorem | DetTheorem | RankTheorem | InvTheorem | CharpolyTheorem | EigenTheorem | RatTheorem) -> tuple[str, ...]:
     if isinstance(result, RatTheorem):
         from pgi.math.rational import rat_trace
 
@@ -735,6 +993,18 @@ def lin_trace(result: MatTheorem | DetTheorem | RankTheorem | InvTheorem | RatTh
             f"Matrix.inv: inv({show_matrix(result.source)}) = {show_matrix(result.value)}",
             *result.detail,
             f"The product either way is {show_matrix(identity_matrix(result.source.nrows))}.",
+        )
+    if isinstance(result, CharpolyTheorem):
+        return (
+            f"Matrix.charpoly: charpoly({show_matrix(result.source)}) = {show_rat_poly(result.value)}",
+            *result.detail,
+        )
+    if isinstance(result, EigenTheorem):
+        shown = ", ".join(show_eigenvalue(value) for value in result.value)
+        body = shown if shown else "none"
+        return (
+            f"Matrix.eigenvalues: eigenvalues({show_matrix(result.source)}) = {body}",
+            *result.detail,
         )
     lines: list[str] = []
     for premise in result.premises:
@@ -778,6 +1048,30 @@ def lin_value_rule(origin: Term, result: object, prelude: tuple[str, ...] = ()) 
             stage="quantity",
             title=f"{title_left} = {result.value}",
             produces=f"value({result.value})",
+            detail_lines=lines,
+        )
+    if isinstance(result, CharpolyTheorem):
+        shown = show_rat_poly(result.value)
+        lines = (*prelude, *lin_trace(result))
+        return Rule(
+            id=f"math.charpoly.{shown}",
+            layer="base",
+            stage="quantity",
+            title=f"{title_left} = {shown}",
+            produces=f"charpoly({shown})",
+            detail_lines=lines,
+        )
+    if isinstance(result, EigenTheorem):
+        shown = ", ".join(show_eigenvalue(value) for value in result.value)
+        body = shown if shown else ""
+        atom = f"eigenvalues({body})"
+        lines = (*prelude, *lin_trace(result))
+        return Rule(
+            id=f"math.eigenvalues.{atom}",
+            layer="base",
+            stage="quantity",
+            title=f"{title_left} = {{{shown}}}" if shown else f"{title_left} = {{}}",
+            produces=atom,
             detail_lines=lines,
         )
     if isinstance(result, (InvTheorem, MatTheorem)):
@@ -853,7 +1147,7 @@ def _value_ratio(result: object) -> Ratio | None:
     return None
 
 
-def eval_lin_result(term: Term) -> MatTheorem | DetTheorem | RankTheorem | InvTheorem | RatTheorem:
+def eval_lin_result(term: Term) -> MatTheorem | DetTheorem | RankTheorem | InvTheorem | CharpolyTheorem | EigenTheorem | RatTheorem:
     """Evaluate to the most specific theorem, not a reduced wrapper."""
 
     if isinstance(term, App):
@@ -865,6 +1159,10 @@ def eval_lin_result(term: Term) -> MatTheorem | DetTheorem | RankTheorem | InvTh
             return matrix_inv(_as_matrix_value(_eval(term.args[0])))
         if term.op == "transpose" and len(term.args) == 1:
             return matrix_transpose(matrix_of(_as_matrix_value(_eval(term.args[0]))))
+        if term.op == "charpoly" and len(term.args) == 1:
+            return matrix_charpoly(_as_matrix_value(_eval(term.args[0])))
+        if term.op == "eigenvalues" and len(term.args) == 1:
+            return matrix_eigenvalues(_as_matrix_value(_eval(term.args[0])))
         if term.op in {"matrix", "row"}:
             return matrix_of(_as_matrix(term))
         if term.op in {"add", "sub", "mul", "div", "neg"}:
@@ -891,7 +1189,7 @@ def _note(text: str) -> Rule:
 
 def has_matrix(term: Term) -> bool:
     if isinstance(term, App):
-        if term.op in {"matrix", "row", "det", "rank", "inv", "inverse", "transpose"}:
+        if term.op in {"matrix", "row", "det", "rank", "inv", "inverse", "transpose", "charpoly", "eigenvalues"}:
             return True
         return any(has_matrix(arg) for arg in term.args)
     return False

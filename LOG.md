@@ -686,3 +686,11 @@ With the CODATA constants, the two agree to one part in a thousand at `h ν / k 
 The physics board now holds 64 quantities, one bound, and two formulas. The next sourced data are a modern Mercury reduction with standard uncertainties, the rest of the gravitational-wave catalogs, and atomic-clock comparisons.
 
 `python -m unittest discover -s tests -v` finished 168 tests, 0 failures, about 58.28 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — characteristic polynomials and real eigenvalues pgi-0.52.0
+
+The characteristic polynomial of a square rational matrix is `det(tI - A)`, monic in t. It is kept only when Faddeev–LeVerrier agrees with interpolation through those determinants, the polynomial annihilates the matrix, and it matches the determinant at an extra point. `charpoly([[1, 2], [3, 4]])` is `x^2 - 5 * x - 2`. `charpoly([[0, -1], [1, 0]])` is `x^2 + 1`. `charpoly([[2, 0, 0], [0, 3, 0], [0, 0, 5]])` is `x^3 - 10 * x^2 + 31 * x - 30`. Real eigenvalues are the real roots of that polynomial, isolated by the algebraic-number kernel. `eigenvalues([[0, 1], [1, 0]])` is `{-1, 1}`. `eigenvalues([[0, 2], [1, 0]])` is `{-sqrt(2), sqrt(2)}`. `eigenvalues([[1, 2], [3, 4]])` is `{5/2 - 1/2 * sqrt(33), 5/2 + 1/2 * sqrt(33)}`. A characteristic polynomial with no real root, such as `eigenvalues([[0, -1], [1, 0]])`, yields the empty set. A non-square matrix has no characteristic polynomial here.
+
+The next mathematics, in GOAL order, is manifolds, then differential geometry, Hilbert space, and gauge theory. A modern Mercury reduction, the rest of the gravitational-wave catalogs, and atomic-clock comparisons are being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 169 tests, 0 failures, about 50.61 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

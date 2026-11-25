@@ -4,7 +4,7 @@ import unittest
 
 from pgi.engine import unfold
 from pgi.math.kernel import KernelError
-from pgi.math.matrix import DetTheorem, Matrix, RankTheorem, Ratio, matrix_inv, matrix_mul, matrix_of
+from pgi.math.matrix import CharpolyTheorem, DetTheorem, Matrix, RankTheorem, Ratio, matrix_inv, matrix_mul, matrix_of
 from pgi.math.syntax import parse_term, pretty
 from pgi.model import Request
 
@@ -89,6 +89,45 @@ class RationalMatrixTests(unittest.TestCase):
         inverse = matrix_inv(source)
         product = matrix_mul(matrix_of(source), matrix_of(inverse.value)).value
         self.assertEqual(product.rows, ((Ratio(1, 1), Ratio(0, 1)), (Ratio(0, 1), Ratio(1, 1))))
+
+    def test_characteristic_polynomial_and_real_eigenvalues(self) -> None:
+        poly = run(Request(ask="what is charpoly([[1, 2], [3, 4]])", seed=1))
+        self.assertEqual(poly.claims[0].atom, "charpoly(x^2 - 5 * x - 2)")
+        self.assertIn("Faddeev–LeVerrier", poly.text(lod=2))
+        self.assertIn("Cayley–Hamilton", poly.text(lod=2))
+        self.assertEqual(poly.open_gaps, ())
+        rotation = run(Request(ask="what is charpoly([[0, -1], [1, 0]])", seed=1))
+        self.assertEqual(rotation.claims[0].atom, "charpoly(x^2 + 1)")
+        jordan = run(Request(ask="what is charpoly([[1, 1], [0, 1]])", seed=1))
+        self.assertEqual(jordan.claims[0].atom, "charpoly(x^2 - 2 * x + 1)")
+        diagonal = run(Request(ask="what is charpoly([[2, 0, 0], [0, 3, 0], [0, 0, 5]])", seed=1))
+        self.assertEqual(diagonal.claims[0].atom, "charpoly(x^3 - 10 * x^2 + 31 * x - 30)")
+        fraction = run(Request(ask="what is charpoly([[1/2, 0], [0, 1/3]])", seed=1))
+        self.assertEqual(fraction.claims[0].atom, "charpoly(x^2 - 5/6 * x + 1/6)")
+
+        plus_minus = run(Request(ask="what is eigenvalues([[0, 1], [1, 0]])", seed=1))
+        self.assertEqual(plus_minus.claims[0].atom, "eigenvalues(-1, 1)")
+        radicals = run(Request(ask="what is eigenvalues([[0, 2], [1, 0]])", seed=1))
+        self.assertEqual(radicals.claims[0].atom, "eigenvalues(-sqrt(2), sqrt(2))")
+        self.assertIn("algebraic-number kernel", radicals.text(lod=2))
+        empty = run(Request(ask="what is eigenvalues([[0, -1], [1, 0]])", seed=1))
+        self.assertEqual(empty.claims[0].atom, "eigenvalues()")
+        repeated = run(Request(ask="what is eigenvalues([[1, 1], [0, 1]])", seed=1))
+        self.assertEqual(repeated.claims[0].atom, "eigenvalues(1)")
+        self.assertIn("multiplicity 2", repeated.text(lod=2))
+        quadratic = run(Request(ask="what is eigenvalues([[1, 2], [3, 4]])", seed=1))
+        self.assertEqual(
+            quadratic.claims[0].atom,
+            "eigenvalues(5/2 - 1/2 * sqrt(33), 5/2 + 1/2 * sqrt(33))",
+        )
+        opened = run(Request(ask="what is charpoly([1, 2])", seed=1))
+        self.assertEqual(
+            opened.claims[0].atom,
+            "open(a non-square matrix has no characteristic polynomial here)",
+        )
+        source = Matrix(((Ratio(1, 1), Ratio(2, 1)), (Ratio(3, 1), Ratio(4, 1))))
+        with self.assertRaises(KernelError):
+            CharpolyTheorem((Ratio(0, 1), Ratio(-5, 1), Ratio(1, 1)), source)
 
     def test_matrix_terms_pretty_print(self) -> None:
         term = parse_term("det([[1, 2], [3, 4]])")

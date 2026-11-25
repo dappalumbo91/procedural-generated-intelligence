@@ -250,9 +250,13 @@ The speed-of-gravity bound is B. P. Abbott et al., ApJL 848, L13 (2017), Eq. (2)
 
 The tests evaluate both stored texts with the CODATA `h`, `k`, and `c`. At `h ν / k θ = 10^-4` they agree to better than one part in a thousand. At `h ν / k θ = 20` Rayleigh–Jeans is more than a million times Planck. Doubling the frequency cutoff multiplies the Rayleigh–Jeans total by exactly 8 with no limit, while Planck's density falls by more than 25 orders of magnitude between `h ν / k θ = 10` and `80`.
 
+### Characteristic polynomials and real eigenvalues
+
+The characteristic polynomial of a square rational matrix is `det(tI - A)`, monic in t. It is kept only when Faddeev–LeVerrier agrees with interpolation through those determinants, the polynomial annihilates the matrix, and it matches the determinant at an extra point. `charpoly([[1, 2], [3, 4]])` is `x^2 - 5 * x - 2`. `charpoly([[0, -1], [1, 0]])` is `x^2 + 1`. `charpoly([[2, 0, 0], [0, 3, 0], [0, 0, 5]])` is `x^3 - 10 * x^2 + 31 * x - 30`. Real eigenvalues are the real roots of that polynomial, isolated by the algebraic-number kernel. `eigenvalues([[0, 1], [1, 0]])` is `{-1, 1}`. `eigenvalues([[0, 2], [1, 0]])` is `{-sqrt(2), sqrt(2)}`. `eigenvalues([[1, 2], [3, 4]])` is `{5/2 - 1/2 * sqrt(33), 5/2 + 1/2 * sqrt(33)}`. A characteristic polynomial with no real root, such as `eigenvalues([[0, -1], [1, 0]])`, yields the empty set. A non-square matrix has no characteristic polynomial here.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.51.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.52.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -260,5 +264,5 @@ This list is the current state as of `pgi-0.51.0`. Earlier sections above are hi
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
-- Characteristic polynomials and eigenvalues of exact rational matrices, then manifolds, differential geometry, Hilbert space, and gauge theory, are still ahead of any physical law.
+- Manifolds, differential geometry, Hilbert space, and gauge theory are still ahead of any physical law.
 - CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The rest of the gravitational-wave catalogs and a modern Mercury reduction are not.
