@@ -556,11 +556,13 @@ def _eval_field(term: App):
         if len(term.args) == 5:
             x_name, y_name = _name(term.args[3]), _name(term.args[4])
         return u1_field(ax, ay, x_name, y_name)
-    if group == "su2":
+    if group in {"su2", "su3"}:
         if len(term.args) != 3:
-            raise NotExact("an SU(2) field strength takes two connection components")
+            raise NotExact("an SU(2) or SU(3) field strength takes two connection components")
         ax = _eval_matrix(term.args[1])
         ay = _eval_matrix(term.args[2])
+        if group == "su3" and (ax.nrows != 3 or ay.nrows != 3):
+            raise NotExact("an SU(3) connection component must be 3×3")
         return su2_field_const(ax, ay)
     raise NotExact("a field strength for this group is not available here")
 

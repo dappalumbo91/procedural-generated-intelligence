@@ -136,15 +136,50 @@ class HilbertTests(unittest.TestCase):
         )
         not_hermitian = run(Request(ask="what is spectral([[0, 1], [0, 0]])", seed=1))
         self.assertEqual(not_hermitian.claims[0].atom, "open(this matrix is not Hermitian)")
-        larger = run(
+        identity3 = run(
             Request(
                 ask="what is spectral([[1, 0, 0], [0, 1, 0], [0, 0, 1]])",
                 seed=1,
             )
         )
         self.assertEqual(
-            larger.claims[0].atom,
-            "open(spectral decomposition is exact here only for 2×2 Hermitian matrices)",
+            identity3.claims[0].atom,
+            "cmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 1]])",
+        )
+        algebraic = run(
+            Request(
+                ask="what is eigendiag([[0, 1, 0], [1, 0, 1], [0, 1, 0]])",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            algebraic.claims[0].atom,
+            "cmatrix([[-sqrt(2), 0, 0], [0, 0, 0], [0, 0, sqrt(2)]])",
+        )
+        rebuilt3 = run(
+            Request(
+                ask=(
+                    "prove spectral([[0, 1, 0], [1, 0, 1], [0, 1, 0]]) "
+                    "* eigendiag([[0, 1, 0], [1, 0, 1], [0, 1, 0]]) "
+                    "* dagger(spectral([[0, 1, 0], [1, 0, 1], [0, 1, 0]])) "
+                    "= [[0, 1, 0], [1, 0, 1], [0, 1, 0]]"
+                ),
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            rebuilt3.claims[0].atom,
+            "identity(spectral([[0, 1, 0], [1, 0, 1], [0, 1, 0]]) * eigendiag([[0, 1, 0], [1, 0, 1], [0, 1, 0]]) * dagger(spectral([[0, 1, 0], [1, 0, 1], [0, 1, 0]])) = [[0, 1, 0], [1, 0, 1], [0, 1, 0]])",
+        )
+        mixed = run(
+            Request(
+                ask="what is spectral([[2, 1, 1], [1, 2, 1], [1, 1, 2]])",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            mixed.claims[0].atom,
+            "open(these numbers lie in different quadratic fields)",
         )
 
     def test_tensor_products_and_spin_half(self) -> None:

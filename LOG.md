@@ -1106,3 +1106,13 @@ The Minkowski metric `eta()` is `diag(-1, 1, 1, 1)`. A boost with a rational vel
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 367 tests, 0 failures, about 403.55 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — 3×3 spectral decompositions and SU(3) gauge transformations pgi-0.99.0
+
+A Hermitian spectral decomposition is kept only when the eigenvalues lie in Q or Q(√d), the eigenvector norms are positive rationals, `H = U D U†`, `U` is unitary, and `D` is real diagonal. The 3×3 matrix `[[0, 1, 0], [1, 0, 1], [0, 1, 0]]` has diagonal `diag(-√2, 0, √2)` and rebuilds exactly. A 3×3 matrix whose eigenvectors would mix two different square-free radicands stays open.
+
+An SU(3) gauge transformation by a constant special unitary matrix acts on a constant connection by `A ↦ U A U†`. The field strength `F = [A_x, A_y]` transforms as `F ↦ U F U†`, and `tr(F²)` is invariant.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 368 tests, 0 failures, about 274.36 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

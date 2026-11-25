@@ -132,3 +132,33 @@ class GaugeTests(unittest.TestCase):
         with self.assertRaises(KernelError):
             GaugeMatrix(su2_gen("z"), origin)
         self.assertEqual(eval_gauge_result(origin).value.rows, su2_gen("x").rows)
+
+    def test_su3_gauge_transform_on_a_constant_connection(self) -> None:
+        u = "[[3/5, -4/5, 0], [4/5, 3/5, 0], [0, 0, 1]]"
+        u_pretty = "[[3 / 5, -4 / 5, 0], [4 / 5, 3 / 5, 0], [0, 0, 1]]"
+        covariant = run(
+            Request(
+                ask=(
+                    f"prove fieldstrength(su3, adjoint({u}, su3(1)), adjoint({u}, su3(2))) "
+                    f"= adjoint({u}, fieldstrength(su3, su3(1), su3(2)))"
+                ),
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            covariant.claims[0].atom,
+            f"identity(fieldstrength(su3, adjoint({u_pretty}, su3(1)), adjoint({u_pretty}, su3(2))) = adjoint({u_pretty}, fieldstrength(su3, su3(1), su3(2))))",
+        )
+        invariant = run(
+            Request(
+                ask=(
+                    f"prove trace(fieldstrength(su3, adjoint({u}, su3(1)), adjoint({u}, su3(2)))^2) "
+                    f"= trace(fieldstrength(su3, su3(1), su3(2))^2)"
+                ),
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            invariant.claims[0].atom,
+            f"identity(trace(fieldstrength(su3, adjoint({u_pretty}, su3(1)), adjoint({u_pretty}, su3(2)))^2) = trace(fieldstrength(su3, su3(1), su3(2))^2))",
+        )

@@ -8,8 +8,9 @@ Gram–Schmidt is kept only when the result is orthonormal: Q† Q = I.
 A matrix is Hermitian only when A† = A, and unitary only when both
 A† A and A A† are the identity. A commutator is AB − BA. The Pauli
 matrices satisfy [σ_i, σ_j] = 2 i ε_ijk σ_k, checked exactly. The
-spectral decomposition of a Hermitian 2×2 matrix is kept only when
-H = U D U†, U is unitary, and D is real diagonal. Tensor products
+spectral decomposition of a Hermitian matrix is kept only when the
+eigenvalues lie in Q or Q(√d), eigenvector norms are positive
+rationals, H = U D U†, U is unitary, and D is real diagonal. Tensor products
 are the Kronecker product, checked on the identity and on Pauli
 matrices. The computational basis kets and the spin-1/2 states
 |+⟩, |−⟩ are unit vectors and are orthonormal as a pair.
@@ -499,8 +500,16 @@ def gram_schmidt(vectors: tuple[CMatrix, ...]) -> CMatrix:
 def spectral_hermitian(value: CMatrix) -> tuple[CMatrix, CMatrix]:
     """Return (U, D) with H = U D U†, U unitary, D real diagonal."""
     require_hermitian(value)
-    if value.nrows != 2:
-        raise NotExact("spectral decomposition is exact here only for 2×2 Hermitian matrices")
+    if not value.square:
+        raise NotExact("spectral decomposition takes a square Hermitian matrix")
+    if value.nrows == 2:
+        return _spectral_2x2(value)
+    if value.nrows < 2 or value.nrows > HILBERT_LIMIT:
+        raise NotExact("spectral decomposition is exact here only for Hermitian matrices of size at most 8")
+    return _spectral_general(value)
+
+
+def _spectral_2x2(value: CMatrix) -> tuple[CMatrix, CMatrix]:
     a = value.rows[0][0]
     b = value.rows[1][1]
     c = value.rows[0][1]
@@ -518,8 +527,8 @@ def spectral_hermitian(value: CMatrix) -> tuple[CMatrix, CMatrix]:
     half = c_from_ratio(Ratio(1, 2))
     lam_p = c_mul(half, c_add(c_add(a, b), root))
     lam_m = c_mul(half, c_sub(c_add(a, b), root))
-    v_p = _eigenvector(value, lam_p)
-    v_m = _eigenvector(value, lam_m)
+    v_p = _eigenvector_2(value, lam_p)
+    v_m = _eigenvector_2(value, lam_m)
     u = CMatrix(
         (
             (v_p.rows[0][0], v_m.rows[0][0]),
@@ -527,17 +536,208 @@ def spectral_hermitian(value: CMatrix) -> tuple[CMatrix, CMatrix]:
         )
     )
     d = CMatrix(((lam_p, c_zero()), (c_zero(), lam_m)))
-    if not is_unitary(u):
-        raise KernelError("the spectral factor was not unitary")
-    if not is_hermitian(d) or not c_is_real(lam_p) or not c_is_real(lam_m):
-        raise KernelError("the spectral diagonal was not real")
-    rebuilt = cmatrix_mul(u, cmatrix_mul(d, cmatrix_dagger(u)))
-    if not cmatrix_eq(rebuilt, value):
-        raise KernelError("the spectral decomposition did not rebuild the Hermitian matrix")
+    _require_spectral(value, u, d)
     return u, d
 
 
-def _eigenvector(h: CMatrix, lam: CNum) -> CMatrix:
+def _spectral_general(value: CMatrix) -> tuple[CMatrix, CMatrix]:
+    poly = _cmatrix_charpoly(value)
+    annihilated = _apply_poly(poly, value)
+    if not cmatrix_eq(annihilated, cmatrix_zero(value.nrows, value.ncols)):
+        raise KernelError("the characteristic polynomial did not annihilate this Hermitian matrix")
+    from pgi.math.algebraic import from_ratio_coeffs, roots_of_rational_polynomial
+
+    roots = roots_of_rational_polynomial(from_ratio_coeffs(poly))
+    if not roots:
+        raise NotExact("this Hermitian matrix has no exact algebraic eigenvalue the kernel can use")
+    columns: list[CMatrix] = []
+    values: list[CNum] = []
+    accounted = 0
+    for root, multiplicity in roots:
+        lam = _cnum_from_root(root)
+        space = _eigenspace(value, lam)
+        if len(space) != multiplicity:
+            raise NotExact("this eigenspace dimension did not match the algebraic multiplicity")
+        accounted += multiplicity
+        for vector in space:
+            columns.append(vector)
+            values.append(lam)
+    if accounted != value.nrows:
+        raise NotExact("this characteristic polynomial did not split into Q or Q(√d) factors of full degree")
+    u = _columns_to_matrix(columns)
+    d = CMatrix(
+        tuple(
+            tuple(values[i] if i == j else c_zero() for j in range(len(values)))
+            for i in range(len(values))
+        )
+    )
+    _require_spectral(value, u, d)
+    return u, d
+
+
+def _cmatrix_charpoly(value: CMatrix) -> tuple[Ratio, ...]:
+    """Monic det(tI − H) as rational coefficients, constant term first."""
+    size = value.nrows
+    previous = value
+    coeffs: list[Ratio] = []
+    for index in range(1, size + 1):
+        raw = cmatrix_trace(previous)
+        if not c_is_real(raw):
+            raise KernelError("a Hermitian characteristic coefficient was not real")
+        ratio = c_as_ratio(c_div(raw, c_from_int(index)))
+        if ratio is None:
+            raise NotExact("this characteristic polynomial is not rational")
+        coeff = Ratio(-ratio.num, ratio.den)
+        if coeff.den < 0:
+            coeff = Ratio(-coeff.num, -coeff.den)
+        coeffs.append(coeff)
+        if index == size:
+            break
+        step = cmatrix_add(previous, cmatrix_smul(c_from_ratio(coeff), cmatrix_identity(size)))
+        previous = cmatrix_mul(value, step)
+    return tuple(reversed(coeffs)) + (Ratio(1, 1),)
+
+
+def _apply_poly(coeffs: tuple[Ratio, ...], matrix: CMatrix) -> CMatrix:
+    ident = cmatrix_identity(matrix.nrows)
+    acc = cmatrix_zero(matrix.nrows, matrix.ncols)
+    for coeff in reversed(coeffs):
+        acc = cmatrix_add(cmatrix_mul(acc, matrix), cmatrix_smul(c_from_ratio(coeff), ident))
+    return acc
+
+
+def _cnum_from_root(root: object) -> CNum:
+    if isinstance(root, Ratio):
+        return c_from_ratio(root)
+    from pgi.math.algebraic import AlgebraicReal, degree
+
+    if not isinstance(root, AlgebraicReal) or degree(root.coeffs) != 2:
+        raise NotExact("this eigenvalue is not in Q or Q(√d)")
+    constant, linear, lead = root.coeffs
+    disc = linear * linear - 4 * lead * constant
+    if disc <= 0:
+        raise NotExact("this quadratic eigenvalue is not a real radical")
+    sqrt_disc = c_sqrt_ratio(Ratio(disc, 1))
+    two_a = c_from_int(2 * lead)
+    neg_b = c_from_int(-linear)
+    plus = c_div(c_add(neg_b, sqrt_disc), two_a)
+    minus = c_div(c_sub(neg_b, sqrt_disc), two_a)
+    low, high = root.interval
+
+    def inside(value: CNum) -> bool:
+        lower = c_sub(value, c_from_ratio(low))
+        upper = c_sub(c_from_ratio(high), value)
+        return (
+            _nonneg_real(lower)
+            and not c_is_zero(lower)
+            and _nonneg_real(upper)
+            and not c_is_zero(upper)
+        )
+
+    if inside(plus) and not inside(minus):
+        return plus
+    if inside(minus) and not inside(plus):
+        return minus
+    raise KernelError("this quadratic eigenvalue could not be matched to a radical")
+
+
+def _eigenspace(h: CMatrix, lam: CNum) -> tuple[CMatrix, ...]:
+    shifted = cmatrix_sub(h, cmatrix_smul(lam, cmatrix_identity(h.nrows)))
+    raw = _null_vectors(shifted)
+    if not raw:
+        raise KernelError("an eigenvalue had a trivial eigenspace")
+    if len(raw) == 1:
+        space = (_normalize_vector(raw[0]),)
+    else:
+        orthonormal = gram_schmidt(raw)
+        space = tuple(
+            vector_from_entries(tuple(orthonormal.rows[i][j] for i in range(orthonormal.nrows)))
+            for j in range(orthonormal.ncols)
+        )
+    for vector in space:
+        if not cmatrix_eq(cmatrix_mul(h, vector), cmatrix_smul(lam, vector)):
+            raise KernelError("this eigenvector did not satisfy H v = λ v")
+    return space
+
+
+def _null_vectors(shifted: CMatrix) -> tuple[CMatrix, ...]:
+    n = shifted.nrows
+    rows = [[shifted.rows[i][j] for j in range(n)] for i in range(n)]
+    used: list[int] = []
+    rank = 0
+    for col in range(n):
+        pivot = None
+        for i in range(rank, n):
+            if not c_is_zero(rows[i][col]):
+                pivot = i
+                break
+        if pivot is None:
+            continue
+        rows[rank], rows[pivot] = rows[pivot], rows[rank]
+        scale = c_inv(rows[rank][col])
+        rows[rank] = [c_mul(scale, entry) for entry in rows[rank]]
+        for i in range(n):
+            if i == rank or c_is_zero(rows[i][col]):
+                continue
+            factor = rows[i][col]
+            rows[i] = [c_sub(rows[i][j], c_mul(factor, rows[rank][j])) for j in range(n)]
+        used.append(col)
+        rank += 1
+        if rank == n:
+            break
+    pivot_row = {}
+    for i in range(rank):
+        for col in range(n):
+            if not c_is_zero(rows[i][col]):
+                pivot_row[col] = i
+                break
+    free = [col for col in range(n) if col not in used]
+    if not free:
+        return ()
+    vectors = []
+    for free_col in free:
+        entries = [c_zero() for _ in range(n)]
+        entries[free_col] = c_one()
+        for col, i in pivot_row.items():
+            entries[col] = c_neg(rows[i][free_col])
+        vectors.append(vector_from_entries(tuple(entries)))
+    return tuple(vectors)
+
+
+def _normalize_vector(raw: CMatrix) -> CMatrix:
+    n2 = inner(raw, raw)
+    ratio = c_as_ratio(n2)
+    if ratio is None:
+        raise NotExact("this eigenvector norm is not a rational")
+    if ratio.num <= 0:
+        raise KernelError("this eigenvector had a non-positive norm")
+    return cmatrix_smul(c_inv(c_sqrt_ratio(ratio)), raw)
+
+
+def _columns_to_matrix(columns: list[CMatrix]) -> CMatrix:
+    n = columns[0].nrows
+    return CMatrix(
+        tuple(tuple(column.rows[i][0] for column in columns) for i in range(n))
+    )
+
+
+def _require_spectral(value: CMatrix, u: CMatrix, d: CMatrix) -> None:
+    if not is_unitary(u):
+        raise KernelError("the spectral factor was not unitary")
+    if not is_hermitian(d):
+        raise KernelError("the spectral diagonal was not real")
+    for i in range(d.nrows):
+        if not c_is_real(d.rows[i][i]):
+            raise KernelError("the spectral diagonal was not real")
+        for j in range(d.ncols):
+            if i != j and not c_is_zero(d.rows[i][j]):
+                raise KernelError("the spectral diagonal was not diagonal")
+    rebuilt = cmatrix_mul(u, cmatrix_mul(d, cmatrix_dagger(u)))
+    if not cmatrix_eq(rebuilt, value):
+        raise KernelError("the spectral decomposition did not rebuild the Hermitian matrix")
+
+
+def _eigenvector_2(h: CMatrix, lam: CNum) -> CMatrix:
     shifted = cmatrix_sub(h, cmatrix_smul(lam, cmatrix_identity(2)))
     # A null vector of H − λI. Use the first row, or the second if that vanishes.
     a, b = shifted.rows[0]
@@ -551,11 +751,7 @@ def _eigenvector(h: CMatrix, lam: CNum) -> CMatrix:
         raw = vector_from_entries((c_one(), c_neg(c_div(a, b))))
     else:
         raw = vector_from_entries((c_neg(c_div(b, a)), c_one()))
-    n2 = inner(raw, raw)
-    ratio = c_as_ratio(n2)
-    if ratio is None:
-        raise NotExact("this eigenvector norm is not a rational")
-    unit = cmatrix_smul(c_inv(c_sqrt_ratio(ratio)), raw)
+    unit = _normalize_vector(raw)
     # Check H v = λ v
     if not cmatrix_eq(cmatrix_mul(h, unit), cmatrix_smul(lam, unit)):
         raise KernelError("this eigenvector did not satisfy H v = λ v")
@@ -846,7 +1042,7 @@ def _matrix_detail(term: Term, value: CMatrix) -> tuple[str, ...]:
         "The Pauli matrices satisfy [σ_i, σ_j] = 2 i ε_ijk σ_k, checked exactly.",
     ]
     if isinstance(term, App) and term.op == "spectral":
-        lines.append("A 2×2 Hermitian spectral decomposition is kept only when H = U D U† with U unitary and D real diagonal.")
+        lines.append("A Hermitian spectral decomposition is kept only when the eigenvalues lie in Q or Q(√d), eigenvector norms are positive rationals, and H = U D U† with U unitary and D real diagonal.")
     if isinstance(term, App) and term.op == "ket":
         lines.append("A computational or spin-1/2 ket is a unit vector; |+⟩ and |−⟩ are eigenvectors of σ_x.")
     if is_hermitian(value):
