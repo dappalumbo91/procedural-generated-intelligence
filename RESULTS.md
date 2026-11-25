@@ -593,9 +593,17 @@ The board also has its first Verdet constants. Sivaramakrishnan's 1956 fused-qua
 
 This adds 25 records.
 
+### Particle: heavier hadrons and branching fractions
+
+The hadron list now goes past the light mesons and the Λ. PDG 2026 masses are on the board for D⁺, D⁰, D_s, B⁺, B⁰, B_s, J/ψ, Υ(1S), the three Σ, both Ξ, Ω⁻, Λ_c, and Λ_b, each with its own node and PDG's OUR FIT or OUR AVERAGE label. Where a node prints both, the other value is in the notes. A test checks the printed isospin splittings: Σ⁻ > Σ⁰ > Σ⁺, Ξ⁻ > Ξ⁰, D⁺ > D⁰, and B⁰ > B⁺.
+
+The Higgs measured branching fractions sit beside its signal strengths: bb `53 ± 8` %, WW `25.7 ± 2.5` %, ZZ `2.80 ± 0.30` %, ττ `6.0 +0.8 −0.7` %, γγ `(2.50 ± 0.20)×10⁻³`, and μμ `(3.0 ± 0.9)×10⁻⁴`. For WW, the API keeps slightly asymmetric errors, but PDG's display rounds them to ±2.5. The printed value is stored, and the raw errors go in a note. The Z gets its invisible branching fraction (`20.000 ± 0.055` %), its hadronic branching fraction, and its invisible width (`499.3 ± 1.5` MeV). Because B = Γ_inv/Γ_Z by definition, a test checks that PDG's two invisible entries agree within their uncertainties.
+
+This adds 25 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.92.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.93.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

@@ -1706,6 +1706,36 @@ class OpticsExtrasTests(unittest.TestCase):
         self.assertIn("asd512.line.ne_632_8", self._linked("what is the he-ne laser line wavelength"))
 
 
+class ParticleHadronsBrTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_isospin_partners_as_printed(self) -> None:
+        m = lambda k: quantity(f"pdg2026.m_{k}").value
+        self.assertTrue(m("sigma_minus") > m("sigma0") > m("sigma_plus"))
+        self.assertGreater(m("xi_minus"), m("xi0"))
+        self.assertGreater(m("d_plus"), m("d0"))
+        self.assertGreater(m("b0"), m("b_plus"))
+
+    def test_z_invisible_width_and_branching_fraction_agree(self) -> None:
+        # B(Z -> invisible) is Gamma_inv / Gamma_Z by definition; PDG's two entries agree within their uncertainties.
+        width, total, br = quantity("pdg2026.gamma_z_invisible"), quantity("pdg2026.gamma_z"), quantity("pdg2026.br.z_invisible")
+        ratio = width.value / (total.value * 1000) * 100
+        allowed = br.uncertainty + width.uncertainty / (total.value * 1000) * 100 + ratio * total.uncertainty / total.value
+        self.assertLessEqual(abs(ratio - br.value), allowed)
+
+    def test_asymmetric_tau_branching_fraction(self) -> None:
+        tau = quantity("pdg2026.br.h_tautau")
+        self.assertEqual((tau.value, tau.uncertainty, tau.lower_uncertainty), (Fraction(6), Fraction(8, 10), Fraction(7, 10)))
+
+    def test_asks_link(self) -> None:
+        self.assertIn("pdg2026.m_jpsi", self._linked("what is the j/psi mass"))
+        self.assertIn("pdg2026.m_lambda_b", self._linked("what is the lambda_b mass"))
+        self.assertTrue({"pdg2026.br.h_bb", "pdg2026.br.h_ww"} <= self._linked("list the higgs branching ratios"))
+        self.assertTrue({"pdg2026.br.z_invisible", "pdg2026.gamma_z_invisible"} <= self._linked("what is the z invisible width"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

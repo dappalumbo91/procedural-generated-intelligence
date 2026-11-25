@@ -1056,3 +1056,11 @@ Added the Malitson fused-silica Sellmeier coefficients, the NIST EMT Ciddor and 
 That is 25 records.
 
 `python -m unittest discover -s tests -v` finished 348 tests, 0 failures, about 99.17 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — particle hadrons and branching fractions pgi-0.93.0
+
+Added 16 PDG 2026 heavier-hadron masses, six Higgs branching fractions, the Z invisible and hadronic branching fractions, and the Z invisible width. The COVERAGE.md particle gaps for these closed themselves.
+
+That is 25 records.
+
+`python -m unittest discover -s tests -v` finished 352 tests, 0 failures, about 92.61 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -3506,7 +3506,52 @@ OPTICS_EXTRAS: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS
+def _hadron(key: str, name: str, symbol: str, value: str, error: str, node: str, label: str, phrases: tuple[str, ...]) -> Quantity:
+    return _pdg(f"pdg2026.{key}", f"{name} mass", symbol, value, error, "MeV", node=node, keys=("hadron masses",),
+                phrases=phrases + ("hadron masses", "heavier hadron masses"),
+                notes=(_API_NOTE, f"PDG node {node} prints {value}+-{error} MeV ({label})."))
+
+
+def _br(key: str, decay: str, symbol: str, value: str, error: str, unit: str, node: str, label: str, phrases: tuple[str, ...], *, lower: str = "", printed: str = "", extra: tuple[str, ...] = ()) -> Quantity:
+    return _pdg(f"pdg2026.br.{key}", f"branching fraction {decay}", symbol, value, error, unit, node=node,
+                kind="asymmetric standard uncertainty" if lower else "standard uncertainty", lower_text=lower,
+                keys=("branching ratio",), phrases=phrases + ("branching ratio", "branching fraction"),
+                notes=(_API_NOTE, f"PDG node {node} prints {printed or value + '+-' + error}" + (" in percent" if unit == "%" else "") + f" ({label}).") + extra)
+
+
+_SYM_NOTE = "The API's stored errors for this entry are asymmetric ({0}); PDG's summary display rounds them to the symmetric value stored here."
+
+PARTICLE_HADRONS_BR: tuple[Quantity, ...] = (
+    _hadron("m_d_plus", "D+ meson", "m_D+", "1869.66", "0.05", "S031M", "OUR FIT", ("d meson mass", "d+ mass", "charm meson")),
+    _hadron("m_d0", "D0 meson", "m_D0", "1864.84", "0.04", "S032M", "OUR FIT", ("d meson mass", "d0 mass", "charm meson")),
+    _hadron("m_ds", "D_s+ meson", "m_Ds", "1968.35", "0.07", "S034M", "OUR FIT; the node also prints an OUR AVERAGE of 1969.0+-1.4 MeV, not stored", ("d meson mass", "d_s mass", "charm meson")),
+    _hadron("m_b_plus", "B+ meson", "m_B+", "5279.41", "0.07", "S041M", "OUR FIT", ("b meson mass", "b+ mass", "bottom meson")),
+    _hadron("m_b0", "B0 meson", "m_B0", "5279.72", "0.08", "S042M", "OUR FIT", ("b meson mass", "b0 mass", "bottom meson")),
+    _hadron("m_bs", "B_s0 meson", "m_Bs", "5366.93", "0.10", "S086M", "OUR FIT; the node also prints an OUR AVERAGE of 5366.91+-0.11 MeV, not stored", ("b meson mass", "b_s mass", "bottom meson")),
+    _hadron("m_jpsi", "J/psi(1S)", "m_J/psi", "3096.900", "0.006", "M070M", "OUR AVERAGE", ("j/psi", "j/psi mass", "charmonium", "quarkonium")),
+    _hadron("m_upsilon1s", "Upsilon(1S)", "m_Upsilon(1S)", "9460.40", "0.10", "M049M", "OUR AVERAGE", ("upsilon", "upsilon mass", "bottomonium", "quarkonium")),
+    _hadron("m_sigma_plus", "Sigma+ baryon", "m_Sigma+", "1189.37", "0.07", "S019M", "OUR FIT", ("sigma baryon", "sigma+ mass", "hyperon masses")),
+    _hadron("m_sigma0", "Sigma0 baryon", "m_Sigma0", "1192.642", "0.024", "S021M", "OUR FIT", ("sigma baryon", "sigma0 mass", "hyperon masses")),
+    _hadron("m_sigma_minus", "Sigma- baryon", "m_Sigma-", "1197.449", "0.029", "S020M", "OUR FIT", ("sigma baryon", "sigma- mass", "hyperon masses")),
+    _hadron("m_xi0", "Xi0 baryon", "m_Xi0", "1314.86", "0.20", "S023M", "OUR FIT", ("xi baryon", "xi0 mass", "hyperon masses")),
+    _hadron("m_xi_minus", "Xi- baryon", "m_Xi-", "1321.71", "0.07", "S022M", "OUR FIT", ("xi baryon", "xi- mass", "hyperon masses")),
+    _hadron("m_omega_minus", "Omega- baryon", "m_Omega-", "1672.45", "0.29", "S024M", "OUR FIT", ("omega baryon", "omega- mass", "hyperon masses")),
+    _hadron("m_lambda_c", "Lambda_c+ baryon", "m_Lambda_c", "2286.46", "0.14", "S033M", "OUR FIT; OUR AVERAGE prints the same", ("lambda_c", "lambda_c mass", "charmed baryon")),
+    _hadron("m_lambda_b", "Lambda_b0 baryon", "m_Lambda_b", "5619.57", "0.16", "S040M", "OUR AVERAGE", ("lambda_b", "lambda_b mass", "bottom baryon")),
+    _br("h_bb", "H -> b bbar", "B(H->bb)", "53", "8", "%", "S126.4", "OUR AVERAGE", ("higgs branching ratio", "higgs to bb", "h to b bbar")),
+    _br("h_ww", "H -> W W*", "B(H->WW*)", "25.7", "2.5", "%", "S126.1", "OUR AVERAGE", ("higgs branching ratio", "higgs to ww", "h to ww"), extra=(_SYM_NOTE.format("+0.026, -0.024 as fractions"),)),
+    _br("h_zz", "H -> Z Z*", "B(H->ZZ*)", "2.80", "0.30", "%", "S126.2", "OUR AVERAGE", ("higgs branching ratio", "higgs to zz", "h to zz")),
+    _br("h_tautau", "H -> tau+ tau-", "B(H->tautau)", "6.0", "0.8", "%", "S126.5", "OUR AVERAGE", ("higgs branching ratio", "higgs to tau tau"), lower="0.7", printed="6.0+0.8-0.7"),
+    _br("h_gammagamma", "H -> gamma gamma", "B(H->gammagamma)", "2.50 e-3", "0.20 e-3", "", "S126.3", "OUR AVERAGE", ("higgs branching ratio", "higgs to two photons", "h to gamma gamma"), printed="(2.50+-0.20)E-3"),
+    _br("h_mumu", "H -> mu+ mu-", "B(H->mumu)", "3.0 e-4", "0.9 e-4", "", "S126.8", "OUR AVERAGE", ("higgs branching ratio", "higgs to muons", "h to mu mu"), printed="(3.0+-0.9)E-4"),
+    _br("z_invisible", "Z -> invisible", "B(Z->invisible)", "20.000", "0.055", "%", "S044.9", "OUR FIT", ("z invisible", "z invisible branching ratio", "invisible z decays")),
+    _br("z_hadrons", "Z -> hadrons", "B(Z->hadrons)", "69.911", "0.056", "%", "S044.7", "OUR FIT", ("z hadronic branching ratio", "z to hadrons")),
+    _pdg("pdg2026.gamma_z_invisible", "Z invisible partial width", "Gamma(Z->invisible)", "499.3", "1.5", "MeV", node="S044W6", keys=("z boson",),
+         phrases=("z invisible", "z invisible width", "invisible width") + _Z_PHRASES, notes=(_API_NOTE, "PDG node S044W6 prints 499.3+-1.5 MeV (OUR AVERAGE).")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

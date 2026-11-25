@@ -165,6 +165,8 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("PDG lifetimes and widths", ("pdg2026.neutron_lifetime", "pdg2026.tau_lifetime", "pdg2026.b_plus", "pdg2026.b0_", "pdg2026.bs_", "pdg2026.pi_plus_", "pdg2026.pi0_", "pdg2026.k_", "pdg2026.mu_lifetime", "pdg2026.gamma_h", "pdg2026.gamma_t")),
         ("PDG Z-pole values", ("pdg2026.gamma_z", "pdg2026.sigma_had0", "pdg2026.a_fb0", "pdg2026.r_", "pdg2026.z.")),
         ("PDG Higgs signal strengths", ("pdg2026.higgs_mu.",)),
+        ("PDG charm, bottom, quarkonium, and hyperon masses", tuple(f"pdg2026.m_{k}" for k in ("d_plus", "d0", "ds", "b_plus", "b0", "bs", "jpsi", "upsilon1s", "sigma_", "sigma0", "xi", "omega_minus", "lambda_c", "lambda_b"))),
+        ("PDG Higgs and Z branching fractions and the Z invisible width", ("pdg2026.br.", "pdg2026.gamma_z_invisible")),
         ("LEP/SLD Z-pole combination", ("lep2005.",)),
         ("W mass by experiment", ("atlas2024.", "cdf2022.", "cms2026.")),
         ("ATLAS and CMS global Higgs signal strengths", ("atlas2022.", "cms2022.")),
