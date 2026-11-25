@@ -928,3 +928,11 @@ Added the ASD 5.12 second ionization energies for He to Ne, with the parenthesis
 That is 15 records, and batch 6 is done.
 
 `python -m unittest discover -s tests -v` finished 279 tests, 0 failures, about 143.58 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — fluorine's second EA record; early universe pgi-0.77.0
+
+Blondel 2001's EA(F), 3.401 1895(25) eV, is now its own record beside the review's 3.401290, and the disagreement stays visible. The BBN review gives Y_p 0.245(3), D/H 25.08(29) ppm, and Li/H 1.45(25) × 10⁻¹⁰. Aver gives Y_p, Cooke gives D/H, and the review quotes the BBN lithium value of 4.72 × 10⁻¹⁰. Planck N_eff is 2.99 at 68% and 95%. The 95% interval is a new kind.
+
+That is 10 records.
+
+`python -m unittest discover -s tests -v` finished 284 tests, 0 failures, about 94.10 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

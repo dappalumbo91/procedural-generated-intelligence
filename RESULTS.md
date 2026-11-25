@@ -441,9 +441,17 @@ H2: Hölsch et al. 2019 measured D_0^{N=1} of ortho-H2 as `35 999.582 834(11)` c
 
 The tests are data-only. Every second ionization energy exceeds the first. The EAs order H < C < O < F < Cl, and each sits below its atom's first ionization energy. The asks link exactly their records. This adds 15 records.
 
+### Fluorine's second record; early universe: BBN abundances and N_eff
+
+Fluorine now has two electron-affinity records. `rk2002.ea.f` stays as the review printed it, `3.401290 ± 0.000003` eV. `blondel2001.ea.f` is Blondel, Delsart, and Goldfarb's own value, `3.401 1895(25)` eV, read from the NIST WebBook's citation of the paper, since the IOP article page returned an error and Crossref has no abstract. The two differ by about 1.0 × 10⁻⁴ eV, which is more than ten times their combined uncertainty. Both records carry notes that point at each other, and nothing decides between them. The review's Table 10 cites Blondel, Phys. Scr. 1995 for its number, and the WebBook also lists Blondel 1989 as 3.401190 ± 0.000004 eV. That line is noted, not stored.
+
+The early-universe numbers come from the PDG 2026 BBN review (Fields, Molaro, Sarkar, revised August 2025). Y_p is `0.245 ± 0.003` (eq. 24.3), and the review says its systematic part, ±0.002, dominates. D/H × 10⁶ is `25.08 ± 0.29` (eq. 24.2, scaled by S = 1.08). Li/H from the Spite plateau is `(1.45 ± 0.25) × 10⁻¹⁰` (eq. 24.4), which the review says is really a lower bound. Primary values sit beside them: Aver 2021 Y_p `0.2453 ± 0.0034` and Cooke 2018 D/H `(2.527 ± 0.030) × 10⁻⁵`. The lithium problem shows up as data. Eq. 24.10 quotes the standard-BBN value from Fields 2020 as `(4.72 ± 0.7) × 10⁻¹⁰`, and the review calls the gap a factor of 3.3 and 4.4σ. That BBN value is the source's number, not computed here. Planck 2018 gives N_eff `2.99 ± 0.17` (abstract, 68%, Planck+BAO) and `2.99 +0.34 −0.33` (eq. 67b, 95%), which brings in a new kind, 95% interval. The 3.046 theory value is not stored.
+
+The tests are data-only. The fluorine gap is wider than ten combined uncertainties. Aver agrees with PDG on Y_p, and Cooke agrees with PDG on D/H. The printed numbers reproduce the review's own 3.3 and 4.4σ. The 68% N_eff interval sits inside the 95% one. The asks link the right records. This adds 10 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.76.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.77.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

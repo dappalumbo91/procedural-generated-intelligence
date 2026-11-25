@@ -36,11 +36,12 @@ UNCERTAINTY_KINDS = frozenset(
         "IUPAC standard atomic weight uncertainty",
         "2 sigma",
         "68.3% credible interval",
+        "95% interval",
     }
 )
 _NONE_KIND = "no uncertainty printed"
 _TRUNCATED_KIND = "exact, printed truncated"
-_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval", "68.3% credible interval"})
+_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval", "68.3% credible interval", "95% interval"})
 _SPLIT_KIND = "statistical and systematic, printed separately"
 
 
@@ -2357,7 +2358,77 @@ ATOMIC_MOLECULAR_B6: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6
+_BLONDEL2001_SOURCE = (
+    "C. Blondel, C. Delsart, and F. Goldfarb, Electron spectrometry at the mu eV level and the electron affinities of Si and F, "
+    "J. Phys. B: At. Mol. Opt. Phys. 34, L281-L288 (2001), doi:10.1088/0953-4075/34/9/101, as cited in the NIST Chemistry WebBook (SRD 69), fluorine atom, electron affinity determinations."
+)
+_PDG_BBN_SOURCE = (
+    "B. D. Fields, P. Molaro, and S. Sarkar, 24. Big-Bang Nucleosynthesis, in Review of Particle Physics (Particle Data Group), revised August 2025, "
+    "pdg.lbl.gov 2026 edition."
+)
+_PDG_BBN_URL = "https://pdg.lbl.gov/2026/reviews/rpp2026-rev-bbang-nucleosynthesis.pdf"
+_BBN_KEYS = ("bbn", "big bang nucleosynthesis", "primordial abundance", "early universe")
+
+
+def _bbn(id: str, name: str, symbol: str, value: str, unc: str, unit: str, *, phrases: tuple[str, ...], notes: tuple[str, ...]) -> Quantity:
+    return _q(id, name, symbol, value, unc, unit, kind="uncertainty as printed, level not stated", source=_PDG_BBN_SOURCE,
+              edition="PDG 2026 review 24 (revised August 2025)", url=_PDG_BBN_URL, retrieved_from=_PDG_BBN_URL,
+              keys=_BBN_KEYS, phrases=phrases, notes=notes)
+
+
+EARLY_UNIVERSE: tuple[Quantity, ...] = (
+    _q("blondel2001.ea.f", "electron affinity of fluorine", "EA(F)", "3.401 1895", "0.000 0025", "eV",
+       kind="uncertainty as printed, level not stated", printed="3.401 1895(25)",
+       source=_BLONDEL2001_SOURCE, edition="J. Phys. B 34 (2001), via NIST WebBook", url="https://doi.org/10.1088/0953-4075/34/9/101",
+       retrieved_from="https://webbook.nist.gov/cgi/cbook.cgi?ID=C14762948&Mask=20",
+       keys=("electron affinity",), phrases=("electron affinity of fluorine", "fluorine electron affinity", "electron affinities"),
+       notes=("The WebBook lists this paper as 'Given: 3.4011895(25) eV, or 27432.446(19) cm-1, or 78.433266(577) kcal/mol' and tabulates it as 3.401191 +- 0.000026 eV; the record keeps the paper's own printed value.",
+              "The journal's abstract page could not be read (the IOP article page returned an error and Crossref carries no abstract). The corrigendum, J. Phys. B 34, 2757 (2001), doi:10.1088/0953-4075/34/13/701, concerns the Doppler-broadening contrast factor; its page prints no new affinity.",
+              "Stored next to rk2002.ea.f, which prints 3.401290 +- 0.000003 eV for the same quantity and cites Blondel, Phys. Scr. 1995 (Table 10 ref. 40). The two printed values differ by about 1.0e-4 eV, far outside either uncertainty. The board keeps both as printed and does not decide between them.",
+              "The WebBook also lists Blondel, Cacciani, et al. 1989 as 'Reported: 3.401190+-0.000004 eV'. That line is not stored as a record.")),
+    _bbn("pdg2026.bbn.y_p", "primordial helium-4 mass fraction", "Y_p", "0.245", "0.003", "",
+         phrases=("primordial helium", "helium abundance", "y_p", "primordial abundances"),
+         notes=("Printed as eq. 24.3, the review's recommended value.",
+                "The review says the uncertainty reflects the combined statistical and systematic errors, with the systematic part, estimated at +-0.002, dominant.")),
+    _q("aver2021.y_p", "primordial helium-4 mass fraction", "Y_p", "0.2453", "0.0034", "",
+       kind="uncertainty as printed, level not stated",
+       source="E. Aver, D. A. Berg, K. A. Olive, R. W. Pogge, J. J. Salzer, and E. D. Skillman, Improving helium abundance determinations with Leo P as a case study, JCAP 03 (2021) 027, doi:10.1088/1475-7516/2021/03/027, arXiv:2010.04180.",
+       edition="JCAP 2021", url="https://doi.org/10.1088/1475-7516/2021/03/027", retrieved_from="https://export.arxiv.org/api/query?id_list=2010.04180",
+       keys=_BBN_KEYS, phrases=("primordial helium", "helium abundance", "y_p", "primordial abundances"),
+       notes=("Printed in the abstract as Y_p = 0.2453 +- 0.0034. The PDG review's Table 24.2 lists it with 16 systems.",)),
+    _bbn("pdg2026.bbn.d_h", "primordial deuterium-to-hydrogen ratio", "D/H|_p", "25.08 e-6", "0.29 e-6", "",
+         phrases=("primordial deuterium", "deuterium abundance", "d/h", "primordial abundances"),
+         notes=("Printed as eq. 24.2: D/H|p x 10^6 = 25.08 (+-0.27 x S) = 25.08 (+-0.29), the weighted mean of the 12 systems in Table 24.1 with the error scaled by S = 1.08.",)),
+    _q("cooke2018.d_h", "primordial deuterium-to-hydrogen ratio", "(D/H)_P", "2.527 e-5", "0.030 e-5", "",
+       kind="uncertainty as printed, level not stated",
+       source="R. J. Cooke, M. Pettini, and C. C. Steidel, One percent determination of the primordial deuterium abundance, Astrophys. J. 855, 102 (2018), doi:10.3847/1538-4357/aaab53, arXiv:1710.11129.",
+       edition="ApJ 855 (2018)", url="https://doi.org/10.3847/1538-4357/aaab53", retrieved_from="https://export.arxiv.org/api/query?id_list=1710.11129",
+       keys=_BBN_KEYS, phrases=("primordial deuterium", "deuterium abundance", "d/h", "primordial abundances"),
+       notes=("Printed in the abstract as (D/H)_P = (2.527+/-0.030)x10^-5, and as log10(D/H)_P = -4.5974+/-0.0052; only the linear form is stored.",)),
+    _bbn("pdg2026.bbn.li_h", "primordial lithium-7-to-hydrogen ratio (Spite plateau)", "Li/H|_p", "1.45 e-10", "0.25 e-10", "",
+         phrases=("primordial lithium", "lithium abundance", "spite plateau", "lithium problem", "primordial abundances"),
+         notes=("Printed as eq. 24.4, from halo stars with -3.5 < [Fe/H] < -1.5.",
+                "The review says this inferred primordial abundance should strictly be regarded as a lower bound rather than a direct measurement, since 7Li in Population II stars may have been partly destroyed.")),
+    _bbn("fields2020.li_h", "standard BBN lithium-7-to-hydrogen ratio (as quoted by PDG)", "Li/H|_p (BBN)", "4.72 e-10", "0.7 e-10", "",
+         phrases=("lithium problem", "bbn lithium prediction", "primordial abundances"),
+         notes=("Printed as eq. 24.10, 'the primordial value from [45]', ref. 45 being B. D. Fields et al., JCAP 03 (2020) 010, arXiv:1912.01132. It is the source's standard-BBN value for the D/H and CMB baryon density; it is not computed here.",
+                "The review says it exceeds the value of eq. 24.4 by a factor of 3.3, corresponding to a 4.4 sigma discrepancy. This is the lithium problem.")),
+    _q("planck2018.n_eff", "effective number of relativistic species", "N_eff", "2.99", "0.17", "",
+       kind="68% interval", source=PLANCK_2018_SOURCE.replace(", Table 2.", ", abstract."), edition="Planck 2018 VI, base-LCDM+N_eff, Planck+BAO",
+       url=PLANCK_2018_URL, retrieved_from=PLANCK_2018_PDF, keys=_PLANCK_KEYS + ("early universe",),
+       phrases=("effective number of neutrino species", "n_eff", "neff", "relativistic degrees of freedom"),
+       notes=("Printed in the abstract as Neff = 2.99 +- 0.17, from combining Planck with BAO; the abstract quotes 68% intervals.",
+              "The number is a fit of the LCDM+N_eff model, not a model-free measurement. The abstract's comparison value 3.046 is a theory number and is not stored.")),
+    _q("planck2018.n_eff_95", "effective number of relativistic species (95% interval)", "N_eff", "2.99", "0.34", "",
+       kind="95% interval", lower_text="0.33", source=PLANCK_2018_SOURCE.replace(", Table 2.", ", eq. 67b."), edition="Planck 2018 VI, base-LCDM+N_eff, TT,TE,EE+lowE+lensing+BAO",
+       url=PLANCK_2018_URL, retrieved_from=PLANCK_2018_PDF, keys=_PLANCK_KEYS + ("early universe",),
+       phrases=("effective number of neutrino species", "n_eff", "neff"),
+       notes=("Printed as eq. 67b: Neff = 2.99 +0.34 -0.33 (95%, TT,TE,EE+lowE+lensing+BAO).",
+              "Same data combination as planck2018.n_eff, at 95% rather than 68%.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS
 
 

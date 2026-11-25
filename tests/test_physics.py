@@ -1097,6 +1097,48 @@ class AtomicMolecularBatchSixTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class EarlyUniverseTests(unittest.TestCase):
+    def test_fluorine_affinities_kept_apart(self) -> None:
+        review, primary = quantity("rk2002.ea.f"), quantity("blondel2001.ea.f")
+        self.assertEqual(review.value_text, "3.401290")
+        self.assertEqual(primary.printed, "3.401 1895(25)")
+        self.assertEqual(review.name, primary.name)
+        gap = review.value - primary.value
+        self.assertGreater(gap, 10 * (review.uncertainty + primary.uncertainty))
+        self.assertTrue(any("rk2002.ea.f" in note for note in primary.notes))
+        self.assertTrue(any("Blondel" in note for note in review.notes))
+
+    def test_helium_and_deuterium_sources_agree(self) -> None:
+        for a, b in (("pdg2026.bbn.y_p", "aver2021.y_p"), ("pdg2026.bbn.d_h", "cooke2018.d_h")):
+            x, y = quantity(a), quantity(b)
+            self.assertLess(abs(x.value - y.value), x.uncertainty + y.uncertainty, (a, b))
+
+    def test_lithium_gap_matches_the_printed_wording(self) -> None:
+        stars, bbn = quantity("pdg2026.bbn.li_h"), quantity("fields2020.li_h")
+        self.assertEqual(round(float(bbn.value / stars.value), 1), 3.3)
+        sigma = float((bbn.value - stars.value) ** 2 / (bbn.uncertainty ** 2 + stars.uncertainty ** 2)) ** 0.5
+        self.assertEqual(round(sigma, 1), 4.4)
+        self.assertTrue(any("lower bound" in note for note in stars.notes))
+
+    def test_n_eff_intervals(self) -> None:
+        inner, outer = quantity("planck2018.n_eff"), quantity("planck2018.n_eff_95")
+        self.assertEqual(outer.uncertainty_kind, "95% interval")
+        self.assertEqual((outer.uncertainty, outer.lower_uncertainty), (Fraction(34, 100), Fraction(33, 100)))
+        self.assertEqual(inner.value, outer.value)
+        self.assertLess(inner.uncertainty, outer.lower_uncertainty)
+
+    def test_early_universe_asks_link(self) -> None:
+        session = unfold(Request(ask="what is the lithium problem", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"pdg2026.bbn.li_h", "fields2020.li_h"} <= linked)
+        session = unfold(Request(ask="list the primordial abundances", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"pdg2026.bbn.y_p", "pdg2026.bbn.d_h", "pdg2026.bbn.li_h"} <= linked)
+        session = unfold(Request(ask="what is the electron affinity of fluorine", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"rk2002.ea.f", "blondel2001.ea.f"} <= linked)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
