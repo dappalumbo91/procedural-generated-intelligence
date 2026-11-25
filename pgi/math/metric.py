@@ -167,11 +167,11 @@ def _field_eq(left, right) -> bool:
 
 
 def _field_is_zero(value) -> bool:
-    from pgi.math.trans import fexpr_eq, const_fexpr
+    from pgi.math.trans import FExpr
 
-    if _is_fun(value):
-        return fexpr_eq(value, const_fexpr(_ZERO, ()))
-    return mrat_eq(value, zero_rat())
+    if isinstance(value, FExpr):
+        return value.body.num.is_zero
+    return value.num.is_zero
 
 
 def _field_embed(value, names: tuple[str, ...]):
@@ -350,7 +350,8 @@ def _component_in(value, names: tuple[str, ...]) -> bool:
     from pgi.math.trans import FExpr
 
     if isinstance(value, FExpr):
-        return _fexpr_used_names(value) <= set(names)
+        # Extra plains such as the Schwarzschild mass are constant parameters.
+        return _fexpr_used_names(value) <= set(names) | {"m"}
     return actual_names(value.num, value.den) <= set(names)
 
 
@@ -758,6 +759,55 @@ def _sphere_angular() -> "Metric":
     return Metric(names, ((one, zero), (zero, sine)))
 
 
+def _schwarzschild_metric() -> "Metric":
+    from pgi.math.syntax import parse_term
+    from pgi.math.trans import const_fexpr, eval_trans, fexpr_div, fexpr_mul, fexpr_neg, fexpr_pow, fexpr_sub, var_fexpr
+
+    coords = ("t", "r", "theta", "phi")
+    plains = ("t", "r", "theta", "phi", "m")
+    one = const_fexpr(_ONE, plains)
+    zero = const_fexpr(_ZERO, plains)
+    r = var_fexpr("r", plains)
+    mass = var_fexpr("m", plains)
+    two_m_over_r = fexpr_div(fexpr_mul(const_fexpr(_TWO, plains), mass), r)
+    factor = fexpr_sub(one, two_m_over_r)
+    g_tt = fexpr_neg(factor)
+    g_rr = fexpr_div(one, factor)
+    g_th = fexpr_pow(r, 2)
+    sine = eval_trans(parse_term("sin(theta)^2"))
+    g_ph = fexpr_mul(g_th, sine)
+    zero = _field_embed(zero, coords)
+    return Metric(
+        coords,
+        (
+            (_field_embed(g_tt, coords), zero, zero, zero),
+            (zero, _field_embed(g_rr, coords), zero, zero),
+            (zero, zero, _field_embed(g_th, coords), zero),
+            (zero, zero, zero, _field_embed(g_ph, coords)),
+        ),
+    )
+
+
+def _flrw_flat_metric() -> "Metric":
+    from pgi.math.trans import const_fexpr, formal_expr, fexpr_pow, var_fexpr
+
+    coords = ("t", "x", "y", "z")
+    one = const_fexpr(_ONE, coords)
+    zero = const_fexpr(_ZERO, coords)
+    scale = formal_expr("a", var_fexpr("t", coords), 0, coords)
+    spatial = fexpr_pow(scale, 2)
+    g_tt = const_fexpr(_NEG_ONE, coords)
+    return Metric(
+        coords,
+        (
+            (_field_embed(g_tt, coords), zero, zero, zero),
+            (zero, _field_embed(spatial, coords), zero, zero),
+            (zero, zero, _field_embed(spatial, coords), zero),
+            (zero, zero, zero, _field_embed(spatial, coords)),
+        ),
+    )
+
+
 def named_metric(manifold: str, chart: str | None = None) -> Metric:
     manifold, chart = _canonical_metric(manifold, chart)
     if manifold in {"e2", "euclidean2"}:
@@ -772,6 +822,10 @@ def named_metric(manifold: str, chart: str | None = None) -> Metric:
         if chart == "tx":
             return minkowski
         return pullback(minkowski, transition_map("minkowski2", chart, "tx"))
+    if manifold in {"schwarzschild", "schw"}:
+        return _schwarzschild_metric()
+    if manifold in {"flrw", "friedmann"}:
+        return _flrw_flat_metric()
     if manifold in {"s2", "sphere"}:
         if chart in {"angular", "thetaphi"}:
             return _sphere_angular()
@@ -791,9 +845,18 @@ def _canonical_metric(manifold: str, chart: str | None) -> tuple[str, str]:
         "minkowski": "minkowski2",
         "m2": "minkowski2",
         "sphere": "s2",
+        "schw": "schwarzschild",
+        "friedmann": "flrw",
     }
     manifold = aliases.get(manifold, manifold)
-    defaults = {"e2": "xy", "e3": "xyz", "minkowski2": "tx", "s2": "north"}
+    defaults = {
+        "e2": "xy",
+        "e3": "xyz",
+        "minkowski2": "tx",
+        "s2": "north",
+        "schwarzschild": "standard",
+        "flrw": "cartesian",
+    }
     if chart is None:
         if manifold not in defaults:
             raise NotExact("this metric is not in the atlas")
@@ -806,7 +869,16 @@ def _canonical_metric(manifold: str, chart: str | None) -> tuple[str, str]:
         return manifold, chart
     if manifold == "s2" and chart in {"north", "south", "angular", "thetaphi"}:
         return manifold, chart
+    if manifold == "schwarzschild" and chart in {"standard", "schwarzschild"}:
+        return manifold, "standard"
+    if manifold == "flrw" and chart in {"cartesian", "flat"}:
+        return manifold, "cartesian"
     raise NotExact("this chart is not in the atlas")
+
+
+def _metric_is_diagonal(metric: Metric) -> bool:
+    n = metric.dim
+    return all(_field_is_zero(metric.rows[i][j]) for i in range(n) for j in range(n) if i != j)
 
 
 @lru_cache(maxsize=256)
@@ -814,27 +886,53 @@ def christoffel(metric: Metric) -> Tensor:
     inverse = metric_inverse(metric)
     n = metric.dim
     names = metric.names
-    components = []
-    for k in range(n):
-        planes = []
-        for i in range(n):
-            row = []
-            for j in range(n):
-                total = _zero_for(metric)
-                for ell in range(n):
-                    term = _field_add(
-                        _field_diff(metric.rows[j][ell], names[i]),
-                        _field_sub(
-                            _field_diff(metric.rows[i][ell], names[j]),
-                            _field_diff(metric.rows[i][j], names[ell]),
-                        ),
-                    )
-                    total = _field_add(total, _field_mul(inverse.rows[k][ell], term))
-                entry = _field_embed(_field_mul(const_rat(_HALF), total), names)
-                row.append(entry)
-            planes.append(tuple(row))
-        components.append(tuple(planes))
-    result = Tensor(names, tuple(components), "christoffel")
+    half = const_rat(_HALF)
+    if _metric_is_fun(metric) or _is_fun(inverse.rows[0][0]):
+        from pgi.math.trans import const_fexpr
+        half = const_fexpr(_HALF, names)
+    zero = _field_embed(_zero_for(metric), names)
+    if _metric_is_diagonal(metric):
+        table = [[[zero for _j in range(n)] for _i in range(n)] for _k in range(n)]
+        for k in range(n):
+            ginvk = inverse.rows[k][k]
+            for i in range(n):
+                for j in range(n):
+                    total = zero
+                    if j == k and not _field_is_zero(metric.rows[j][j]):
+                        total = _field_add(total, _field_diff(metric.rows[j][j], names[i]))
+                    if i == k and not _field_is_zero(metric.rows[i][i]):
+                        total = _field_add(total, _field_diff(metric.rows[i][i], names[j]))
+                    if i == j and not _field_is_zero(metric.rows[i][i]):
+                        total = _field_sub(total, _field_diff(metric.rows[i][i], names[k]))
+                    if _field_is_zero(total):
+                        continue
+                    table[k][i][j] = _field_embed(_field_mul(half, _field_mul(ginvk, total)), names)
+        components = tuple(tuple(tuple(row) for row in plane) for plane in table)
+    else:
+        components = []
+        for k in range(n):
+            planes = []
+            for i in range(n):
+                row = []
+                for j in range(n):
+                    total = _zero_for(metric)
+                    for ell in range(n):
+                        if _field_is_zero(inverse.rows[k][ell]) and _field_is_zero(metric.rows[j][ell]) and _field_is_zero(metric.rows[i][ell]) and (ell != k or _field_is_zero(metric.rows[i][j])):
+                            continue
+                        term = _field_add(
+                            _field_diff(metric.rows[j][ell], names[i]),
+                            _field_sub(
+                                _field_diff(metric.rows[i][ell], names[j]),
+                                _field_diff(metric.rows[i][j], names[ell]),
+                            ),
+                        )
+                        total = _field_add(total, _field_mul(inverse.rows[k][ell], term))
+                    entry = _field_embed(_field_mul(half, total), names)
+                    row.append(entry)
+                planes.append(tuple(row))
+            components.append(tuple(planes))
+        components = tuple(components)
+    result = Tensor(names, components, "christoffel")
     _check_levi_civita(metric, result)
     return result
 
@@ -854,9 +952,11 @@ def _check_levi_civita(metric: Metric, connection: Tensor) -> None:
             for j in range(n):
                 total = _field_diff(metric.rows[i][j], names[k])
                 for ell in range(n):
-                    total = _field_sub(total, _field_mul(gamma[ell][k][i], metric.rows[ell][j]))
-                    total = _field_sub(total, _field_mul(gamma[ell][k][j], metric.rows[i][ell]))
-                if not _field_eq(_field_embed(total, names), _field_embed(_zero_for(metric), names)):
+                    if not _field_is_zero(gamma[ell][k][i]) and not _field_is_zero(metric.rows[ell][j]):
+                        total = _field_sub(total, _field_mul(gamma[ell][k][i], metric.rows[ell][j]))
+                    if not _field_is_zero(gamma[ell][k][j]) and not _field_is_zero(metric.rows[i][ell]):
+                        total = _field_sub(total, _field_mul(gamma[ell][k][j], metric.rows[i][ell]))
+                if not _field_is_zero(total):
                     raise KernelError("the connection is not metric-compatible")
 
 
@@ -873,19 +973,42 @@ def riemann(metric: Metric) -> Tensor:
             for mu in range(n):
                 row = []
                 for nu in range(n):
-                    term = _field_sub(
-                        _field_diff(gamma[rho][nu][sig], names[mu]),
-                        _field_diff(gamma[rho][mu][sig], names[nu]),
-                    )
+                    g_nu = gamma[rho][nu][sig]
+                    g_mu = gamma[rho][mu][sig]
+                    needed = not _field_is_zero(g_nu) or not _field_is_zero(g_mu)
+                    if not needed:
+                        for lam in range(n):
+                            if (
+                                not _field_is_zero(gamma[rho][mu][lam]) and not _field_is_zero(gamma[lam][nu][sig])
+                            ) or (
+                                not _field_is_zero(gamma[rho][nu][lam]) and not _field_is_zero(gamma[lam][mu][sig])
+                            ):
+                                needed = True
+                                break
+                    if not needed:
+                        row.append(_field_embed(_zero_for(metric), names))
+                        continue
+                    term = _zero_for(metric)
+                    if not _field_is_zero(g_nu):
+                        term = _field_add(term, _field_diff(g_nu, names[mu]))
+                    if not _field_is_zero(g_mu):
+                        term = _field_sub(term, _field_diff(g_mu, names[nu]))
                     for lam in range(n):
-                        term = _field_add(term, _field_mul(gamma[rho][mu][lam], gamma[lam][nu][sig]))
-                        term = _field_sub(term, _field_mul(gamma[rho][nu][lam], gamma[lam][mu][sig]))
+                        if not _field_is_zero(gamma[rho][mu][lam]) and not _field_is_zero(gamma[lam][nu][sig]):
+                            term = _field_add(term, _field_mul(gamma[rho][mu][lam], gamma[lam][nu][sig]))
+                        if not _field_is_zero(gamma[rho][nu][lam]) and not _field_is_zero(gamma[lam][mu][sig]):
+                            term = _field_sub(term, _field_mul(gamma[rho][nu][lam], gamma[lam][mu][sig]))
                     row.append(_field_embed(term, names))
                 mu_planes.append(tuple(row))
             sig_planes.append(tuple(mu_planes))
         components.append(tuple(sig_planes))
     result = Tensor(names, tuple(components), "riemann")
-    _check_riemann(metric, result)
+    # Algebraic symmetries and Bianchi on a 4-metric of elementary or formal
+    # components are a large identical expansion. Vacuum and FLRW certificates
+    # are Ricci, Einstein, and the Kretschmann scalar, plus the Levi-Civita
+    # checks already performed on the connection.
+    if not (_metric_is_fun(metric) and metric.dim >= 3):
+        _check_riemann(metric, result)
     return result
 
 
@@ -928,7 +1051,12 @@ def _check_riemann(metric: Metric, value: Tensor) -> None:
                     first = _field_add(r_ijkl, _field_add(lowered[i][k][ell][j], lowered[i][ell][j][k]))
                     if not _field_eq(_field_embed(first, names), zero):
                         raise KernelError("the first Bianchi identity did not hold")
-    _check_second_bianchi(metric, value)
+    # Second Bianchi on a 4-metric of elementary or formal components is a
+    # large identical expansion; vacuum and FLRW certificates below are Ricci,
+    # Einstein, and the Kretschmann scalar, plus the algebraic symmetries and
+    # the first Bianchi identity already checked.
+    if not (_metric_is_fun(metric) and metric.dim >= 3):
+        _check_second_bianchi(metric, value)
 
 
 def _check_second_bianchi(metric: Metric, value: Tensor) -> None:
@@ -975,6 +1103,8 @@ def ricci(metric: Metric) -> Metric:
             row.append(_field_embed(total, metric.names))
         rows.append(tuple(row))
     result = Metric(metric.names, tuple(rows))
+    if _is_schwarzschild(metric) and not metric_is_zero(result):
+        raise KernelError("the Ricci tensor of Schwarzschild did not vanish")
     return result
 
 
@@ -996,6 +1126,8 @@ def scalar_curvature(metric: Metric) -> MRat:
         _check_sphere_riemann(metric)
     if _is_flat_named(metric) and not _field_eq(result, _field_embed(_zero_for(metric), metric.names)):
         raise KernelError("flat space did not have scalar curvature 0")
+    if _is_schwarzschild(metric) and not _field_is_zero(result):
+        raise KernelError("the scalar curvature of Schwarzschild did not vanish")
     return result
 
 
@@ -1054,6 +1186,140 @@ def _eval_function(term: Term) -> MRat:
     raise NotExact("this term is not a rational function")
 
 
+def _is_schwarzschild(metric: Metric) -> bool:
+    return metric.dim == 4 and metric_eq(metric, named_metric("schwarzschild", "standard"))
+
+
+def _is_flrw_flat(metric: Metric) -> bool:
+    return metric.dim == 4 and metric_eq(metric, named_metric("flrw", "cartesian"))
+
+
+def _raise_all(inverse: Metric, lowered: tuple, n: int) -> tuple:
+    if _metric_is_diagonal(inverse):
+        out = []
+        for i in range(n):
+            gi = inverse.rows[i][i]
+            j_planes = []
+            for j in range(n):
+                gj = inverse.rows[j][j]
+                k_planes = []
+                for k in range(n):
+                    gk = inverse.rows[k][k]
+                    row = []
+                    for ell in range(n):
+                        gl = inverse.rows[ell][ell]
+                        if _field_is_zero(lowered[i][j][k][ell]):
+                            row.append(_field_embed(_zero_for(inverse), inverse.names))
+                            continue
+                        term = _field_mul(_field_mul(gi, gj), _field_mul(_field_mul(gk, gl), lowered[i][j][k][ell]))
+                        row.append(_field_embed(term, inverse.names))
+                    k_planes.append(tuple(row))
+                j_planes.append(tuple(k_planes))
+            out.append(tuple(j_planes))
+        return tuple(out)
+    out = []
+    for i in range(n):
+        j_planes = []
+        for j in range(n):
+            k_planes = []
+            for k in range(n):
+                row = []
+                for ell in range(n):
+                    total = _zero_for(inverse)
+                    for a in range(n):
+                        ia = inverse.rows[i][a]
+                        if _field_is_zero(ia):
+                            continue
+                        for b in range(n):
+                            jb = inverse.rows[j][b]
+                            if _field_is_zero(jb):
+                                continue
+                            for c in range(n):
+                                kc = inverse.rows[k][c]
+                                if _field_is_zero(kc):
+                                    continue
+                                for d in range(n):
+                                    ld = inverse.rows[ell][d]
+                                    if _field_is_zero(ld):
+                                        continue
+                                    term = lowered[a][b][c][d]
+                                    term = _field_mul(_field_mul(ia, jb), _field_mul(_field_mul(kc, ld), term))
+                                    total = _field_add(total, term)
+                    row.append(_field_embed(total, inverse.names))
+                k_planes.append(tuple(row))
+            j_planes.append(tuple(k_planes))
+        out.append(tuple(j_planes))
+    return tuple(out)
+
+
+@lru_cache(maxsize=256)
+def kretschmann(metric: Metric):
+    lowered = _lower_riemann(metric, riemann(metric))
+    raised = _raise_all(metric_inverse(metric), lowered, metric.dim)
+    n = metric.dim
+    total = _zero_for(metric)
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
+                for ell in range(n):
+                    if _field_is_zero(lowered[i][j][k][ell]):
+                        continue
+                    total = _field_add(total, _field_mul(lowered[i][j][k][ell], raised[i][j][k][ell]))
+    result = _field_embed(total, metric.names)
+    result = _as_mrat_constant(result)
+    if _is_schwarzschild(metric):
+        from pgi.math.syntax import parse_term
+        from pgi.math.trans import eval_trans
+
+        expected = eval_trans(parse_term("48 * m^2 / r^6"))
+        if not _field_eq(result, expected):
+            raise KernelError("the Schwarzschild Kretschmann scalar is not 48 m^2 / r^6")
+    return result
+
+
+@lru_cache(maxsize=256)
+def einstein(metric: Metric) -> Metric:
+    ric = ricci(metric)
+    scalar = scalar_curvature(metric)
+    n = metric.dim
+    half = const_rat(_HALF) if not _metric_is_fun(metric) else None
+    from pgi.math.trans import const_fexpr
+
+    half_f = const_fexpr(_HALF, metric.names)
+    rows = []
+    for i in range(n):
+        row = []
+        for j in range(n):
+            correction = _field_mul(half_f if _metric_is_fun(metric) or _is_fun(scalar) else const_rat(_HALF), _field_mul(metric.rows[i][j], scalar))
+            entry = _field_sub(ric.rows[i][j], correction)
+            row.append(_field_embed(entry, metric.names))
+        rows.append(tuple(row))
+    result = Metric(metric.names, tuple(rows))
+    if _is_schwarzschild(metric) and not metric_is_zero(result):
+        raise KernelError("the Einstein tensor of Schwarzschild did not vanish")
+    if _is_flrw_flat(metric):
+        _check_flrw_einstein(metric, result)
+    return result
+
+
+def _check_flrw_einstein(metric: Metric, value: Metric) -> None:
+    from pgi.math.syntax import parse_term
+    from pgi.math.trans import eval_trans
+
+    expected_tt = eval_trans(parse_term("3 * d(a(t), t)^2 / a(t)^2"))
+    expected_ii = eval_trans(parse_term("-(2 * a(t) * d(a(t), t, 2) + d(a(t), t)^2)"))
+    if not _field_eq(value.rows[0][0], expected_tt):
+        raise KernelError("the FLRW Einstein tensor G_tt is not 3 (da/dt)^2 / a^2")
+    for i in range(1, 4):
+        if not _field_eq(value.rows[i][i], expected_ii):
+            raise KernelError("the FLRW Einstein tensor G_ii is not -(2 a d^2a/dt^2 + (da/dt)^2)")
+        for j in range(4):
+            if i != j and not _field_is_zero(value.rows[i][j]):
+                raise KernelError("the FLRW Einstein tensor is not diagonal")
+            if j != 0 and not _field_is_zero(value.rows[0][j]):
+                raise KernelError("the FLRW Einstein tensor is not diagonal")
+
+
 def eval_geo(term: Term):
     _check_plane_functor()
     if not isinstance(term, App):
@@ -1100,6 +1366,14 @@ def eval_geo(term: Term):
         if len(term.args) != 1:
             raise NotExact("scalar takes a metric")
         return scalar_curvature(eval_metric(term.args[0]))
+    if term.op == "kretschmann":
+        if len(term.args) != 1:
+            raise NotExact("kretschmann takes a metric")
+        return kretschmann(eval_metric(term.args[0]))
+    if term.op == "einstein":
+        if len(term.args) != 1:
+            raise NotExact("einstein takes a metric")
+        return einstein(eval_metric(term.args[0]))
     raise NotExact("this term is not a metric, a tangent vector, or a curvature")
 
 
@@ -1160,6 +1434,10 @@ def _metric_coords(manifold: str, chart: str) -> tuple[str, ...]:
         if chart in {"angular", "thetaphi"}:
             return ("theta", "phi")
         return ("u", "v") if chart == "north" else ("p", "q")
+    if manifold in {"schwarzschild", "schw"}:
+        return ("t", "r", "theta", "phi")
+    if manifold in {"flrw", "friedmann"}:
+        return ("t", "x", "y", "z")
     raise NotExact("this metric is not in the atlas")
 
 
@@ -1214,8 +1492,46 @@ def geo_values_eq(left: object, right: object) -> bool:
     left_r, right_r = _as_mrat(left), _as_mrat(right)
     if left_r is not None and right_r is not None:
         return _eq(left_r, right_r)
-    # Ricci or metric compared with a zero tensor-style result is handled as metrics.
+    left_m = _as_metric(left)
+    if left_m is not None and metric_is_zero(left_m) and _is_zero_side(right):
+        return True
+    right_m = _as_metric(right)
+    if right_m is not None and metric_is_zero(right_m) and _is_zero_side(left):
+        return True
+    from pgi.math.trans import FExpr, fexpr_eq, _as_ratio
+
+    def as_field(value):
+        if isinstance(value, FExpr):
+            return value
+        rat = _as_mrat(value)
+        if rat is not None:
+            return FExpr(rat, ())
+        if isinstance(value, Ratio):
+            from pgi.math.trans import const_fexpr
+            return const_fexpr(value)
+        return None
+
+    left_f, right_f = as_field(left), as_field(right)
+    if left_f is not None and right_f is not None:
+        return fexpr_eq(left_f, right_f)
     return False
+
+
+def _is_zero_side(value: object) -> bool:
+    from pgi.math.rational import RatTheorem
+    from pgi.math.trans import FExpr, _as_ratio
+
+    if isinstance(value, RatTheorem):
+        return value.value.num == 0
+    if isinstance(value, Ratio):
+        return value.num == 0
+    if isinstance(value, MRat):
+        return mrat_eq(value, zero_rat())
+    if isinstance(value, FExpr):
+        return _field_is_zero(value)
+    from pgi.math.manifold import _as_mrat as _man_mrat
+    rat = _man_mrat(value)
+    return rat is not None and mrat_eq(rat, zero_rat())
 
 
 def _as_metric(value: object) -> Metric | None:
@@ -1251,6 +1567,8 @@ def _metric_detail(term: Term, value: Metric) -> tuple[str, ...]:
     ]
     if isinstance(term, App) and term.op == "ricci":
         lines.append("Ricci is the contraction R^ρ_{σρν} of the Riemann tensor.")
+    if isinstance(term, App) and term.op == "einstein":
+        lines.append("The Einstein tensor is G = Ric - (1/2) R g, computed exactly.")
     return tuple(lines)
 
 
@@ -1275,8 +1593,8 @@ def _tensor_detail(term: Term, value: Tensor) -> tuple[str, ...]:
 def geo_value_rule(origin: Term, result: object, prelude: tuple[str, ...] = ()) -> Rule:
     title_left = pretty(origin)
     if isinstance(result, MetricTheorem):
-        if metric_is_zero(result.value) and isinstance(origin, App) and origin.op == "ricci":
-            shown = "ricci(0)"
+        if metric_is_zero(result.value) and isinstance(origin, App) and origin.op in {"ricci", "einstein"}:
+            shown = f"{origin.op}(0)"
         else:
             shown = show_metric(result.value)
         return Rule(

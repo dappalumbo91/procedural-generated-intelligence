@@ -1088,3 +1088,13 @@ Added DESI DR2 Table IV: D_V/r_d, D_M/r_d, and D_H/r_d for the seven baseline tr
 That is 19 records.
 
 `python -m unittest discover -s tests -v` finished 361 tests, 0 failures, about 121.78 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Schwarzschild vacuum and flat FLRW pgi-0.97.0
+
+The Schwarzschild metric in Schwarzschild coordinates is in the atlas, with mass parameter `m`. The inverse multiplies back to the identity. The Levi-Civita connection is torsion-free and metric-compatible. Ricci vanishes, the Einstein tensor vanishes, and the scalar curvature is 0. The Kretschmann scalar is `48 m^2 / r^6`.
+
+Flat FLRW is in the atlas in Cartesian coordinates, with a formal scale factor `a(t)` and exact derivatives. The Einstein tensor is exact: `G_tt` is `3 (da/dt)^2 / a^2`, and each spatial diagonal is `-(2 a d^2a/dt^2 + (da/dt)^2)`.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 364 tests, 0 failures, about 360.75 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

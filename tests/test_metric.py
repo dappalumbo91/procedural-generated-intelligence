@@ -136,5 +136,53 @@ class MetricTests(unittest.TestCase):
         )
 
 
+    def test_schwarzschild_is_vacuum_with_the_kretschmann_scalar(self) -> None:
+        metric = run(Request(ask="what is metric(schwarzschild)", seed=1))
+        self.assertEqual(
+            metric.claims[0].atom,
+            "g([[(2 * m - r) / r, 0, 0, 0], [0, -r / (2 * m - r), 0, 0], [0, 0, r^2, 0], [0, 0, 0, sin(theta)^2 * r^2]])",
+        )
+        ricci = run(Request(ask="what is ricci(metric(schwarzschild))", seed=1))
+        self.assertEqual(ricci.claims[0].atom, "ricci(0)")
+        proved = run(
+            Request(ask="prove ricci(metric(schwarzschild)) = 0", seed=1)
+        )
+        self.assertEqual(
+            proved.claims[0].atom,
+            "identity(ricci(metric(schwarzschild)) = 0)",
+        )
+        scalar = run(Request(ask="what is scalar(metric(schwarzschild))", seed=1))
+        self.assertEqual(scalar.claims[0].atom, "value(0)")
+        kretschmann = run(
+            Request(ask="what is kretschmann(metric(schwarzschild))", seed=1)
+        )
+        self.assertEqual(kretschmann.claims[0].atom, "rat(48 * m^2 / r^6)")
+        self.assertIn("Kretschmann", kretschmann.text(lod=2))
+        proved_k = run(
+            Request(ask="prove kretschmann(metric(schwarzschild)) = 48 * m^2 / r^6", seed=1)
+        )
+        self.assertEqual(
+            proved_k.claims[0].atom,
+            "identity(kretschmann(metric(schwarzschild)) = 48 * m^2 / r^6)",
+        )
+        einstein = run(
+            Request(ask="what is einstein(metric(schwarzschild))", seed=1)
+        )
+        self.assertEqual(einstein.claims[0].atom, "einstein(0)")
+
+    def test_flrw_einstein_tensor_is_exact(self) -> None:
+        metric = run(Request(ask="what is metric(flrw)", seed=1))
+        self.assertEqual(
+            metric.claims[0].atom,
+            "g([[-1, 0, 0, 0], [0, a(t)^2, 0, 0], [0, 0, a(t)^2, 0], [0, 0, 0, a(t)^2]])",
+        )
+        einstein = run(Request(ask="what is einstein(metric(flrw))", seed=1))
+        self.assertEqual(
+            einstein.claims[0].atom,
+            "g([[3 * d(a(t), t)^2 / a(t)^2, 0, 0, 0], [0, -2 * a(t) * d(a(t), t, 2) - d(a(t), t)^2, 0, 0], [0, 0, -2 * a(t) * d(a(t), t, 2) - d(a(t), t)^2, 0], [0, 0, 0, -2 * a(t) * d(a(t), t, 2) - d(a(t), t)^2]])",
+        )
+        self.assertIn("Einstein", einstein.text(lod=2))
+
+
 if __name__ == "__main__":
     unittest.main()

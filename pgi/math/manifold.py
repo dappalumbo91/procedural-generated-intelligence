@@ -65,6 +65,8 @@ _METRIC_OPS = frozenset({
     "riemann",
     "ricci",
     "scalar",
+    "kretschmann",
+    "einstein",
 })
 _ZERO = Ratio(0, 1)
 _ONE = Ratio(1, 1)
@@ -806,6 +808,15 @@ def eval_man_result(term: Term) -> MapTheorem | JacTheorem | RatTheorem | object
         if constant is not None:
             return rat_normalize(constant.num, constant.den)
         return _RatFn(value, term)
+    from pgi.math.trans import FExpr, _as_ratio
+
+    if isinstance(value, FExpr):
+        rat = _as_ratio(value)
+        if rat is not None:
+            return rat_normalize(rat.num, rat.den)
+        if not value.atoms:
+            return _RatFn(value.body, term)
+        return _FunFn(value, term)
     from pgi.math.metric import as_geo_theorem
 
     wrapped = as_geo_theorem(value, term)
@@ -817,6 +828,12 @@ def eval_man_result(term: Term) -> MapTheorem | JacTheorem | RatTheorem | object
 @dataclass(frozen=True)
 class _RatFn:
     value: MRat
+    origin: Term
+
+
+@dataclass(frozen=True)
+class _FunFn:
+    value: object
     origin: Term
 
 
@@ -906,12 +923,29 @@ def man_value_rule(origin: Term, result: object, prelude: tuple[str, ...] = ()) 
             detail = "The metric pairing is the contraction g_ij X^i Y^j, checked to be symmetric."
         elif isinstance(origin, App) and origin.op == "scalar":
             detail = "The scalar curvature is the contraction of Ricci with the inverse metric."
+        elif isinstance(origin, App) and origin.op == "kretschmann":
+            detail = "The Kretschmann scalar is the full contraction R_{ρσμν} R^{ρσμν}, computed exactly."
         return Rule(
             id=f"math.{kind}fn.{shown}",
             layer="base",
             stage="quantity",
             title=f"{title_left} = {shown}",
             produces=f"{kind}({shown})",
+            detail_lines=(*prelude, detail),
+        )
+    if isinstance(result, _FunFn):
+        from pgi.math.trans import show_fexpr
+
+        shown = show_fexpr(result.value)
+        detail = "The exact evaluation of this geometric term is this elementary expression."
+        if isinstance(origin, App) and origin.op == "kretschmann":
+            detail = "The Kretschmann scalar is the full contraction R_{ρσμν} R^{ρσμν}, computed exactly."
+        return Rule(
+            id=f"math.trans.{shown}",
+            layer="base",
+            stage="quantity",
+            title=f"{title_left} = {shown}",
+            produces=f"trans({shown})",
             detail_lines=(*prelude, detail),
         )
     from pgi.math.metric import geo_value_rule, is_geo_result
@@ -969,6 +1003,21 @@ def _man_values_eq(left: object, right: object) -> bool:
     right_rat = _as_mrat(right)
     if left_rat is not None and right_rat is not None:
         return mrat_eq(left_rat, right_rat)
+    from pgi.math.trans import FExpr, fexpr_eq
+
+    def as_field(value):
+        if isinstance(value, _FunFn):
+            return value.value
+        if isinstance(value, FExpr):
+            return value
+        rat = _as_mrat(value)
+        if rat is not None:
+            return FExpr(rat, ())
+        return None
+
+    left_f, right_f = as_field(left), as_field(right)
+    if left_f is not None and right_f is not None:
+        return fexpr_eq(left_f, right_f)
     return False
 
 

@@ -141,3 +141,20 @@ class ElementaryFunctionTests(unittest.TestCase):
         self.assertEqual(divided.claims[0].atom, "open(division by zero)")
         mismatch = run(Request(ask="prove sin(x) = x", seed=1))
         self.assertEqual(mismatch.claims[0].atom, "open(sin(x) = x is not a theorem)")
+
+    def test_formal_scale_factor_derivatives(self) -> None:
+        scale = run(Request(ask="what is a(t)", seed=1))
+        self.assertEqual(scale.claims[0].atom, "trans(a(t))")
+        first = run(Request(ask="what is d(a(t), t)", seed=1))
+        self.assertEqual(first.claims[0].atom, "trans(d(a(t), t))")
+        second = run(Request(ask="what is d(a(t), t, 2)", seed=1))
+        self.assertEqual(second.claims[0].atom, "trans(d(a(t), t, 2))")
+        ignored = run(Request(ask="what is d(a(t), x)", seed=1))
+        self.assertEqual(ignored.claims[0].atom, "value(0)")
+        proved = run(
+            Request(ask="prove d(a(t)^2, t) = 2 * a(t) * d(a(t), t)", seed=1)
+        )
+        self.assertEqual(
+            proved.claims[0].atom,
+            "identity(d(a(t)^2, t) = 2 * a(t) * d(a(t), t))",
+        )

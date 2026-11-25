@@ -66,10 +66,19 @@ _SLOT = "_A"
 class Atom:
     op: str
     arg: "FExpr"
+    params: tuple = ()
 
     def __post_init__(self) -> None:
-        if self.op not in {"sin", "cos", "exp", "log"}:
+        if self.op not in {"sin", "cos", "exp", "log", "fun"}:
             raise KernelError("this elementary atom is not admitted")
+        if self.op == "fun":
+            if (
+                len(self.params) != 2
+                or not isinstance(self.params[0], str)
+                or not isinstance(self.params[1], int)
+                or self.params[1] < 0
+            ):
+                raise KernelError("a formal function needs a name and a derivative order")
 
 
 @dataclass(frozen=True)
@@ -203,7 +212,7 @@ def _merge_atoms(left: tuple[Atom, ...], right: tuple[Atom, ...]) -> tuple[Atom,
 
 
 def _atom_eq(left: Atom, right: Atom) -> bool:
-    return left.op == right.op and fexpr_eq(left.arg, right.arg)
+    return left.op == right.op and left.params == right.params and fexpr_eq(left.arg, right.arg)
 
 
 def _embed(value: FExpr, plains: tuple[str, ...], atoms: tuple[Atom, ...]) -> FExpr:
@@ -676,6 +685,15 @@ def _prune(value: FExpr) -> FExpr:
     return _embed(value, plains, new_atoms)
 
 
+def formal_expr(name: str, arg: FExpr, order: int = 0, plains: tuple[str, ...] | None = None) -> FExpr:
+    plains = plains or _plains_of(arg)
+    plains = _merge_names(plains, _plains_of(arg))
+    atom = Atom("fun", arg, (name, order))
+    names = _atom_names(1, plains)
+    body = as_rat(var_poly(f"{_SLOT}0", names))
+    return _reduce(FExpr(body, (atom,)))
+
+
 def _atom_expr(op: str, arg: FExpr, plains: tuple[str, ...] | None = None) -> FExpr:
     arg = _reduce(arg)
     special = _special_value(Atom(op, arg))
@@ -836,7 +854,24 @@ def _atom_diff(atom: Atom, name: str) -> FExpr:
         if _is_zero(atom.arg):
             raise NotExact("the logarithm of zero stays open")
         return fexpr_div(du, atom.arg)
+    if atom.op == "fun":
+        fname, order = atom.params
+        higher = formal_expr(fname, atom.arg, order + 1, plains)
+        return fexpr_mul(higher, du)
     raise KernelError("this elementary atom is not admitted")
+
+
+def _show_atom(atom: Atom) -> str:
+    if atom.op == "fun":
+        fname, order = atom.params
+        inner = f"{fname}({show_fexpr(atom.arg)})"
+        if order == 0:
+            return inner
+        shown_arg = show_fexpr(atom.arg)
+        if order == 1:
+            return f"d({inner}, {shown_arg})"
+        return f"d({inner}, {shown_arg}, {order})"
+    return f"{atom.op}({show_fexpr(atom.arg)})"
 
 
 def show_fexpr(value: FExpr) -> str:
@@ -845,7 +880,7 @@ def show_fexpr(value: FExpr) -> str:
     shown = show_rat(value.body)
     for index, atom in enumerate(value.atoms):
         token = f"{_SLOT}{index}"
-        pretty_atom = f"{atom.op}({show_fexpr(atom.arg)})"
+        pretty_atom = _show_atom(atom)
         shown = shown.replace(token, pretty_atom)
     # "pi" is already pi
     return shown
@@ -854,6 +889,7 @@ def show_fexpr(value: FExpr) -> str:
 # ---------- evaluation from terms ----------
 
 TRANS_OPS = frozenset({"sin", "cos", "exp", "log", "enclose"})
+FORMAL_FUNS = frozenset({"a"})
 
 
 def _contains_op(term: Term, names: frozenset[str]) -> bool:
@@ -876,7 +912,7 @@ def _free_names(term: Term) -> set[str]:
 
 
 def has_trans(term: Term) -> bool:
-    if _contains_op(term, TRANS_OPS):
+    if _contains_op(term, TRANS_OPS) or _contains_op(term, FORMAL_FUNS):
         return True
     if isinstance(term, Var) and term.name == "pi":
         return True
@@ -906,6 +942,8 @@ def _eval(term: Term) -> FExpr:
         return var_fexpr(term.name)
     if not isinstance(term, App):
         raise NotExact("this term is not an elementary expression")
+    if term.op in FORMAL_FUNS and len(term.args) == 1:
+        return formal_expr(term.op, _eval(term.args[0]))
     if term.op in {"sin", "cos", "exp", "log"}:
         if len(term.args) != 1:
             raise NotExact(f"{term.op} takes one argument")
@@ -1040,6 +1078,8 @@ def _enclose_atom(op: str, inner: Enclosure) -> Enclosure:
         return _sin_interval(inner)
     if op == "cos":
         return _cos_interval(inner)
+    if op == "fun":
+        raise NotExact("a formal function has no rational enclosure")
     raise KernelError("this elementary atom is not admitted")
 
 

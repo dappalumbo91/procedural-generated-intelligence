@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.96.0`.
+Rule version `pgi-0.97.0`.
 
 In the kernel now:
 
@@ -100,6 +100,8 @@ In the kernel now:
 - The Lie algebras su(2) and su(3). The su(2) generators are T_a = σ_a / 2 and satisfy [T_a, T_b] = i ε_abc T_c. The su(3) generators are T_a = λ_a / 2, and their Gell-Mann structure constants, including √3 / 2, are checked exactly. The Jacobi identity holds, and the Killing form is 2 δ_ab for su(2) and 3 δ_ab for su(3), agreeing with 2n tr(T_a T_b). A U(1) field strength is invariant under A ↦ A + dλ. An SU(2) field strength of constant components transforms as F ↦ U F U† for a special unitary U, and tr(F²) is invariant. A pure-gauge connection from a rational SU(2) rotation has vanishing field strength.
 - Elementary functions. `sin`, `cos`, `exp`, `log`, and `pi` are rewritten by the identities `sin(x)^2 + cos(x)^2 = 1`, `d(sin(x), x) = cos(x)`, and `exp(x + y) = exp(x) * exp(y)`. Special values that are rational, including `sin(0)`, `cos(pi)`, `sin(pi/6)`, and `cos(pi/3)`, are exact. A closed value that does not reduce to a rational is enclosed by a pair of rationals: Machin for `pi`, Taylor series with a remainder bound for `exp`, `sin`, and `cos`, and the artanh series for `log`. An enclosure is a certificate, not a rounded point. `prove pi >= 3` and `prove pi <= 22 / 7` hold because the enclosures separate. The logarithm of a non-positive number, and division by zero, stay open.
 - The unit 2-sphere in angular coordinates. `metric(s2, angular)` is `ds^2 = dtheta^2 + sin(theta)^2 dphi^2`. An inverse is kept only when both products are the identity. The Levi-Civita connection, the Riemann symmetries, and both Bianchi identities are checked identically. `scalar(metric(s2, angular))` is `2`, and the Ricci tensor equals the metric.
+- The Schwarzschild metric in Schwarzschild coordinates, with mass parameter `m`. The inverse multiplies back to the identity. The Levi-Civita connection is torsion-free and metric-compatible. Ricci vanishes identically, the Einstein tensor vanishes, the scalar curvature is `0`, and the Kretschmann scalar is `48 m^2 / r^6`.
+- Flat FLRW, with a formal scale factor `a(t)` and its exact derivatives. The Einstein tensor is exact: `G_tt` is `3 (da/dt)^2 / a^2`, and each spatial diagonal is `-(2 a d^2a/dt^2 + (da/dt)^2)`.
 
 Still outside the kernel, and required before a physical law can be written:
 
