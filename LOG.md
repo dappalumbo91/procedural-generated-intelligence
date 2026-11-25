@@ -504,3 +504,17 @@ A monic inverse of one named radical keeps its compact absorbed form. A nest tim
 The next gap is a boolean connective the kernel cannot settle, and a set whose upper-bound predicate the kernel cannot decide. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 116 tests, 0 failures, about 57.85 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — boolean connectives and affine upper bounds pgi-0.37.0
+
+A boolean connective inside one predicate reduces by the Collect lemmas, including when a side is itself a connective. A nested conjunction is associated and met, so `{x. 1 <= x and x <= 3 and x <= 4}` is `atLeastAtMost(1, 3)`. `Collect_neg_eq` and `double_compl` close `{x. not not x <= 2}` as `atMost(2)`. `imp_conv_disj` rewrites implication as the disjunction of the negated antecedent with the consequent, so `{x. x <= 1 implies x <= 3}` is `univ`. A disjunction, or a union, of two rays is one admitted set when they overlap or touch: `{x. x <= 1 or x <= 3}` is `atMost(3)`, and `{x. x <= 3 or 1 <= x}` is `univ`.
+
+A comparison that is affine in the binder is moved to a standard ray by cancelling a shared summand and a nonzero coefficient, by `add_le_cancel_left`, `add_le_cancel_right`, `mult_le_cancel_left_pos`, and `mult_le_cancel_left_neg`. `{x. x <= x + 1}` is `univ`, and `sup {x. x <= x + 1}` is not bounded above. `{x. 2 * x <= x + 1}` is `atMost(1)`. `{x. 2 * x = x + 1}` is `{1}`. `{x. x + 1 <= x}` is empty. `{x. x < x}` stays the `less_irrefl` refusal.
+
+A union of two rays that leaves a gap, such as `{x. x <= 1 or 3 <= x}`, stays outside. The complement of a nonempty finite set, such as `{x. not x = 2}`, stays outside. A predicate that is not affine in the binder, such as `{x. x * x <= 2}`, stays outside the bisection. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a union of two rays that leaves a gap, the complement of a nonempty finite set, and a predicate that is not affine in the binder, such as `{x. x * x <= 2}`. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 117 tests, 0 failures, about 49.14 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

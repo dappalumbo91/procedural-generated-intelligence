@@ -262,7 +262,8 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(met.open_gaps, ())
 
         compound = run(Request(ask="what is sup {x. x <= x + 1}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", compound.text(lod=1))
+        self.assertIn("this set is not bounded above", compound.text(lod=1))
+        self.assertIn("UNIV_I", compound.text(lod=1))
         self.assertEqual(_atoms(compound, "value("), ())
 
     def test_the_bisection_builds_the_least_upper_bound(self) -> None:
@@ -369,7 +370,8 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(witness.open_gaps, ())
 
         compound = run(Request(ask="what is sup {x. x < x + 1}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", compound.text(lod=1))
+        self.assertIn("this set is not bounded above", compound.text(lod=1))
+        self.assertIn("UNIV_I", compound.text(lod=1))
         self.assertEqual(_atoms(compound, "value("), ())
 
         measured = run(
@@ -831,15 +833,53 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(_atoms(complement, "set("), ())
 
         nested = run(Request(ask="what is {x. 1 <= x and x <= 3 and x <= 4}", seed=1))
-        self.assertIn("this boolean connective stays outside this rule", nested.text(lod=1))
-        self.assertEqual(_atoms(nested, "atLeastAtMost("), ())
+        self.assertEqual(nested.claims[0].atom, "atLeastAtMost(1, 3)")
+        self.assertIn("Collect_conj_eq", nested.text(lod=2))
+        self.assertEqual(nested.open_gaps, ())
+
+        tightened = run(Request(ask="what is {x. 1 <= x and x <= 3 and x <= 2}", seed=1))
+        self.assertEqual(tightened.claims[0].atom, "atLeastAtMost(1, 2)")
+        self.assertEqual(tightened.open_gaps, ())
+
+        vacant_and = run(Request(ask="what is {x. 1 <= x and x <= 3 and 4 <= x}", seed=1))
+        self.assertEqual(vacant_and.claims[0].atom, "set({})")
+        self.assertEqual(vacant_and.open_gaps, ())
 
         doubled = run(Request(ask="what is {x. not not x <= 2}", seed=1))
-        self.assertIn("this boolean connective stays outside this rule", doubled.text(lod=1))
+        self.assertEqual(doubled.claims[0].atom, "atMost(2)")
+        self.assertIn("Collect_neg_eq", doubled.text(lod=2))
+        self.assertIn("double_compl", doubled.text(lod=2))
+        self.assertEqual(doubled.open_gaps, ())
+
+        tripled = run(Request(ask="what is {x. not not not x <= 2}", seed=1))
+        self.assertEqual(tripled.claims[0].atom, "greaterThan(2)")
+        self.assertEqual(tripled.open_gaps, ())
 
         implied = run(Request(ask="what is {x. x <= 1 implies x <= 3}", seed=1))
-        self.assertIn("this boolean connective stays outside this rule", implied.text(lod=1))
-        self.assertEqual(_atoms(implied, "atMost("), ())
+        self.assertEqual(implied.claims[0].atom, "univ")
+        self.assertIn("imp_conv_disj", implied.text(lod=2))
+        self.assertEqual(implied.open_gaps, ())
+
+        implied_gap = run(Request(ask="what is {x. x <= 1 implies x <= 0}", seed=1))
+        self.assertIn("this boolean connective stays outside this rule", implied_gap.text(lod=1))
+        self.assertEqual(_atoms(implied_gap, "univ"), ())
+
+        covered = run(Request(ask="what is {x. x <= 1 or x <= 3}", seed=1))
+        self.assertEqual(covered.claims[0].atom, "atMost(3)")
+        self.assertIn("Collect_disj_eq", covered.text(lod=2))
+        self.assertEqual(covered.open_gaps, ())
+
+        whole = run(Request(ask="what is {x. x <= 3 or 1 <= x}", seed=1))
+        self.assertEqual(whole.claims[0].atom, "univ")
+        self.assertEqual(whole.open_gaps, ())
+
+        joined = run(Request(ask="what is {x. x <= 3} union {x. x <= 1}", seed=1))
+        self.assertEqual(joined.claims[0].atom, "atMost(3)")
+        self.assertEqual(joined.open_gaps, ())
+
+        trimmed = run(Request(ask="what is ({x. 1 <= x} inter {x. x <= 3}) inter {x. x <= 2}", seed=1))
+        self.assertEqual(trimmed.claims[0].atom, "atLeastAtMost(1, 2)")
+        self.assertEqual(trimmed.open_gaps, ())
 
         arithmetic = run(Request(ask="what is 1 and 2", seed=1))
         self.assertIn("No answer rule fired from the given facts.", arithmetic.open_gaps)
@@ -862,7 +902,44 @@ class ArbitrarySetTests(unittest.TestCase):
         with self.assertRaises(KernelError):
             ConnectiveTheorem("x", domain, predicate, "Collect.disj", "atLeastAtMost", one, (three,), ())
 
+    def test_affine_comparisons_reduce_to_rays(self) -> None:
+        always = run(Request(ask="what is {x. x <= x + 1}", seed=1))
+        self.assertEqual(always.claims[0].atom, "univ")
+        self.assertIn("add_le_cancel", always.text(lod=2))
+        self.assertEqual(always.open_gaps, ())
+
+        empty = run(Request(ask="what is {x. x + 1 <= x}", seed=1))
+        self.assertEqual(empty.claims[0].atom, "set({})")
+        self.assertEqual(empty.open_gaps, ())
+
+        cancelled = run(Request(ask="what is {x. 2 * x <= x + 1}", seed=1))
+        self.assertEqual(cancelled.claims[0].atom, "atMost(1)")
+        self.assertIn("mult_le_cancel_left", cancelled.text(lod=2))
+        self.assertEqual(cancelled.open_gaps, ())
+
+        flipped = run(Request(ask="what is {x. 0 <= -x}", seed=1))
+        self.assertEqual(flipped.claims[0].atom, "atMost(0)")
+        self.assertEqual(flipped.open_gaps, ())
+
+        point = run(Request(ask="what is {x. 2 * x = x + 1}", seed=1))
+        self.assertEqual(point.claims[0].atom, "set({1})")
+        self.assertEqual(point.open_gaps, ())
+
+        bound = run(Request(ask="what is sup {x. 2 * x <= x + 1}", seed=1))
+        self.assertEqual(bound.claims[0].atom, "value(1)")
+        self.assertEqual(bound.open_gaps, ())
+
+        witnessed = run(Request(ask="prove 0 in {x. x <= x + 1}", seed=1))
+        self.assertEqual(witnessed.claims[0].atom, "member(0,{x. x <= x + 1})")
+        self.assertEqual(witnessed.open_gaps, ())
+
+        quadratic = run(Request(ask="what is {x. x * x <= 2}", seed=1))
+        self.assertIn("this comprehension is not a finite enumeration", quadratic.text(lod=1))
+        self.assertEqual(_atoms(quadratic, "value("), ())
+        self.assertEqual(_atoms(quadratic, "atMost("), ())
+
     def test_older_paths_stay_on_their_rules(self) -> None:
+
         enumerated = run(Request(ask="what is {1, 2}", seed=1))
         self.assertEqual(enumerated.claims[0].atom, "set({1, 2})")
         self.assertNotIn("atMost", enumerated.text(lod=2))

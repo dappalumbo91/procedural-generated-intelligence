@@ -50,12 +50,29 @@ membership in the interval decides the upper-bound predicate.
 
 A boolean connective inside one predicate reduces by the Collect lemmas in
 `Set.thy`. `Collect_conj_eq` meets the two sides, and `Collect_conj_eq2`
-meets the two separations of one finite domain. `Collect_disj_eq` unions two
-sides when both are finite enumerations. `Collect_neg_eq` sends the
-complement of a ray to the opposite ray, by `Compl_atMost`, `Compl_atLeast`,
-`Compl_lessThan`, and `Compl_greaterThan`. `Compl_UNIV_eq` sends the
-complement of the set of every real to the empty set. A connective whose
-sides this kernel cannot settle stays outside. Implication stays outside.
+meets the two separations of one finite domain. A nested conjunction is
+associated and then met, so an interval may be met with a further ray.
+`Collect_disj_eq` unions two sides when both are finite enumerations, or
+when the two rays or intervals cover a single admitted set: one ray, one
+interval, a singleton, the empty set, or UNIV. A union that leaves a gap
+stays outside. `Collect_neg_eq` sends the complement of a ray to the
+opposite ray, by `Compl_atMost`, `Compl_atLeast`, `Compl_lessThan`, and
+`Compl_greaterThan`. A double negation is `double_compl`. `Compl_UNIV_eq`
+sends the complement of the set of every real to the empty set.
+`imp_conv_disj` rewrites implication as the disjunction of the negated
+antecedent with the consequent. A connective whose sides this kernel cannot
+settle stays outside. A complement of a finite nonempty set, and a union of
+two rays that leaves a gap, stay outside.
+
+A comparison that is affine in the binder is moved to a standard ray by
+cancelling a shared summand and a nonzero coefficient, by `add_le_cancel_left`,
+`add_le_cancel_right`, `mult_le_cancel_left_pos`, and `mult_le_cancel_left_neg`.
+An identically true comparison is UNIV. An identically false comparison is
+empty, except `x < x`, which stays the `less_irrefl` refusal. An affine
+equality with a nonzero coefficient is the singleton of the cancelled bound.
+A predicate that is not affine in the binder, such as `{x. x * x <= 2}`,
+stays outside that rule, and its upper-bound predicate stays outside the
+bisection.
 
 Core Lean 4.36.0, with no imports, does not resolve `Set.Iic`, `Set.Ici`,
 `Set.Iio`, `Set.Ioi`, or `Set.univ`. This module does not import Lean or
@@ -74,7 +91,10 @@ from pgi.math.real import (
     RealForm,
     _add_forms,
     _canonical,
+    _div_form,
     _enclose,
+    _mul_forms,
+    _neg_form,
     _qadd,
     _qcmp,
     _qdiv,
@@ -207,6 +227,25 @@ class RayMeetTheorem:
 
 
 @dataclass(frozen=True)
+class RayJoinTheorem:
+    left_kind: str
+    left_bound: RealForm | None
+    left_members: tuple[RealForm, ...]
+    right_kind: str
+    right_bound: RealForm | None
+    right_members: tuple[RealForm, ...]
+    result_kind: str
+    result_bound: RealForm | None
+    result_members: tuple[RealForm, ...]
+    rule: str
+    detail: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not _join_ok(self):
+            raise KernelError(f"{self.rule} does not justify this union")
+
+
+@dataclass(frozen=True)
 class RaySupTheorem:
     form: RealForm
     source: CollectForm
@@ -285,6 +324,9 @@ def interpret(term: Term) -> tuple[object, tuple[str, ...]]:
         value = eval_set(term)
     except NotExact as exc:
         reduced = _from_intersection(term)
+        if reduced is not None:
+            return reduced
+        reduced = _from_union(term)
         if reduced is not None:
             return reduced
         reduced = _from_sup(term)
@@ -476,7 +518,12 @@ def classify(form: CollectForm) -> Ray | None:
     if _reflexive(form):
         return Ray("univ", None, form)
     if form.relation == "lt":
-        return _strict_ray(form)
+        found = _strict_ray(form)
+        if found is not None:
+            return found
+        return _affine_ray(form)
+    if form.relation == "eq":
+        return _affine_ray(form)
     if form.relation != "le":
         return None
     if _is_binder(form.left, form.binder) and not _mentions(form.right, form.binder):
@@ -487,7 +534,7 @@ def classify(form: CollectForm) -> Ray | None:
         if contains_set(form.left):
             raise NotExact("a set does not enter this comprehension")
         return Ray("atLeast", eval_real(form.left).form, form)
-    return None
+    return _affine_ray(form)
 
 
 def _strict_ray(form: CollectForm) -> Ray | None:
@@ -512,6 +559,14 @@ _CONJ = "Isabelle Collect_conj_eq: {x. P x and Q x} = {x. P x} inter {x. Q x}."
 _CONJ2 = "Isabelle Collect_conj_eq2: {x in A. P x and Q x} = {x in A. P x} inter {x in A. Q x}."
 _DISJ = "Isabelle Collect_disj_eq: {x. P x or Q x} = {x. P x} union {x. Q x}."
 _NEG = "Isabelle Collect_neg_eq: {x. not P x} = - {x. P x}."
+_IMP = "Isabelle HOL.imp_conv_disj: (P --> Q) = (~P | Q)."
+_DOUBLE = "Isabelle double_compl: - (- A) = A."
+_AFFINE = (
+    "The comparison is affine in the binder.",
+    "Isabelle add_le_cancel_left and add_le_cancel_right move a shared summand.",
+    "Isabelle mult_le_cancel_left_pos cancels a positive coefficient.",
+    "Isabelle mult_le_cancel_left_neg flips the comparison when the coefficient is negative.",
+)
 _COMPLEMENT = {
     "atMost": (
         "greaterThan",
@@ -565,43 +620,66 @@ def _reduce_connective(binder: str, domain: Term, predicate: Term) -> tuple[obje
         return _reduce_or(binder, domain, predicate)
     if predicate.op == "not":
         return _reduce_not(binder, domain, predicate)
+    if predicate.op == "implies":
+        return _reduce_implies(binder, domain, predicate)
     raise NotExact(_OUTSIDE)
 
 
 def _reduce_and(binder: str, domain: Term, predicate: Term) -> tuple[object, tuple[str, ...]]:
-    left, right = _two_atoms(predicate)
-    left_value = eval_set(_side_collect(binder, domain, left))
-    right_value = eval_set(_side_collect(binder, domain, right))
+    if len(predicate.args) != 2:
+        raise NotExact(_OUTSIDE)
+    left_value, left_detail = _side_value(binder, domain, predicate.args[0])
+    right_value, right_detail = _side_value(binder, domain, predicate.args[1])
     if isinstance(left_value, SetTheorem) and isinstance(right_value, SetTheorem):
         line = _CONJ if _is_type(domain) else _CONJ2
-        return set_inter(left_value, right_value), (line,)
+        return set_inter(left_value, right_value), (line, *left_detail, *right_detail)
     if not _is_type(domain):
         raise NotExact(_OUTSIDE)
     try:
         value, detail = _combine(left_value, right_value)
     except NotExact as exc:
-        if str(exc) == _NOT_FINITE:
+        if str(exc) in {_NOT_FINITE, "this intersection stays outside this rule"}:
             raise NotExact(_OUTSIDE) from exc
         raise
-    return value, (_CONJ, *detail)
+    return value, (_CONJ, *left_detail, *right_detail, *detail)
 
 
 def _reduce_or(binder: str, domain: Term, predicate: Term) -> tuple[object, tuple[str, ...]]:
-    if not _is_type(domain):
+    if not _is_type(domain) or len(predicate.args) != 2:
         raise NotExact(_OUTSIDE)
-    left, right = _two_atoms(predicate)
-    left_value = eval_set(_side_collect(binder, domain, left))
-    right_value = eval_set(_side_collect(binder, domain, right))
+    left_value, left_detail = _side_value(binder, domain, predicate.args[0])
+    right_value, right_detail = _side_value(binder, domain, predicate.args[1])
     if isinstance(left_value, SetTheorem) and isinstance(right_value, SetTheorem):
-        return set_union(left_value, right_value), (_DISJ,)
-    raise NotExact(_OUTSIDE)
+        return set_union(left_value, right_value), (_DISJ, *left_detail, *right_detail)
+    try:
+        value, detail = _join(left_value, right_value)
+    except NotExact as exc:
+        raise NotExact(_OUTSIDE) from exc
+    return value, (_DISJ, *left_detail, *right_detail, *detail)
+
+
+def _reduce_implies(binder: str, domain: Term, predicate: Term) -> tuple[object, tuple[str, ...]]:
+    if not _is_type(domain) or len(predicate.args) != 2:
+        raise NotExact(_OUTSIDE)
+    disjunction = App("or", (App("not", (predicate.args[0],)), predicate.args[1]))
+    value, detail = _reduce_or(binder, domain, disjunction)
+    return value, (_IMP, *detail)
 
 
 def _reduce_not(binder: str, domain: Term, predicate: Term) -> tuple[object, tuple[str, ...]]:
-    if not _is_type(domain) or len(predicate.args) != 1 or not _atomic_comparison(predicate.args[0]):
+    if not _is_type(domain) or len(predicate.args) != 1:
         raise NotExact(_OUTSIDE)
     inner = predicate.args[0]
-    if not isinstance(inner, App) or len(inner.args) != 2:
+    if not isinstance(inner, App):
+        raise NotExact(_OUTSIDE)
+    if inner.op in {"and", "or", "not", "implies"}:
+        value, detail = _reduce_connective(binder, domain, inner)
+        try:
+            complemented, extra = _complement(value)
+        except NotExact as exc:
+            raise NotExact(_OUTSIDE) from exc
+        return complemented, (_NEG, *detail, *extra)
+    if not _atomic_comparison(inner) or len(inner.args) != 2:
         raise NotExact(_OUTSIDE)
     ray = classify(CollectForm(binder, inner.op, inner.args[0], inner.args[1]))
     if ray is None:
@@ -617,6 +695,14 @@ def _reduce_not(binder: str, domain: Term, predicate: Term) -> tuple[object, tup
         raise NotExact(_OUTSIDE)
     kind, line = found
     return _synthetic(kind, ray.bound), (_NEG, line)
+
+
+def _side_value(binder: str, domain: Term, predicate: Term) -> tuple[object, tuple[str, ...]]:
+    if isinstance(predicate, App) and predicate.op in {"and", "or", "not", "implies"}:
+        return _reduce_connective(binder, domain, predicate)
+    if not _atomic_comparison(predicate):
+        raise NotExact(_OUTSIDE)
+    return eval_set(_side_collect(binder, domain, predicate)), ()
 
 
 def _two_atoms(predicate: Term) -> tuple[Term, Term]:
@@ -646,6 +732,8 @@ def _connective_rule(domain: Term, predicate: Term) -> str:
         return "Collect.disj"
     if predicate.op == "not":
         return "Collect.neg"
+    if predicate.op == "implies":
+        return "Collect.imp"
     raise KernelError("this boolean connective stays outside this rule")
 
 
@@ -913,6 +1001,485 @@ def _from_intersection(term: Term) -> tuple[object, tuple[str, ...]] | None:
     return value, (*left_lines, *right_lines, *detail)
 
 
+def _from_union(term: Term) -> tuple[object, tuple[str, ...]] | None:
+    if not isinstance(term, App) or term.op != "union" or len(term.args) != 2:
+        return None
+    left_value, left_lines = interpret(term.args[0])
+    right_value, right_lines = interpret(term.args[1])
+    value, detail = _join(left_value, right_value)
+    return value, (*left_lines, *right_lines, *detail)
+
+
+def affine_verdict(binder: str, relation: str, left: Term, right: Term) -> tuple[str, RealForm | None] | None:
+    if relation == "lt" and _is_binder(left, binder) and _is_binder(right, binder):
+        return None
+    left_aff = _affine_parts(left, binder)
+    right_aff = _affine_parts(right, binder)
+    if left_aff is None or right_aff is None:
+        return None
+    slope = _sub_forms(left_aff[0], right_aff[0])
+    direction = compare_reals(slope, _zero())
+    if direction == "open":
+        return None
+    if direction == "eq":
+        compared = compare_reals(left_aff[1], right_aff[1])
+        if compared == "open":
+            return None
+        if _relation_holds(relation, compared):
+            return "univ", None
+        return "empty", None
+    try:
+        bound = _div_form(_sub_forms(right_aff[1], left_aff[1]), slope)
+    except (NotExact, KernelError):
+        return None
+    flipped = direction == "lt"
+    if relation == "eq":
+        return "singleton", bound
+    if relation == "le":
+        return ("atLeast" if flipped else "atMost"), bound
+    if relation == "lt":
+        return ("greaterThan" if flipped else "lessThan"), bound
+    return None
+
+
+def _affine_ray(form: CollectForm) -> Ray | None:
+    verdict = affine_verdict(form.binder, form.relation, form.left, form.right)
+    if verdict is None:
+        return None
+    kind, bound = verdict
+    if kind == "univ":
+        return Ray("univ", None, form)
+    if kind in {"atMost", "atLeast", "lessThan", "greaterThan"} and bound is not None:
+        return Ray(kind, bound, form)
+    return None
+
+
+def _affine_parts(term: Term, binder: str) -> tuple[RealForm, RealForm] | None:
+    if _is_binder(term, binder):
+        return _one(), _zero()
+    if not _mentions(term, binder):
+        if contains_set(term):
+            return None
+        try:
+            return _zero(), eval_real(term).form
+        except (NotExact, KernelError):
+            return None
+    if not isinstance(term, App):
+        return None
+    if term.op == "neg" and len(term.args) == 1:
+        found = _affine_parts(term.args[0], binder)
+        if found is None:
+            return None
+        return _neg_form(found[0]), _neg_form(found[1])
+    if term.op in {"add", "sub"} and len(term.args) == 2:
+        left = _affine_parts(term.args[0], binder)
+        right = _affine_parts(term.args[1], binder)
+        if left is None or right is None:
+            return None
+        if term.op == "add":
+            return _add_forms(left[0], right[0]), _add_forms(left[1], right[1])
+        return _sub_forms(left[0], right[0]), _sub_forms(left[1], right[1])
+    if term.op == "mul" and len(term.args) == 2:
+        return _affine_scale(term.args[0], term.args[1], binder, divide=False)
+    if term.op == "div" and len(term.args) == 2:
+        return _affine_scale(term.args[0], term.args[1], binder, divide=True)
+    return None
+
+
+def _affine_scale(left: Term, right: Term, binder: str, *, divide: bool) -> tuple[RealForm, RealForm] | None:
+    if divide:
+        if _mentions(right, binder) or contains_set(right):
+            return None
+        body = _affine_parts(left, binder)
+        if body is None:
+            return None
+        try:
+            factor = eval_real(right).form
+            return _div_form(body[0], factor), _div_form(body[1], factor)
+        except (NotExact, KernelError):
+            return None
+    if _mentions(left, binder) and _mentions(right, binder):
+        return None
+    if not _mentions(left, binder):
+        constant, body_term = left, right
+    else:
+        constant, body_term = right, left
+    if contains_set(constant):
+        return None
+    body = _affine_parts(body_term, binder)
+    if body is None:
+        return None
+    try:
+        factor = eval_real(constant).form
+        return _mul_forms(body[0], factor), _mul_forms(body[1], factor)
+    except (NotExact, KernelError):
+        return None
+
+
+def _relation_holds(relation: str, compared: str) -> bool:
+    if relation == "eq":
+        return compared == "eq"
+    if relation == "le":
+        return compared in {"lt", "eq"}
+    if relation == "lt":
+        return compared == "lt"
+    return False
+
+
+def _affine_lines(form: CollectForm) -> tuple[str, ...]:
+    if _reflexive(form):
+        return ()
+    if form.relation == "le":
+        simple = (
+            _is_binder(form.left, form.binder) and not _mentions(form.right, form.binder)
+        ) or (
+            _is_binder(form.right, form.binder) and not _mentions(form.left, form.binder)
+        )
+        if simple:
+            return ()
+    if form.relation == "lt":
+        simple = (
+            _is_binder(form.left, form.binder) and not _mentions(form.right, form.binder)
+        ) or (
+            _is_binder(form.right, form.binder) and not _mentions(form.left, form.binder)
+        )
+        if simple:
+            return ()
+    if affine_verdict(form.binder, form.relation, form.left, form.right) is None:
+        return ()
+    return _AFFINE
+
+
+def _join(left_value: object, right_value: object) -> tuple[object, tuple[str, ...]]:
+    left = _meet_side(left_value)
+    right = _meet_side(right_value)
+    kind, bound, members, rule = _join_result(left, right, _OUTSIDE)
+    detail = _join_detail(rule, bound, members)
+    RayJoinTheorem(
+        left[0],
+        left[1],
+        left[2],
+        right[0],
+        right[1],
+        right[2],
+        kind,
+        bound,
+        members,
+        rule,
+        detail,
+    )
+    if kind == "finite":
+        return _finite_set(members), detail
+    if kind in _INTERVAL_KINDS:
+        if bound is None or len(members) != 1:
+            raise KernelError("an interval needs both bounds")
+        return Interval(kind, bound, members[0]), detail
+    return _synthetic(kind, bound), detail
+
+
+def _join_result(
+    left: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    right: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    message: str,
+) -> tuple[str, RealForm | None, tuple[RealForm, ...], str]:
+    if left[0] == "univ" or right[0] == "univ":
+        return "univ", None, (), "Set.join_univ"
+    if left[0] == "finite" and right[0] == "finite":
+        return "finite", None, canonical((*left[2], *right[2])), "Set.join_finite"
+    if left[0] == "finite":
+        return _join_finite(left[2], right, message)
+    if right[0] == "finite":
+        return _join_finite(right[2], left, message)
+    low, high, rule = _merged_ends(left, right, message)
+    kind, bound, members = _from_ends(low, high, message)
+    return kind, bound, members, rule
+
+
+def _join_finite(
+    members: tuple[RealForm, ...],
+    other: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    message: str,
+) -> tuple[str, RealForm | None, tuple[RealForm, ...], str]:
+    if other[0] == "univ":
+        return "univ", None, (), "Set.join_univ"
+    for member in members:
+        if not _in_side(member, other[0], other[1], other[2], message):
+            raise NotExact(message)
+    return other[0], other[1], other[2], "Set.join_absorb"
+
+
+def _merged_ends(
+    left: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    right: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    message: str,
+) -> tuple[tuple[bool | None, RealForm | None], tuple[bool | None, RealForm | None], str]:
+    left_low, left_high = _as_ends(left[0], left[1], left[2], message)
+    right_low, right_high = _as_ends(right[0], right[1], right[2], message)
+    if _lower_first(left_low, right_low, message):
+        first_high, second_low = left_high, right_low
+    else:
+        first_high, second_low = right_high, left_low
+    if not _ends_connect(first_high, second_low, message):
+        raise NotExact(message)
+    return _weaker_lower(left_low, right_low, message), _weaker_upper(left_high, right_high, message), "Set.join_cover"
+
+
+def _interval_side_meet(
+    left: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    right: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    message: str,
+) -> tuple[str, RealForm | None, tuple[RealForm, ...], str]:
+    left_low, left_high = _as_ends(left[0], left[1], left[2], message)
+    right_low, right_high = _as_ends(right[0], right[1], right[2], message)
+    low = _stricter_lower(left_low, right_low, message)
+    high = _stricter_upper(left_high, right_high, message)
+    kind, bound, members = _from_ends(low, high, message)
+    if kind == "finite" and not members:
+        return kind, bound, members, "Set.meet_open_empty"
+    if kind == "finite":
+        return kind, bound, members, "Set.meet_singleton"
+    if kind in _INTERVAL_KINDS:
+        return kind, bound, members, f"Set.meet_{kind}"
+    if kind in {"atMost", "atLeast", "lessThan", "greaterThan"}:
+        return kind, bound, members, f"Set.meet_{kind}"
+    if kind == "univ":
+        return kind, bound, members, "Set.meet_univ"
+    raise NotExact(message)
+
+
+def _as_ends(
+    kind: str,
+    bound: RealForm | None,
+    members: tuple[RealForm, ...],
+    message: str,
+) -> tuple[tuple[bool | None, RealForm | None], tuple[bool | None, RealForm | None]]:
+    if kind == "univ":
+        return (None, None), (None, None)
+    if kind == "atMost":
+        return (None, None), (False, bound)
+    if kind == "lessThan":
+        return (None, None), (True, bound)
+    if kind == "atLeast":
+        return (False, bound), (None, None)
+    if kind == "greaterThan":
+        return (True, bound), (None, None)
+    if kind in _INTERVAL_KINDS:
+        if bound is None or len(members) != 1:
+            raise NotExact(message)
+        return (kind in _OPEN_LOWER, bound), (kind in _OPEN_UPPER, members[0])
+    raise NotExact(message)
+
+
+def _from_ends(
+    low: tuple[bool | None, RealForm | None],
+    high: tuple[bool | None, RealForm | None],
+    message: str,
+) -> tuple[str, RealForm | None, tuple[RealForm, ...]]:
+    if low[0] is None and high[0] is None:
+        return "univ", None, ()
+    if low[0] is None:
+        kind = "lessThan" if high[0] else "atMost"
+        if high[1] is None:
+            raise NotExact(message)
+        return kind, high[1], ()
+    if high[0] is None:
+        kind = "greaterThan" if low[0] else "atLeast"
+        if low[1] is None:
+            raise NotExact(message)
+        return kind, low[1], ()
+    compared = _direction(low[1], high[1], message)
+    if compared == "gt" or (compared == "eq" and (low[0] or high[0])):
+        return "finite", None, ()
+    if compared == "eq":
+        return "finite", None, (low[1],)
+    kind = _interval_kind("greaterThan" if low[0] else "atLeast", "lessThan" if high[0] else "atMost")
+    if low[1] is None or high[1] is None:
+        raise NotExact(message)
+    return kind, low[1], (high[1],)
+
+
+def _lower_first(
+    left: tuple[bool | None, RealForm | None],
+    right: tuple[bool | None, RealForm | None],
+    message: str,
+) -> bool:
+    if left[0] is None:
+        return True
+    if right[0] is None:
+        return False
+    compared = _direction(left[1], right[1], message)
+    if compared == "lt":
+        return True
+    if compared == "gt":
+        return False
+    return not left[0]
+
+
+def _ends_connect(
+    first_high: tuple[bool | None, RealForm | None],
+    second_low: tuple[bool | None, RealForm | None],
+    message: str,
+) -> bool:
+    if first_high[0] is None or second_low[0] is None:
+        return True
+    compared = _direction(first_high[1], second_low[1], message)
+    if compared == "gt":
+        return True
+    if compared == "lt":
+        return False
+    return not (first_high[0] and second_low[0])
+
+
+def _weaker_lower(
+    left: tuple[bool | None, RealForm | None],
+    right: tuple[bool | None, RealForm | None],
+    message: str,
+) -> tuple[bool | None, RealForm | None]:
+    if left[0] is None or right[0] is None:
+        return (None, None)
+    compared = _direction(left[1], right[1], message)
+    if compared == "lt":
+        return left
+    if compared == "gt":
+        return right
+    return (left[0] and right[0], left[1])
+
+
+def _weaker_upper(
+    left: tuple[bool | None, RealForm | None],
+    right: tuple[bool | None, RealForm | None],
+    message: str,
+) -> tuple[bool | None, RealForm | None]:
+    if left[0] is None or right[0] is None:
+        return (None, None)
+    compared = _direction(left[1], right[1], message)
+    if compared == "gt":
+        return left
+    if compared == "lt":
+        return right
+    return (left[0] and right[0], left[1])
+
+
+def _stricter_lower(
+    left: tuple[bool | None, RealForm | None],
+    right: tuple[bool | None, RealForm | None],
+    message: str,
+) -> tuple[bool | None, RealForm | None]:
+    if left[0] is None:
+        return right
+    if right[0] is None:
+        return left
+    compared = _direction(left[1], right[1], message)
+    if compared == "gt":
+        return left
+    if compared == "lt":
+        return right
+    return (left[0] or right[0], left[1])
+
+
+def _stricter_upper(
+    left: tuple[bool | None, RealForm | None],
+    right: tuple[bool | None, RealForm | None],
+    message: str,
+) -> tuple[bool | None, RealForm | None]:
+    if left[0] is None:
+        return right
+    if right[0] is None:
+        return left
+    compared = _direction(left[1], right[1], message)
+    if compared == "lt":
+        return left
+    if compared == "gt":
+        return right
+    return (left[0] or right[0], left[1])
+
+
+def _complement(value: object) -> tuple[object, tuple[str, ...]]:
+    if isinstance(value, SetTheorem) and not value.members:
+        return _synthetic("univ", None), (
+            "Isabelle Compl_empty: - {} = UNIV.",
+            _DOUBLE,
+        )
+    if isinstance(value, Interval):
+        raise NotExact(_OUTSIDE)
+    if isinstance(value, SetTheorem):
+        raise NotExact(_OUTSIDE)
+    if not isinstance(value, CollectForm):
+        raise NotExact(_OUTSIDE)
+    ray = classify(value)
+    if ray is None:
+        raise NotExact(_OUTSIDE)
+    if ray.kind == "univ":
+        return set_empty(), (
+            "The predicate holds at every real, so the comprehension is UNIV.",
+            "Isabelle Compl_UNIV_eq: - UNIV = {}.",
+        )
+    found = _COMPLEMENT.get(ray.kind)
+    if found is None or ray.bound is None:
+        raise NotExact(_OUTSIDE)
+    kind, line = found
+    return _synthetic(kind, ray.bound), (line, _DOUBLE)
+
+
+def _join_ok(theorem: RayJoinTheorem) -> bool:
+    left = (theorem.left_kind, theorem.left_bound, theorem.left_members)
+    right = (theorem.right_kind, theorem.right_bound, theorem.right_members)
+    allowed = {"finite", "univ", "atMost", "atLeast", "lessThan", "greaterThan", *_INTERVAL_KINDS}
+    if theorem.left_kind not in allowed or theorem.right_kind not in allowed:
+        return False
+    if theorem.left_kind not in {"finite", *_INTERVAL_KINDS} and theorem.left_members:
+        return False
+    if theorem.right_kind not in {"finite", *_INTERVAL_KINDS} and theorem.right_members:
+        return False
+    if not all(_canonical(item) for item in theorem.left_members + theorem.right_members + theorem.result_members):
+        return False
+    try:
+        kind, bound, members, rule = _join_result(left, right, _OUTSIDE)
+    except (NotExact, KernelError):
+        return False
+    return (
+        theorem.result_kind == kind
+        and theorem.result_bound == bound
+        and theorem.result_members == members
+        and theorem.rule == rule
+    )
+
+
+def _join_detail(rule: str, bound: RealForm | None, members: tuple[RealForm, ...]) -> tuple[str, ...]:
+    if rule == "Set.join_univ":
+        return (
+            "Isabelle Un_UNIV_left and Un_UNIV_right: union with UNIV is UNIV.",
+            "Isabelle Un_iff: a real is in the union when it is in one side.",
+        )
+    if rule == "Set.join_finite":
+        return (
+            "Isabelle Un_def: a union collects the members of either set.",
+            "Isabelle Un_iff: membership in a union is membership in one side.",
+            "finite_Un: a union of finite sets is finite.",
+        )
+    if rule == "Set.join_absorb":
+        return (
+            "Isabelle Un_iff: a real is in the union when it is in one side.",
+            "Every listed member already lies in the other set, so the union is that set.",
+        )
+    if rule == "Set.join_cover":
+        if bound is None and not members:
+            return (
+                "Isabelle Un_iff: a real is in the union when it is in one side.",
+                "These two rays cover every real, so their union is UNIV.",
+            )
+        shown = show_form(bound) if bound is not None else ""
+        extra = f" The upper bound is {show_form(members[0])}." if members else ""
+        return (
+            "Isabelle Un_iff: a real is in the union when it is in one side.",
+            "The two sides overlap or touch, so their union is one admitted ray or interval.",
+            f"The bound is {shown}.{extra}" if shown else "The union is that admitted set.",
+        )
+    return (
+        "Isabelle Un_iff: a real is in the union when it is in one side.",
+    )
+
+
 def _combine(left_value: object, right_value: object) -> tuple[object, tuple[str, ...]]:
     left = _meet_side(left_value)
     right = _meet_side(right_value)
@@ -942,7 +1509,7 @@ def _combine(left_value: object, right_value: object) -> tuple[object, tuple[str
 
 def _meet_side(value: object) -> tuple[str, RealForm | None, tuple[RealForm, ...]]:
     if isinstance(value, Interval):
-        raise NotExact("this intersection stays outside this rule")
+        return value.kind, value.lower, (value.upper,)
     if isinstance(value, SetTheorem):
         return "finite", None, value.members
     if isinstance(value, CollectForm):
@@ -961,6 +1528,12 @@ def _meet_result(
     swapped = _absorb_univ(left, right, message)
     if swapped is not None:
         return swapped
+    if left[0] in _INTERVAL_KINDS or right[0] in _INTERVAL_KINDS:
+        if left[0] == "finite":
+            return "finite", None, _kept(left[2], right[0], right[1], message, right[2]), "Set.meet_filter"
+        if right[0] == "finite":
+            return "finite", None, _kept(right[2], left[0], left[1], message, left[2]), "Set.meet_filter"
+        return _interval_side_meet(left, right, message)
     if left[0] == "finite" and right[0] != "finite":
         return _filter_finite(left[2], right[0], right[1], message), None, _kept(left[2], right[0], right[1], message), "Set.meet_filter"
     if right[0] == "finite" and left[0] != "finite":
@@ -1061,6 +1634,8 @@ def _absorb_univ(
         return "finite", None, other[2], "Set.meet_univ"
     if other[0] in {"atMost", "atLeast", "lessThan", "greaterThan"}:
         return other[0], other[1], (), "Set.meet_univ"
+    if other[0] in _INTERVAL_KINDS:
+        return other[0], other[1], other[2], "Set.meet_univ"
     raise NotExact(message)
 
 
@@ -1069,10 +1644,16 @@ def _filter_finite(members: tuple[RealForm, ...], kind: str, bound: RealForm | N
     return "finite"
 
 
-def _kept(members: tuple[RealForm, ...], kind: str, bound: RealForm | None, message: str) -> tuple[RealForm, ...]:
+def _kept(
+    members: tuple[RealForm, ...],
+    kind: str,
+    bound: RealForm | None,
+    message: str,
+    side_members: tuple[RealForm, ...] = (),
+) -> tuple[RealForm, ...]:
     kept = []
     for member in members:
-        if _in_ray(member, kind, bound, message):
+        if _in_side(member, kind, bound, side_members, message):
             kept.append(member)
     return canonical(tuple(kept))
 
@@ -1358,6 +1939,20 @@ def _in_ray(form: RealForm, kind: str, bound: RealForm | None, message: str) -> 
     raise NotExact(message)
 
 
+def _in_side(
+    form: RealForm,
+    kind: str,
+    bound: RealForm | None,
+    members: tuple[RealForm, ...],
+    message: str,
+) -> bool:
+    if kind in _INTERVAL_KINDS:
+        if bound is None or len(members) != 1:
+            raise NotExact(message)
+        return _in_interval(kind, bound, members[0], form)
+    return _in_ray(form, kind, bound, message)
+
+
 def _direction(left: RealForm | None, right: RealForm | None, message: str) -> str:
     if left is None or right is None:
         raise NotExact(message)
@@ -1496,9 +2091,13 @@ def _quant_ok(theorem: RayQuantTheorem) -> bool:
 def _meet_ok(theorem: RayMeetTheorem) -> bool:
     left = (theorem.left_kind, theorem.left_bound, theorem.left_members)
     right = (theorem.right_kind, theorem.right_bound, theorem.right_members)
-    if theorem.left_kind != "finite" and theorem.left_members:
+    if theorem.left_kind not in {"finite", *_INTERVAL_KINDS} and theorem.left_members:
         return False
-    if theorem.right_kind != "finite" and theorem.right_members:
+    if theorem.right_kind not in {"finite", *_INTERVAL_KINDS} and theorem.right_members:
+        return False
+    if theorem.left_kind in _INTERVAL_KINDS and len(theorem.left_members) != 1:
+        return False
+    if theorem.right_kind in _INTERVAL_KINDS and len(theorem.right_members) != 1:
         return False
     if not all(_canonical(item) for item in theorem.left_members + theorem.right_members + theorem.result_members):
         return False
@@ -1559,6 +2158,7 @@ def _ray_detail(ray: Ray) -> tuple[str, ...]:
             "Isabelle Collect_cong: both predicates agree with that fact at every real.",
             "Finite_Set.infinite_UNIV_char_0: the set of every real is not a finite enumeration.",
             "This set is not bounded above. complete_real assumes a set that is bounded above.",
+            *_affine_lines(ray.form),
         )
     if ray.kind == "atMost":
         named = "Isabelle atMost_def: {..u} = {x. x <= u}."
@@ -1589,6 +2189,7 @@ def _ray_detail(ray: Ray) -> tuple[str, ...]:
     ]
     if ray.kind != "lessThan":
         lines.append("The Archimedean bisection in the proof of complete_real stays outside this rule.")
+    lines.extend(_affine_lines(ray.form))
     return tuple(lines)
 
 

@@ -30,6 +30,7 @@ from pgi.math.set import (
     eval_element,
     eval_set,
     member_rule,
+    set_empty,
     subset_rule,
 )
 from pgi.math.set import _element_parts, _element_trace
@@ -207,6 +208,10 @@ def collect_equality_rules(
 def _unbounded(binder: str, relation: str, left: Term, right: Term) -> SetTheorem | CollectForm:
     found = _singleton_parts(binder, relation, left, right)
     if found is None:
+        from pgi.math.arbitrary import affine_verdict
+        verdict = affine_verdict(binder, relation, left, right)
+        if verdict is not None and verdict[0] == "empty":
+            return set_empty()
         return CollectForm(binder, relation, left, right)
     side, lemma = found
     if contains_set(side):
@@ -467,8 +472,14 @@ def _collect_detail(domain: tuple[RealForm, ...], kept: tuple[RealForm, ...]) ->
 def _singleton_detail(lemma: str, form: RealForm) -> tuple[str, ...]:
     if lemma == "singleton_conv":
         named = "Isabelle singleton_conv: {x. x = a} = {a}."
-    else:
+    elif lemma == "singleton_conv2":
         named = "Isabelle singleton_conv2: {x. a = x} = {a}."
+    else:
+        named = (
+            "The equality is affine in the binder. Isabelle add_left_cancel and "
+            "mult_cancel_left leave equality with this bound, and singleton_conv "
+            "identifies the comprehension with that singleton."
+        )
     return (
         named,
         "Isabelle mem_Collect_eq: membership in Collect P is the predicate at that element.",
@@ -532,9 +543,11 @@ def _singleton_parts(binder: str, relation: str, left: Term, right: Term) -> tup
     side = _singleton_term(binder, relation, left, right)
     if side is None:
         return None
-    if isinstance(left, Var) and left.name == binder:
+    if isinstance(left, Var) and left.name == binder and right is not None and binder not in _frees(right):
         return side, "singleton_conv"
-    return side, "singleton_conv2"
+    if isinstance(right, Var) and right.name == binder and left is not None and binder not in _frees(left):
+        return side, "singleton_conv2"
+    return side, "affine_eq"
 
 
 def _singleton_term(binder: str, relation: str, left: Term | None, right: Term | None) -> Term | None:
@@ -544,6 +557,10 @@ def _singleton_term(binder: str, relation: str, left: Term | None, right: Term |
         return right
     if isinstance(right, Var) and right.name == binder and binder not in _frees(left):
         return left
+    from pgi.math.arbitrary import affine_verdict
+    verdict = affine_verdict(binder, relation, left, right)
+    if verdict is not None and verdict[0] == "singleton" and verdict[1] is not None:
+        return _term_of_form(verdict[1])
     return None
 
 

@@ -115,10 +115,14 @@ class ComprehensionTests(unittest.TestCase):
 
     def test_unbounded_predicates_stay_open(self) -> None:
         compound = run(Request(ask="what is {x. x <= x + 1}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", compound.text(lod=1))
-        self.assertEqual(_atoms(compound, "atMost("), ())
-        self.assertEqual(_atoms(compound, "univ"), ())
-        self.assertTrue(compound.open_gaps)
+        self.assertEqual(compound.claims[0].atom, "univ")
+        self.assertEqual(compound.open_gaps, ())
+
+        quadratic = run(Request(ask="what is {x. x * x <= 2}", seed=1))
+        self.assertIn("this comprehension is not a finite enumeration", quadratic.text(lod=1))
+        self.assertEqual(_atoms(quadratic, "atMost("), ())
+        self.assertEqual(_atoms(quadratic, "univ"), ())
+        self.assertTrue(quadratic.open_gaps)
 
         broken = run(Request(ask="what is {x. x / 0 <= 1}", seed=1))
         self.assertIn("this comprehension is not a finite enumeration", broken.text(lod=1))
