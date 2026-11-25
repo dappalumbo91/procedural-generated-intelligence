@@ -30,6 +30,7 @@ UNCERTAINTY_KINDS = frozenset(
         "statistical and systematic, printed separately",
         "99.7% interval",
         "acceptance interval",
+        "PDG estimated range",
     }
 )
 _ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval"})
@@ -1265,9 +1266,27 @@ AME2020: tuple[Quantity, ...] = (
     _ame("ame2020.pb208.binding_per_nucleon", "binding energy per nucleon of lead-208", "B/A(208Pb)", "7867.4530", "0.0055", "keV", z=82, n=126, a=208, phrases=('binding energy per nucleon of lead-208',)),
 )
 
+_FIT = "PDG 2026 OUR FIT value, the summary value PDG lists first for this mass."
+_SF = "The error includes a scale factor of {0}."
+
+PDG_2026_HADRONS: tuple[Quantity, ...] = (
+    _pdg("pdg2026.m_pi_charged", "charged pion mass", "m_pi+-", "139.57039", "0.00018", "MeV", node="S008M", phrases=("charged pion mass", "pion mass", "mass of the pion"), notes=(_FIT, _SF.format("1.8"), "PDG's OUR AVERAGE for the same mass is 139.57039 +- 0.00017 MeV (S = 1.6).", _API_NOTE)),
+    _pdg("pdg2026.m_pi0", "neutral pion mass", "m_pi0", "134.9768", "0.0005", "MeV", node="S009M", phrases=("neutral pion mass", "pion mass", "pi0 mass"), notes=(_FIT, _SF.format("1.1"), _API_NOTE)),
+    _pdg("pdg2026.m_k_charged", "charged kaon mass", "m_K+-", "493.677", "0.015", "MeV", node="S010M", phrases=("charged kaon mass", "kaon mass", "mass of the kaon"), notes=(_FIT, _SF.format("2.8"), "PDG's OUR AVERAGE for the same mass is 493.677 +- 0.013 MeV (S = 2.4).", _API_NOTE)),
+    _pdg("pdg2026.m_k0", "neutral kaon mass", "m_K0", "497.611", "0.013", "MeV", node="S011M", phrases=("neutral kaon mass", "kaon mass", "k0 mass"), notes=(_FIT, _SF.format("1.2"), _API_NOTE)),
+    _pdg("pdg2026.m_eta", "eta meson mass", "m_eta", "547.862", "0.017", "MeV", node="S014M", phrases=("eta mass", "eta meson"), notes=("PDG 2026 OUR AVERAGE.", _API_NOTE)),
+    _pdg("pdg2026.m_rho770", "rho(770) mass, neutral only, e+ e-", "m_rho(770)", "775.26", "0.23", "MeV", node="M009M0", phrases=("rho mass", "rho(770)", "rho meson"), notes=("PDG 2026 OUR AVERAGE for the neutral rho from e+ e- data. PDG lists other averages by charge and reaction: mixed charges, other reactions 763.0 +- 1.2; neutral photoproduced 769.6 +- 0.8; neutral other reactions 769.0 +- 0.9 MeV. Only the e+ e- value is stored. A broad resonance's mass depends on how it is extracted.", _API_NOTE)),
+    _pdg("pdg2026.m_omega782", "omega(782) mass", "m_omega(782)", "782.66", "0.13", "MeV", node="M001M", phrases=("omega mass", "omega(782)", "omega meson"), notes=("PDG 2026 OUR AVERAGE.", _SF.format("2.0"), _API_NOTE)),
+    _pdg("pdg2026.m_p", "proton mass", "m_p", "938.27208943", "0.00000029", "MeV", node="S016M", phrases=("proton mass", "mass of the proton"), notes=("PDG 2026 OUR EVALUATION, taken from CODATA 2022.", _API_NOTE)),
+    _pdg("pdg2026.m_n", "neutron mass", "m_n", "939.5654219", "0.0000005", "MeV", node="S017M", phrases=("neutron mass", "mass of the neutron"), notes=("PDG 2026 OUR AVERAGE, printed as 939.5654219 +- 0.0000005 MeV.", _API_NOTE)),
+    _pdg("pdg2026.m_lambda", "Lambda baryon mass", "m_Lambda", "1115.683", "0.006", "MeV", node="S018M", phrases=("lambda mass", "lambda baryon", "mass of the lambda"), notes=(_FIT, _API_NOTE)),
+    _pdg("pdg2026.m_delta1232", "Delta(1232) Breit-Wigner mass, mixed charges", "m_Delta(1232)", "1232", "2", "MeV", node="B033M", kind="PDG estimated range", phrases=("delta mass", "delta(1232)", "delta baryon"), notes=("PDG prints this as 1230 TO 1232 TO 1234 MeV, its estimate of the range, not a statistical uncertainty. It is stored as 1232 with the half-width of the printed range.", _API_NOTE)),
+    _pdg("pdg2026.m_n_minus_m_p", "neutron-proton mass difference", "m_n - m_p", "1.2933325", "0.0000004", "MeV", node="S017D", phrases=("neutron-proton mass difference", "neutron proton mass difference", "m_n - m_p"), notes=("PDG 2026 OUR AVERAGE of the measured difference. It is not computed from the two masses.", _API_NOTE)),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020
+    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS
 )
 
 

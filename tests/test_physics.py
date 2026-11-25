@@ -540,6 +540,40 @@ class Ame2020Tests(unittest.TestCase):
             self.assertIn(f"record(ame2020.{nid}.binding_per_nucleon)", atoms)
 
 
+class Pdg2026HadronTests(unittest.TestCase):
+    def test_nucleon_masses_and_their_difference(self) -> None:
+        proton, neutron = quantity("pdg2026.m_p"), quantity("pdg2026.m_n")
+        difference = quantity("pdg2026.m_n_minus_m_p")
+        gap = neutron.value - proton.value
+        self.assertLessEqual((gap - difference.value) ** 2, neutron.uncertainty**2 + proton.uncertainty**2 + difference.uncertainty**2)
+        self.assertEqual(proton.value, quantity("codata2022.m_p_c2_mev").value)
+        self.assertEqual(proton.uncertainty, quantity("codata2022.m_p_c2_mev").uncertainty)
+        codata_gap = quantity("codata2022.m_n_c2_mev").value - quantity("codata2022.m_p_c2_mev").value
+        self.assertLessEqual(abs(codata_gap - difference.value), Fraction(1, 10**6))
+
+    def test_isospin_splittings_as_printed(self) -> None:
+        self.assertGreater(quantity("pdg2026.m_pi_charged").value, quantity("pdg2026.m_pi0").value)
+        self.assertGreater(quantity("pdg2026.m_k0").value, quantity("pdg2026.m_k_charged").value)
+        self.assertGreater(quantity("pdg2026.m_n").value, quantity("pdg2026.m_p").value)
+        order = ["pdg2026.m_pi0", "pdg2026.m_pi_charged", "pdg2026.m_k_charged", "pdg2026.m_k0", "pdg2026.m_eta",
+                 "pdg2026.m_rho770", "pdg2026.m_omega782", "pdg2026.m_p", "pdg2026.m_n", "pdg2026.m_lambda", "pdg2026.m_delta1232"]
+        values = [quantity(id).value for id in order]
+        self.assertEqual(values, sorted(values))
+
+    def test_delta_is_a_range_not_an_uncertainty(self) -> None:
+        delta = quantity("pdg2026.m_delta1232")
+        self.assertEqual(delta.uncertainty_kind, "PDG estimated range")
+        self.assertEqual((delta.value - delta.lower_uncertainty, delta.value + delta.uncertainty), (1230, 1234))
+        self.assertIn("1230 TO 1232 TO 1234", " ".join(delta.notes))
+
+    def test_pion_ask_links_both_pions(self) -> None:
+        session = unfold(Request(ask="what is the pion mass", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        self.assertIn("record(pdg2026.m_pi_charged)", atoms)
+        self.assertIn("record(pdg2026.m_pi0)", atoms)
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

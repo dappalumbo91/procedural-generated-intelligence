@@ -792,3 +792,13 @@ AME2020 is on the board for n, ¹H, ²H, ³H, ³He, ⁴He, ¹²C, ¹⁶O, ⁵⁶
 The next slice is PDG 2026 light hadron masses.
 
 `python -m unittest discover -s tests -v` finished 204 tests, 0 failures, about 48.16 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — PDG 2026 light hadron masses pgi-0.62.0
+
+PDG 2026 light hadron masses are on the board from the pdg 2026.0 database: π±, π⁰, K±, K⁰, η, ρ(770), ω(782), p, n, Λ, and Δ(1232), plus the measured `m_n − m_p`. Each record says whether it is PDG's FIT, AVERAGE, or EVALUATION, and carries the scale factor where PDG applies one: π± 1.8, π⁰ 1.1, K± 2.8, K⁰ 1.2, ω 2.0. The ρ record is the neutral e⁺e⁻ average and lists PDG's other three ρ averages. Δ(1232) is printed `1230 TO 1232 TO 1234`. It is stored under a new kind, `PDG estimated range`, because it is not a standard uncertainty.
+
+`m_n − m_p` agrees with the two masses and with CODATA. The proton mass equals CODATA 2022 exactly. The isospin splittings run the printed way: π± above π⁰, K⁰ above K±, n above p. No quark-model mass formula is stored. That is 12 new records.
+
+That closes the third physics batch: INPOP, ASD Na to Kr, AME2020, and the light hadrons.
+
+`python -m unittest discover -s tests -v` finished 208 tests, 0 failures, about 49.98 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

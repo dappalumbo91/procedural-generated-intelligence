@@ -294,9 +294,17 @@ For n, ¹H, ²H, ³H, ³He, ⁴He, ¹²C, ¹⁶O, ⁵⁶Fe, ⁵⁸Fe, ⁶²Ni, a
 
 The tests check the following. ¹²C is exactly 12 000 000 µu with mass excess 0. ⁶²Ni, ⁵⁸Fe, and ⁵⁶Fe are the top three in binding energy per nucleon, in that order and within 5 keV of each other, as printed. Every `B/A` agrees with `(1/A)[Z Δ(¹H) + N Δ(n) − Δ]` from the stored mass excesses, and every atomic mass agrees with `A + Δ/u` within its printed uncertainty. That is 35 new records.
 
+### PDG 2026 light hadron masses
+
+The light hadron masses are on the board from the PDG 2026 database (pdg package 2026.0), each with its PDG summary label and scale factor. π± `139.57039 ± 0.00018` MeV, OUR FIT, S = 1.8; PDG's OUR AVERAGE of 139.57039 ± 0.00017 is noted. π⁰ `134.9768 ± 0.0005`, fit. K± `493.677 ± 0.015`, fit, S = 2.8. K⁰ `497.611 ± 0.013`, fit. η `547.862 ± 0.017`. ω(782) `782.66 ± 0.13`, S = 2.0. Λ `1115.683 ± 0.006`, fit. Proton `938.27208943 ± 0.00000029`, PDG's evaluation taken from CODATA 2022. Neutron `939.5654219 ± 0.0000005`. The measured difference `m_n − m_p = 1.2933325 ± 0.0000004` MeV is stored as its own average, not computed.
+
+ρ(770) is a broad resonance, and PDG gives several averages by charge and reaction. The stored one is the neutral e⁺e⁻ value, `775.26 ± 0.23` MeV, and the record lists the other three: 763.0 ± 1.2, 769.6 ± 0.8, and 769.0 ± 0.9. For Δ(1232) PDG prints `1230 TO 1232 TO 1234` MeV, an estimated range, not a statistical uncertainty. It gets a new kind, `PDG estimated range`, and is stored as 1232 with the half-width of the printed range.
+
+The tests check the following. `m_n − m_p` agrees with the difference of the two PDG masses, and with CODATA's to 10⁻⁶ MeV. PDG's proton mass is the CODATA 2022 value exactly. π± is above π⁰, K⁰ above K±, and n above p, and the eleven masses run in the expected order, as printed. Δ(1232) carries a range kind. A `pion mass` ask links both pions with nothing retracted. That is 12 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.61.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.62.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
