@@ -105,14 +105,20 @@ def parse_decimal(text: str) -> Fraction:
 
 def parse_concise(text: str) -> tuple[Fraction, Fraction]:
     """Read the concise form `0.1180(9)` or `1.166 378 5(6) e-5`: the digits in
-    parentheses are the uncertainty in the last printed places."""
+    parentheses are the uncertainty in the last printed places. A decimal point
+    inside the parentheses, as in `1 057 829.8(3.2)`, gives the uncertainty in
+    the value's own units."""
     cleaned = text.replace(" ", "").replace("\u2212", "-")
     head, _, rest = cleaned.partition("(")
     digits, _, tail = rest.partition(")")
-    if not head or not digits.isdigit() or (tail and not tail.startswith("e")):
+    aligned = digits.count(".") == 1 and digits.replace(".", "").isdigit()
+    if not head or not (digits.isdigit() or aligned) or (tail and not tail.startswith("e")):
         raise ValueError(f"not a concise value: {text!r}")
     places = len(head.partition(".")[2])
     scale = Fraction(10) ** int(tail[1:]) if tail else Fraction(1)
+    if aligned:
+        # `829.8(3.2)`: a decimal point inside the parentheses aligns the uncertainty with the value's units.
+        return Fraction(head) * scale, Fraction(digits) * scale
     return Fraction(head) * scale, Fraction(int(digits), 10**places) * scale
 
 
@@ -1388,9 +1394,99 @@ GRAVITY_TESTS: tuple[Quantity, ...] = (
     _g_input("jila18", "Parks and Faller (2019)", "JILA-18", "Suspended body, displacement", "6.672 60 e-11", "0.000 25 e-11", "6.672 60(25) e-11"),
 )
 
+PARTHEY_2011_SOURCE = (
+    "C. G. Parthey et al., Improved Measurement of the Hydrogen 1S-2S Transition Frequency, Phys. Rev. Lett. 107, 203001 (2011), "
+    "doi:10.1103/PhysRevLett.107.203001, arXiv:1107.3101."
+)
+_CODATA_TABLE_XI = "Listed as an input datum in CODATA 2022 (Rev. Mod. Phys. 97, 025002 (2025), arXiv:2409.03787) Table XI, with its relative standard uncertainty."
+ANTOGNINI_2013_SOURCE = (
+    "A. Antognini et al., Proton Structure from the Measurement of 2S-2P Transition Frequencies of Muonic Hydrogen, "
+    "Science 339, 417-420 (2013), doi:10.1126/science.1230016, abstract as indexed in PubMed 23349284."
+)
+_ANTOGNINI_SIGMA = "The abstract states that numbers in parentheses indicate one standard deviation of uncertainty."
+HELLWIG_1970_SOURCE = (
+    "H. Hellwig, R. F. C. Vessot, M. W. Levine, P. W. Zitzewitz, D. W. Allan, and D. J. Glaze, Measurement of the Unperturbed "
+    "Hydrogen Hyperfine Transition Frequency, IEEE Trans. Instrum. Meas. IM-19, 200-209 (1970), doi:10.1109/TIM.1970.4313902, Section IV."
+)
+ASD_HALPHA_QUERY = (
+    "https://physics.nist.gov/cgi-bin/ASD/lines1.pl?spectra=H+I&limits_type=0&low_w=656.2&upp_w=656.3&unit=1&submit=Retrieve+Data"
+    "&de=0&format=2&line_out=0&remove_js=on&en_unit=0&output=0&bibrefs=1&page_size=15&show_obs_wl=1&show_calc_wl=1&unc_out=1"
+    "&order_out=0&show_av=2&tsb_value=0&A_out=0&intens_out=on&allowed_out=1&forbid_out=1&conf_out=on&term_out=on&enrg_out=on&J_out=on"
+)
+_HALPHA_NOTE = "Wavelengths are in standard air, as ASD serves them with show_av=2. ASD does not name a confidence level for its wavelength uncertainties."
+
+
+def _codata_xi(id: str, name: str, symbol: str, value_text: str, uncertainty_text: str, unit: str, printed: str, reference: str, lab: str, *, phrases: tuple[str, ...], notes: tuple[str, ...] = ()) -> Quantity:
+    return _q(
+        id, name, symbol, value_text, uncertainty_text, unit,
+        kind="standard uncertainty", printed=printed,
+        source=CODATA_2022_G_SOURCE.replace("Table XXX.", f"Table XI, {lab}. Original measurement: {reference}."),
+        edition=f"CODATA 2022 input datum, {lab}",
+        url="https://doi.org/10.1103/RevModPhys.97.025002", retrieved_from="https://arxiv.org/abs/2409.03787",
+        phrases=("hydrogen spectroscopy",) + phrases, notes=notes,
+    )
+
+
+ATOMIC_SPECTROSCOPY: tuple[Quantity, ...] = (
+    _q("parthey2011.h_1s2s", "hydrogen 1S-2S transition frequency, hyperfine centroid", "f_1S-2S", "2 466 061 413 187 035", "10", "Hz",
+       kind="standard uncertainty", printed="2 466 061 413 187 035(10)", source=PARTHEY_2011_SOURCE, edition="Phys. Rev. Lett. 107 (2011)",
+       url="https://doi.org/10.1103/PhysRevLett.107.203001", retrieved_from="https://arxiv.org/abs/1107.3101",
+       phrases=("hydrogen spectroscopy", "1s-2s", "1s - 2s", "1s2s"),
+       notes=("Printed as f_1S-2S = 2 466 061 413 187 035 (10) Hz, a fractional uncertainty of 4.2 x 10^-15. The paper's Table I is headed 'sigma - uncertainty'.", _CODATA_TABLE_XI + " Label A6.")),
+    _codata_xi("matveev2013.h_1s2s", "hydrogen 1S-2S transition frequency, fiber-link remeasurement", "f_1S-2S", "2 466 061 413 187.018", "0.011", "kHz",
+       "2 466 061 413 187.018(11)", "Matveev et al. (2013), Phys. Rev. Lett. 110, 230801, doi:10.1103/PhysRevLett.110.230801", "MPQ, label A7",
+       phrases=("1s-2s", "1s - 2s", "1s2s"), notes=("Printed in Table XI as 2 466 061 413 187.018(11) kHz.",)),
+    _codata_xi("bezginov2019.h_lamb_shift", "hydrogen n = 2 Lamb shift, 2P1/2 - 2S1/2", "Delta E_H(2P1/2 - 2S1/2)/h", "1 057 829.8", "3.2", "kHz",
+       "1 057 829.8(3.2)", "Bezginov et al. (2019), Science 365, 1007, doi:10.1126/science.aau7807", "York, label A29",
+       phrases=("lamb shift",), notes=("Printed in Table XI as 1 057 829.8(3.2) kHz. The Science abstract gives only the proton radius it implies, r_p = 0.833 +- 0.010 fm; the interval itself is taken from CODATA's table.",)),
+    _codata_xi("lundeen1981.h_lamb_shift", "hydrogen n = 2 Lamb shift, 2P1/2 - 2S1/2, Harvard", "Delta E_H(2P1/2 - 2S1/2)/h", "1 057 845.0", "9.0", "kHz",
+       "1 057 845.0(9.0)", "Lundeen and Pipkin (1981), Phys. Rev. Lett. 46, 232, doi:10.1103/PhysRevLett.46.232", "Harvard, label A27",
+       phrases=("lamb shift",), notes=("Printed in Table XI as 1 057 845.0(9.0) kHz.",)),
+    _q("hellwig1970.h_21cm", "unperturbed hydrogen ground-state hyperfine frequency (21 cm line)", "nu_H", "1 420 405 751.768", "0.002", "Hz",
+       kind="standard uncertainty", source=HELLWIG_1970_SOURCE, edition="IEEE Trans. Instrum. Meas. IM-19 (1970)",
+       url="https://doi.org/10.1109/TIM.1970.4313902", retrieved_from="https://tf.nist.gov/general/pdf/13.pdf",
+       phrases=("hydrogen spectroscopy", "21 cm", "21-cm", "hydrogen hyperfine", "hyperfine frequency of hydrogen", "hydrogen maser"),
+       notes=("Printed in the Conclusions as nu_H = 1420 405 751.768 +- 0.002 Hz, the mean of two independent wall-shift evaluations against the cesium definition.",
+              "The abstract calls the uncertainty one-sigma. In the NIST scan its exponent reads '2 X 10-2 Hz'; the Conclusions print +- 0.002 Hz, and that is the value stored.")),
+    _q("asd512.h_alpha.blend", "hydrogen Balmer H-alpha, n = 2 - 3, observed air wavelength of the blend", "lambda_air(H-alpha)", "656.279", "0.003", "nm",
+       kind="uncertainty as printed, level not stated", source=ASD_SOURCE.replace("Ionization Energies Data.", "Lines Data, H I."), edition=ASD_EDITION,
+       url=ASD_HALPHA_QUERY, retrieved_from=ASD_HALPHA_QUERY, keys=("balmer",), phrases=("h-alpha", "h alpha", "balmer alpha", "hydrogen alpha"),
+       notes=("ASD row with lower level 2 and upper level 3, relative intensity 500000, A_ki = 4.4101e+07 s^-1, references T8637 and L7400c29.", _HALPHA_NOTE)),
+    _q("asd512.h_alpha.blend_ritz", "hydrogen Balmer H-alpha, n = 2 - 3, Ritz air wavelength of the blend", "lambda_Ritz,air(H-alpha)", "656.2819", "0.0007", "nm",
+       kind="uncertainty as printed, level not stated", source=ASD_SOURCE.replace("Ionization Energies Data.", "Lines Data, H I."), edition=ASD_EDITION,
+       url=ASD_HALPHA_QUERY, retrieved_from=ASD_HALPHA_QUERY, keys=("balmer",), phrases=("h-alpha", "h alpha", "balmer alpha", "hydrogen alpha"),
+       notes=("Same ASD row as asd512.h_alpha.blend: the Ritz wavelength computed by ASD from the level energies.", _HALPHA_NOTE)),
+    _q("asd512.h_alpha.2p32_3d52", "hydrogen H-alpha strongest fine-structure component, 2p 2P3/2 - 3d 2D5/2", "lambda_air", "656.285175", "0.000007", "nm",
+       kind="uncertainty as printed, level not stated", source=ASD_SOURCE.replace("Ionization Energies Data.", "Lines Data, H I."), edition=ASD_EDITION,
+       url=ASD_HALPHA_QUERY, retrieved_from=ASD_HALPHA_QUERY, keys=("balmer",), phrases=("h-alpha", "h alpha", "balmer alpha", "hydrogen alpha"),
+       notes=("Observed air wavelength; ASD's Ritz value is 656.285177(3) nm. A_ki = 6.4651e+07 s^-1, the largest in the multiplet. References T7771 and L2752.", _HALPHA_NOTE)),
+    _q("antognini2013.mu_h_f0_f1", "muonic hydrogen 2S1/2(F=0) - 2P3/2(F=1) transition frequency", "nu_s", "54611.16", "1.05", "GHz",
+       kind="standard uncertainty", printed="54611.16(1.05)", source=ANTOGNINI_2013_SOURCE, edition="Science 339 (2013)",
+       url="https://doi.org/10.1126/science.1230016", retrieved_from="https://pubmed.ncbi.nlm.nih.gov/23349284/",
+       keys=("muonic",), phrases=("muonic hydrogen", "muonic-hydrogen"), notes=("Printed as 54611.16(1.05) gigahertz.", _ANTOGNINI_SIGMA)),
+    _q("antognini2013.mu_h_f1_f2", "muonic hydrogen 2S1/2(F=1) - 2P3/2(F=2) transition frequency, reevaluated", "nu_t", "49881.35", "0.65", "GHz",
+       kind="standard uncertainty", printed="49881.35(65)", source=ANTOGNINI_2013_SOURCE, edition="Science 339 (2013)",
+       url="https://doi.org/10.1126/science.1230016", retrieved_from="https://pubmed.ncbi.nlm.nih.gov/23349284/",
+       keys=("muonic",), phrases=("muonic hydrogen", "muonic-hydrogen"), notes=("Printed as 49881.35(65) gigahertz, a reevaluation of the 2010 measurement.", _ANTOGNINI_SIGMA)),
+    _q("antognini2013.proton_charge_radius", "proton charge radius from muonic hydrogen", "r_E", "0.84087", "0.00039", "fm",
+       kind="standard uncertainty", printed="0.84087(39)", source=ANTOGNINI_2013_SOURCE, edition="Science 339 (2013)",
+       url="https://doi.org/10.1126/science.1230016", retrieved_from="https://pubmed.ncbi.nlm.nih.gov/23349284/",
+       keys=("muonic",), phrases=("muonic hydrogen", "proton charge radius", "proton radius"),
+       notes=("Printed as r(E) = 0.84087(39) femtometer. The abstract says this is at 7 sigma variance with the 2010 CODATA value, which is not stored.", _ANTOGNINI_SIGMA)),
+    _q("antognini2013.proton_zemach_radius", "proton Zemach radius from muonic hydrogen", "r_Z", "1.082", "0.037", "fm",
+       kind="standard uncertainty", printed="1.082(37)", source=ANTOGNINI_2013_SOURCE, edition="Science 339 (2013)",
+       url="https://doi.org/10.1126/science.1230016", retrieved_from="https://pubmed.ncbi.nlm.nih.gov/23349284/",
+       keys=("muonic",), phrases=("muonic hydrogen", "zemach radius"), notes=("Printed as r(Z) = 1.082(37) femtometers.", _ANTOGNINI_SIGMA)),
+    _q("crema2013.mu_h_lamb_shift", "muonic hydrogen Lamb shift, experimental", "E_L(mu H)", "202.3706", "0.0023", "meV",
+       kind="standard uncertainty", printed="202.3706(23)", source=CODATA_2022_G_SOURCE.replace("Table XXX.", "Table XIV, label C1. Original measurement: Antognini et al. (2013), Science 339, 417 (CREMA-13)."),
+       edition="CODATA 2022 input datum, CREMA-13", url="https://doi.org/10.1103/RevModPhys.97.025002", retrieved_from="https://arxiv.org/abs/2409.03787",
+       keys=("muonic",), phrases=("muonic hydrogen lamb shift", "muonic lamb shift", "muonic hydrogen"),
+       notes=("Printed in CODATA 2022 Table XIV as E_L^(exp)(mu H) = 202.3706(23) meV, relative standard uncertainty 1.1 x 10^-5. The Science abstract does not print the Lamb shift, and the paper body was not reachable, so the value is taken from CODATA's input table.",)),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS + GRAVITY_TESTS
+    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS + GRAVITY_TESTS + ATOMIC_SPECTROSCOPY
 )
 
 

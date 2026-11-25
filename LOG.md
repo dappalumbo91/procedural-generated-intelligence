@@ -812,3 +812,13 @@ The 16 measured values of G in CODATA 2022 Table XXX are stored one by one, each
 That is 25 new records. The next slice is atomic spectroscopy.
 
 `python -m unittest discover -s tests -v` finished 212 tests, 0 failures, about 50.65 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — atomic spectroscopy: hydrogen 1S–2S, Lamb shift, 21 cm, H-alpha, muonic hydrogen pgi-0.64.0
+
+Hydrogen spectroscopy is on the board. 1S–2S, Parthey et al. 2011, arXiv:1107.3101: `2 466 061 413 187 035(10)` Hz, σ by the paper's table. Matveev 2013 is taken from CODATA 2022 Table XI. The Lamb shift 2P1/2−2S1/2 is taken from the same table: Bezginov 2019 `1 057 829.8(3.2)` kHz and Lundeen–Pipkin 1981 `1 057 845.0(9.0)` kHz. 21 cm, Hellwig et al. 1970, the NIST scan: `1 420 405 751.768 ± 0.002` Hz, 1σ. The scanned abstract's exponent misprints as `10-2`, and a note says so. H-alpha, ASD 5.12 lines in air: the n = 2–3 blend, observed and Ritz, plus the strongest component, with no level. Muonic hydrogen, Antognini 2013 via PubMed, 1σ: the two frequencies, `r_E 0.84087(39)` fm, and `r_Z 1.082(37)` fm. The `202.3706(23)` meV Lamb shift is taken from CODATA Table XIV because Science is paywalled.
+
+`parse_concise` now reads `829.8(3.2)`, with the uncertainty in the value's units. The hydrogen records link through phrases only, so "muonic hydrogen" pulls the five muonic records and nothing else.
+
+That is 13 new records. The next slice is nuclear.
+
+`python -m unittest discover -s tests -v` finished 219 tests, 0 failures, about 54.55 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

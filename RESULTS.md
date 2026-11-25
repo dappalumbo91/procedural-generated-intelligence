@@ -314,9 +314,25 @@ Big G. CODATA 2022 Table XXX lists the 16 input values of G, all 1σ, unchanged 
 
 The tests check the following. Both pulsar `Ṗb` ratios sit within twice their printed uncertainty of 1, and the Double Pulsar's is more than 25 times tighter. Every Table V ratio matches its concise form. Gravity Probe B's frame-dragging is more than 5σ from zero. VLBI `γ − 1` agrees with Cassini. For G, the normalized residuals computed from the stored values give exactly CODATA's printed 7.75 for BIPM-14 and −6.80 for JILA-18. Those are the extremes, and the 3.9 factor brings every residual to 2 or less. The spread of the 16 values is more than 20 times the recommended uncertainty. That is 25 new records.
 
+### Atomic spectroscopy: hydrogen 1S–2S, Lamb shift, 21 cm, H-alpha, and muonic hydrogen
+
+Hydrogen's best-measured lines are on the board as measured anchors.
+
+The 1S–2S frequency comes from Parthey et al., Phys. Rev. Lett. 107, 203001 (2011), arXiv:1107.3101: `f = 2 466 061 413 187 035(10)` Hz, the hyperfine centroid, 4.2 × 10^−15. The paper's Table I heads its column "σ - uncertainty", so the record is a standard uncertainty. The MPQ remeasurement by Matveev et al. (2013), `2 466 061 413 187.018(11)` kHz, is taken from CODATA 2022 Table XI, which lists both as input data with relative standard uncertainties.
+
+The n = 2 Lamb shift, ΔE_H(2P1/2 − 2S1/2)/h, is also taken from CODATA 2022 Table XI: York, Bezginov et al., Science 365, 1007 (2019), `1 057 829.8(3.2)` kHz, and Harvard, Lundeen and Pipkin (1981), `1 057 845.0(9.0)` kHz. Science is paywalled. Bezginov's abstract prints only the proton radius it implies, `0.833 ± 0.010` fm, so the interval comes through CODATA. The concise reader now accepts a decimal point inside the parentheses, as in `(3.2)`, which gives the uncertainty in the value's own units.
+
+The 21 cm line comes from Hellwig, Vessot, Levine, Zitzewitz, Allan, and Glaze, IEEE Trans. Instrum. Meas. IM-19, 200 (1970), NIST's scan: `ν_H = 1 420 405 751.768 ± 0.002` Hz, one sigma by the abstract. The scanned abstract's exponent reads "2 X 10-2 Hz". The Conclusions print ±0.002 Hz, and that is what is stored, with a note.
+
+Balmer H-alpha comes from the NIST ASD 5.12 lines query for H I, 656.2–656.3 nm in air. The n = 2–3 blend is observed at `656.279 ± 0.003` nm, with relative intensity 500000, and its Ritz value is `656.2819 ± 0.0007` nm. The strongest fine-structure component, 2p ²P3/2 − 3d ²D5/2, is observed at `656.285175 ± 0.000007` nm. ASD names no level, so none is assigned.
+
+Muonic hydrogen comes from Antognini et al., Science 339, 417 (2013), via the PubMed abstract, which states one standard deviation. It gives `ν_s = 54611.16(1.05)` GHz and `ν_t = 49881.35(65)` GHz, the charge radius `r_E = 0.84087(39)` fm, and the Zemach radius `r_Z = 1.082(37)` fm. The magnetic radius `0.87(6)` fm is printed in the abstract but not stored. The experimental muonic Lamb shift, `E_L = 202.3706(23)` meV, is taken from CODATA 2022 Table XIV (CREMA-13), because the paper body is paywalled.
+
+The tests check the following. Parthey and Matveev differ by 17 Hz, inside 2σ combined. The 1S–2S frequency over `(3/4) R∞ c` with the reduced mass sits between α³ and α² of 1. York and Harvard agree within 2σ but not 1σ. `c/ν_H` is between 21.10 and 21.11 cm. The H-alpha blend and its Ritz value agree. The strongest component is within 3 printed uncertainties of the blend, and the reduced-mass Balmer wavelength in vacuum is longer than the air Ritz value by less than 0.2 nm. The muonic `r_E` agrees with CODATA 2022 `r_p` and with PDG 2026, and with York's `0.833 ± 0.010` fm. The muonic and H-alpha asks link exactly their records. That is 13 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.63.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.64.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

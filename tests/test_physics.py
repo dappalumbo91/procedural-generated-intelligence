@@ -618,6 +618,79 @@ class GravityTestsTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class AtomicSpectroscopyTests(unittest.TestCase):
+    def test_printed_forms_and_levels(self) -> None:
+        for item in QUANTITIES:
+            if item.printed and item.id.split(".")[0] in {"parthey2011", "matveev2013", "bezginov2019", "lundeen1981", "antognini2013", "crema2013"}:
+                self.assertEqual(parse_concise(item.printed), (item.value, item.uncertainty), item.id)
+                self.assertEqual(item.uncertainty_kind, "standard uncertainty", item.id)
+        self.assertEqual(quantity("bezginov2019.h_lamb_shift").uncertainty, Fraction(32, 10))
+        self.assertEqual(quantity("antognini2013.mu_h_f0_f1").uncertainty, Fraction(105, 100))
+
+    def test_1s_2s_frequencies_agree_and_follow_the_rydberg_scale(self) -> None:
+        parthey, matveev = quantity("parthey2011.h_1s2s"), quantity("matveev2013.h_1s2s")
+        p_hz, m_hz = parthey.value, matveev.value * 1000
+        self.assertEqual(p_hz - m_hz, 17)
+        self.assertLessEqual((p_hz - m_hz) ** 2, 4 * (parthey.uncertainty**2 + (matveev.uncertainty * 1000) ** 2))
+        # Gross structure: f = (3/4) R_inf c times the reduced-mass factor, up to alpha^2-sized corrections.
+        r_inf, c = quantity("codata2022.r_inf"), quantity("codata2022.c")
+        ratio_mass = quantity("codata2022.m_p_over_m_e").value
+        reduced = ratio_mass / (ratio_mass + 1)
+        bohr = Fraction(3, 4) * r_inf.value * c.value * reduced
+        alpha = quantity("codata2022.alpha").value
+        self.assertLess(abs(p_hz / bohr - 1), alpha**2)
+        self.assertGreater(abs(p_hz / bohr - 1), alpha**3)
+
+    def test_lamb_shift_measurements(self) -> None:
+        york, harvard = quantity("bezginov2019.h_lamb_shift"), quantity("lundeen1981.h_lamb_shift")
+        self.assertEqual(york.unit, "kHz")
+        self.assertLessEqual((york.value - harvard.value) ** 2, 4 * (york.uncertainty**2 + harvard.uncertainty**2))
+        self.assertGreater((york.value - harvard.value) ** 2, york.uncertainty**2 + harvard.uncertainty**2)
+        # About one GHz, roughly a tenth of the 2P fine-structure splitting.
+        self.assertTrue(1_057_000 < york.value < 1_058_000)
+
+    def test_21_cm_line_is_twenty_one_centimetres(self) -> None:
+        nu, c = quantity("hellwig1970.h_21cm"), quantity("codata2022.c")
+        self.assertEqual(nu.uncertainty, Fraction(2, 1000))
+        wavelength = c.value / nu.value
+        self.assertTrue(Fraction(2110, 10000) < wavelength < Fraction(2111, 10000))
+
+    def test_h_alpha_components_and_blend(self) -> None:
+        blend, ritz = quantity("asd512.h_alpha.blend"), quantity("asd512.h_alpha.blend_ritz")
+        strong = quantity("asd512.h_alpha.2p32_3d52")
+        self.assertLessEqual((blend.value - ritz.value) ** 2, blend.uncertainty**2 + ritz.uncertainty**2)
+        self.assertLessEqual(abs(strong.value - blend.value), 3 * blend.uncertainty)
+        # Balmer formula with R_inf, vacuum: 1/lambda = R_inf (1/4 - 1/9) reduced; air is shorter by ~0.03%.
+        r_inf = quantity("codata2022.r_inf").value
+        ratio_mass = quantity("codata2022.m_p_over_m_e").value
+        vacuum_nm = 1 / (r_inf * ratio_mass / (ratio_mass + 1) * Fraction(5, 36)) * 10**9
+        self.assertTrue(0 < vacuum_nm - ritz.value < Fraction(2, 10))
+
+    def test_muonic_radius_against_codata_pdg_and_york(self) -> None:
+        muonic = quantity("antognini2013.proton_charge_radius")
+        self.assertTrue(_agrees(muonic, quantity("pdg2026.proton_radius").value, _rel2(quantity("pdg2026.proton_radius"))))
+        codata = quantity("codata2022.r_p")
+        self.assertTrue(_agrees(muonic, codata.value * 10**15, _rel2(codata)))
+        york = Fraction(833, 1000), Fraction(10, 1000)  # Bezginov et al. abstract, r_p = 0.833 +- 0.010 fm
+        self.assertLessEqual((muonic.value - york[0]) ** 2, muonic.uncertainty**2 + york[1] ** 2)
+        self.assertLess(quantity("antognini2013.proton_charge_radius").value, quantity("antognini2013.proton_zemach_radius").value)
+        lamb = quantity("crema2013.mu_h_lamb_shift")
+        self.assertEqual(lamb.unit, "meV")
+        self.assertTrue(202 < lamb.value < 203)
+
+    def test_spectroscopy_asks_link(self) -> None:
+        muonic = {"antognini2013.mu_h_f0_f1", "antognini2013.mu_h_f1_f2", "antognini2013.proton_charge_radius", "antognini2013.proton_zemach_radius", "crema2013.mu_h_lamb_shift"}
+        halpha = {"asd512.h_alpha.blend", "asd512.h_alpha.blend_ritz", "asd512.h_alpha.2p32_3d52"}
+        for ask, expected in (("show the h-alpha line", halpha), ("what does muonic hydrogen say", muonic), ("hydrogen spectroscopy", None)):
+            session = unfold(Request(ask=ask, seed=1))
+            linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+            if expected is None:
+                self.assertTrue({"parthey2011.h_1s2s", "bezginov2019.h_lamb_shift", "hellwig1970.h_21cm"} <= linked)
+            else:
+                self.assertEqual(linked, expected, ask)
+            self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
