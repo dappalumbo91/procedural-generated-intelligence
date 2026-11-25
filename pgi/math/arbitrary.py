@@ -73,8 +73,11 @@ cancelling a shared summand and a nonzero coefficient, by `add_le_cancel_left`,
 An identically true comparison is UNIV. An identically false comparison is
 empty, except `x < x`, which stays the `less_irrefl` refusal. An affine
 equality with a nonzero coefficient is the singleton of the cancelled bound.
-A predicate that is not affine in the binder, such as `{x. x * x <= 2}`,
-stays outside that rule, and its upper-bound predicate stays outside the
+A quadratic comparison in the binder is settled by the sign chart of that
+polynomial at the roots the kernel can construct and check. `{x. x * x <= 2}`
+is `atLeastAtMost(-sqrt(2), sqrt(2))`. A polynomial of degree greater than
+two, or a discriminant whose square root the kernel cannot form, stays
+outside that rule, and its upper-bound predicate stays outside the
 bisection.
 
 Core Lean 4.36.0, with no imports, does not resolve `Set.Iic`, `Set.Ici`,
@@ -98,6 +101,7 @@ from pgi.math.real import (
     _enclose,
     _mul_forms,
     _neg_form,
+    _sqrt_of_form,
     _qadd,
     _qcmp,
     _qdiv,
@@ -341,6 +345,24 @@ class CoverMemberTheorem:
 
 
 @dataclass(frozen=True)
+class PolySignTheorem:
+    binder: str
+    relation: str
+    left: Term
+    right: Term
+    kind: str
+    bound: RealForm | None
+    members: tuple[RealForm, ...]
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]
+    roots: tuple[RealForm, ...]
+    detail: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not _poly_sign_ok(self):
+            raise KernelError("Poly.sign does not justify this sign chart")
+
+
+@dataclass(frozen=True)
 class ConnectiveTheorem:
     binder: str
     domain: Term
@@ -373,6 +395,10 @@ def interpret(term: Term) -> tuple[object, tuple[str, ...]]:
         if _connective_collect(term):
             return _from_connective(term)
         raise exc
+    if isinstance(value, CollectForm):
+        reduced = _from_polynomial(value)
+        if reduced is not None:
+            return reduced
     return value, ()
 
 
@@ -1633,7 +1659,278 @@ def _complement_cover(cover: Cover) -> tuple[object, tuple[str, ...]]:
     return value, lines
 
 
+def _from_polynomial(form: CollectForm) -> tuple[object, tuple[str, ...]] | None:
+    try:
+        value, roots, detail = _polynomial_set(form.binder, form.relation, form.left, form.right)
+    except (NotExact, KernelError):
+        return None
+    if value is None:
+        return None
+    kind, bound, members, pieces = _connective_shape(value)
+    PolySignTheorem(
+        form.binder,
+        form.relation,
+        form.left,
+        form.right,
+        kind,
+        bound,
+        members,
+        pieces,
+        roots,
+        detail,
+    )
+    return value, detail
+
+
+def _polynomial_set(
+    binder: str,
+    relation: str,
+    left: Term,
+    right: Term,
+) -> tuple[object, tuple[RealForm, ...], tuple[str, ...]]:
+    left_poly = _poly_term(left, binder)
+    right_poly = _poly_term(right, binder)
+    if left_poly is None or right_poly is None:
+        raise NotExact(_NOT_FINITE)
+    coeffs = _poly_trim(_poly_add(left_poly, _poly_neg(right_poly)))
+    if len(coeffs) <= 2:
+        raise NotExact(_NOT_FINITE)
+    if len(coeffs) > 3:
+        raise NotExact(_NOT_FINITE)
+    value, roots, detail = _quadratic_set(coeffs, relation)
+    return value, roots, detail
+
+
+def _quadratic_set(
+    coeffs: tuple[RealForm, ...],
+    relation: str,
+) -> tuple[object, tuple[RealForm, ...], tuple[str, ...]]:
+    c, b, a = coeffs
+    leading = compare_reals(a, _zero())
+    if leading not in {"lt", "gt"}:
+        raise NotExact(_NOT_FINITE)
+    disc = _sub_forms(_mul_forms(b, b), _mul_forms(_from_int(4), _mul_forms(a, c)))
+    disc_dir = compare_reals(disc, _zero())
+    if disc_dir == "open":
+        raise NotExact(_NOT_FINITE)
+    if disc_dir == "lt":
+        roots: tuple[RealForm, ...] = ()
+        # sign is the leading coefficient everywhere
+        positive = leading == "gt"
+        value = _constant_sign(relation, positive)
+        detail = (
+            "The comparison is a quadratic in the binder.",
+            "The discriminant is negative, so there is no real root.",
+            "The sign of the quadratic is the sign of the leading coefficient at every real.",
+            f"The set is {_value_atom(value)}.",
+        )
+        return value, roots, detail
+    two_a = _mul_forms(_from_int(2), a)
+    if disc_dir == "eq":
+        root = _div_form(_neg_form(b), two_a)
+        _check_root(coeffs, root)
+        roots = (root,)
+        value = _double_root_sign(relation, leading == "gt", root)
+        detail = (
+            "The comparison is a quadratic in the binder.",
+            "The discriminant is zero, so there is a repeated real root.",
+            "Substituting the root returns 0, by the quadratic formula and real_sqrt_pow2.",
+            f"The root is {show_form(root)}.",
+            f"The set is {_value_atom(value)}.",
+        )
+        return value, roots, detail
+    sqrt_disc = _sqrt_of_form(disc)
+    if _mul_forms(sqrt_disc, sqrt_disc) != _canonical(disc) and _mul_forms(sqrt_disc, sqrt_disc) != disc:
+        # still accept if compare says equal
+        if compare_reals(_mul_forms(sqrt_disc, sqrt_disc), disc) != "eq":
+            raise NotExact(_NOT_FINITE)
+    left_root = _div_form(_sub_forms(_neg_form(b), sqrt_disc), two_a)
+    right_root = _div_form(_add_forms(_neg_form(b), sqrt_disc), two_a)
+    _check_root(coeffs, left_root)
+    _check_root(coeffs, right_root)
+    if _direction(left_root, right_root, _OPEN_SET) == "gt":
+        left_root, right_root = right_root, left_root
+    if _direction(left_root, right_root, _OPEN_SET) != "lt":
+        raise NotExact(_OPEN_SET)
+    roots = (left_root, right_root)
+    # midpoint sign must agree with the leading coefficient (opens up => midpoint negative)
+    mid = _div_form(_add_forms(left_root, right_root), _from_int(2))
+    mid_sign = compare_reals(_poly_eval(coeffs, mid), _zero())
+    if leading == "gt" and mid_sign != "lt":
+        raise KernelError("the quadratic did not change sign between its roots")
+    if leading == "lt" and mid_sign != "gt":
+        raise KernelError("the quadratic did not change sign between its roots")
+    value = _two_root_sign(relation, leading == "gt", left_root, right_root)
+    detail = (
+        "The comparison is a quadratic in the binder.",
+        "Isabelle exists_sqrt and the quadratic formula give the two real roots when the discriminant is positive.",
+        "Substituting each root returns 0, and the square of the constructed square root of the discriminant is the discriminant, by real_sqrt_pow2.",
+        "A quadratic changes sign only at those roots. The sign between the roots was checked at the midpoint.",
+        f"The roots are {show_form(left_root)} and {show_form(right_root)}.",
+        f"The set is {_value_atom(value)}.",
+    )
+    return value, roots, detail
+
+
+def _constant_sign(relation: str, positive: bool) -> object:
+    # p never zero; sign is constant
+    if relation == "eq":
+        return set_empty()
+    if relation == "lt":
+        return set_empty() if positive else _synthetic("univ", None)
+    if relation == "le":
+        return set_empty() if positive else _synthetic("univ", None)
+    raise NotExact(_NOT_FINITE)
+
+
+def _double_root_sign(relation: str, opens_up: bool, root: RealForm) -> object:
+    if relation == "eq":
+        return _finite_set((root,))
+    if relation == "lt":
+        return set_empty() if opens_up else Cover((("lessThan", root, ()), ("greaterThan", root, ())))
+    if relation == "le":
+        return _finite_set((root,)) if opens_up else _synthetic("univ", None)
+    raise NotExact(_NOT_FINITE)
+
+
+def _two_root_sign(relation: str, opens_up: bool, left: RealForm, right: RealForm) -> object:
+    # opens_up: p <= 0 on [left, right], p >= 0 outside
+    inside_closed = Interval("atLeastAtMost", left, right)
+    inside_open = Interval("greaterThanLessThan", left, right)
+    outside_closed = Cover((("atMost", left, ()), ("atLeast", right, ())))
+    outside_open = Cover((("lessThan", left, ()), ("greaterThan", right, ())))
+    points = _finite_set((left, right))
+    if relation == "eq":
+        return points
+    if relation == "lt":
+        return inside_open if opens_up else outside_open
+    if relation == "le":
+        return inside_closed if opens_up else outside_closed
+    raise NotExact(_NOT_FINITE)
+
+
+def _check_root(coeffs: tuple[RealForm, ...], root: RealForm) -> None:
+    if compare_reals(_poly_eval(coeffs, root), _zero()) != "eq":
+        raise KernelError("a constructed root did not vanish in the polynomial")
+
+
+def _poly_term(term: Term, binder: str) -> tuple[RealForm, ...] | None:
+    if _is_binder(term, binder):
+        return (_zero(), _one())
+    if not _mentions(term, binder):
+        if contains_set(term):
+            return None
+        try:
+            return (eval_real(term).form,)
+        except (NotExact, KernelError):
+            return None
+    if not isinstance(term, App):
+        return None
+    if term.op == "neg" and len(term.args) == 1:
+        body = _poly_term(term.args[0], binder)
+        return None if body is None else _poly_neg(body)
+    if term.op in {"add", "sub"} and len(term.args) == 2:
+        left = _poly_term(term.args[0], binder)
+        right = _poly_term(term.args[1], binder)
+        if left is None or right is None:
+            return None
+        if term.op == "add":
+            return _poly_add(left, right)
+        return _poly_add(left, _poly_neg(right))
+    if term.op == "mul" and len(term.args) == 2:
+        left = _poly_term(term.args[0], binder)
+        right = _poly_term(term.args[1], binder)
+        if left is None or right is None:
+            return None
+        return _poly_mul(left, right)
+    if term.op == "div" and len(term.args) == 2:
+        if _mentions(term.args[1], binder) or contains_set(term.args[1]):
+            return None
+        body = _poly_term(term.args[0], binder)
+        if body is None:
+            return None
+        try:
+            divisor = eval_real(term.args[1]).form
+            return tuple(_div_form(coeff, divisor) for coeff in body)
+        except (NotExact, KernelError):
+            return None
+    return None
+
+
+def _poly_add(left: tuple[RealForm, ...], right: tuple[RealForm, ...]) -> tuple[RealForm, ...]:
+    size = max(len(left), len(right))
+    padded_left = left + (_zero(),) * (size - len(left))
+    padded_right = right + (_zero(),) * (size - len(right))
+    return tuple(_add_forms(a, b) for a, b in zip(padded_left, padded_right))
+
+
+def _poly_neg(coeffs: tuple[RealForm, ...]) -> tuple[RealForm, ...]:
+    return tuple(_neg_form(coeff) for coeff in coeffs)
+
+
+def _poly_mul(left: tuple[RealForm, ...], right: tuple[RealForm, ...]) -> tuple[RealForm, ...]:
+    acc = [_zero()] * (len(left) + len(right) - 1)
+    for i, a in enumerate(left):
+        for j, b in enumerate(right):
+            acc[i + j] = _add_forms(acc[i + j], _mul_forms(a, b))
+    return tuple(acc)
+
+
+def _poly_trim(coeffs: tuple[RealForm, ...]) -> tuple[RealForm, ...]:
+    index = len(coeffs)
+    while index > 1 and compare_reals(coeffs[index - 1], _zero()) == "eq":
+        index -= 1
+    return coeffs[:index]
+
+
+def _poly_eval(coeffs: tuple[RealForm, ...], value: RealForm) -> RealForm:
+    total = _zero()
+    power = _one()
+    for coeff in coeffs:
+        total = _add_forms(total, _mul_forms(coeff, power))
+        power = _mul_forms(power, value)
+    return total
+
+
+def _from_int(number: int) -> RealForm:
+    return real_of_rat(Ratio(number, 1)).form
+
+
+def _value_atom(value: object) -> str:
+    if isinstance(value, Cover):
+        return _cover_atom(value)
+    if isinstance(value, Interval):
+        return _interval_atom(value)
+    if isinstance(value, SetTheorem):
+        shown = ", ".join(show_form(item) for item in value.members)
+        return "set({" + shown + "})"
+    if isinstance(value, CollectForm):
+        ray = classify(value)
+        if ray is None:
+            return "this set"
+        if ray.kind == "univ":
+            return "univ"
+        return f"{ray.kind}({show_form(ray.bound)})"
+    return "this set"
+
+
+def _poly_sign_ok(theorem: PolySignTheorem) -> bool:
+    try:
+        value, roots, _detail = _polynomial_set(theorem.binder, theorem.relation, theorem.left, theorem.right)
+        kind, bound, members, pieces = _connective_shape(value)
+    except (NotExact, KernelError):
+        return False
+    return (
+        kind == theorem.kind
+        and bound == theorem.bound
+        and members == theorem.members
+        and pieces == theorem.pieces
+        and roots == theorem.roots
+    )
+
+
 def affine_verdict(binder: str, relation: str, left: Term, right: Term) -> tuple[str, RealForm | None] | None:
+
     if relation == "lt" and _is_binder(left, binder) and _is_binder(right, binder):
         return None
     left_aff = _affine_parts(left, binder)

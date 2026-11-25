@@ -960,8 +960,8 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(missed.open_gaps, ())
 
         quadratic = run(Request(ask="what is {x. x * x <= 2}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", quadratic.text(lod=1))
-        self.assertEqual(_atoms(quadratic, "value("), ())
+        self.assertEqual(quadratic.claims[0].atom, "atLeastAtMost(-sqrt(2), sqrt(2))")
+        self.assertEqual(quadratic.open_gaps, ())
 
     def test_affine_comparisons_reduce_to_rays(self) -> None:
 
@@ -996,11 +996,55 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(witnessed.open_gaps, ())
 
         quadratic = run(Request(ask="what is {x. x * x <= 2}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", quadratic.text(lod=1))
-        self.assertEqual(_atoms(quadratic, "value("), ())
+        self.assertEqual(quadratic.claims[0].atom, "atLeastAtMost(-sqrt(2), sqrt(2))")
+        self.assertEqual(quadratic.open_gaps, ())
         self.assertEqual(_atoms(quadratic, "atMost("), ())
 
+    def test_quadratic_sign_charts(self) -> None:
+        closed = run(Request(ask="what is {x. x * x <= 2}", seed=1))
+        self.assertEqual(closed.claims[0].atom, "atLeastAtMost(-sqrt(2), sqrt(2))")
+        self.assertIn("quadratic formula", closed.text(lod=2))
+        self.assertIn("real_sqrt_pow2", closed.text(lod=2))
+        self.assertEqual(closed.open_gaps, ())
+
+        opened = run(Request(ask="what is {x. x * x < 2}", seed=1))
+        self.assertEqual(opened.claims[0].atom, "greaterThanLessThan(-sqrt(2), sqrt(2))")
+        self.assertEqual(opened.open_gaps, ())
+
+        outside = run(Request(ask="what is {x. 2 <= x * x}", seed=1))
+        self.assertEqual(outside.claims[0].atom, "atMost(-sqrt(2)) union atLeast(sqrt(2))")
+        self.assertEqual(outside.open_gaps, ())
+
+        roots = run(Request(ask="what is {x. x * x = 2}", seed=1))
+        self.assertEqual(roots.claims[0].atom, "set({-sqrt(2), sqrt(2)})")
+        self.assertEqual(roots.open_gaps, ())
+
+        factored = run(Request(ask="what is {x. (x - 1) * (x - 3) <= 0}", seed=1))
+        self.assertEqual(factored.claims[0].atom, "atLeastAtMost(1, 3)")
+        self.assertEqual(factored.open_gaps, ())
+
+        vacant = run(Request(ask="what is {x. x * x + 1 <= 0}", seed=1))
+        self.assertEqual(vacant.claims[0].atom, "set({})")
+        self.assertEqual(vacant.open_gaps, ())
+
+        bound = run(Request(ask="what is sup {x. x * x <= 2}", seed=1))
+        self.assertEqual(bound.claims[0].atom, "cauchy(sqrt(2))")
+        self.assertEqual(bound.open_gaps, ())
+
+        inside = run(Request(ask="prove 0 in {x. x * x <= 2}", seed=1))
+        self.assertEqual(inside.claims[0].atom, "member(0,{x. x * x <= 2})")
+        self.assertEqual(inside.open_gaps, ())
+
+        missed = run(Request(ask="prove 2 in {x. x * x <= 2}", seed=1))
+        self.assertEqual(missed.claims[0].atom, "not_member(2,{x. x * x <= 2})")
+        self.assertEqual(missed.open_gaps, ())
+
+        cubic = run(Request(ask="what is {x. x * x * x <= 2}", seed=1))
+        self.assertIn("this comprehension is not a finite enumeration", cubic.text(lod=1))
+        self.assertEqual(_atoms(cubic, "value("), ())
+
     def test_older_paths_stay_on_their_rules(self) -> None:
+
 
         enumerated = run(Request(ask="what is {1, 2}", seed=1))
         self.assertEqual(enumerated.claims[0].atom, "set({1, 2})")

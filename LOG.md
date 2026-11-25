@@ -532,3 +532,15 @@ A predicate that is not affine in the binder, such as `{x. x * x <= 2}`, stays o
 The next gap is a predicate that is not affine in the binder, such as `{x. x * x <= 2}`. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 118 tests, 0 failures, about 40.28 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — quadratic sign charts pgi-0.39.0
+
+A comparison that is a polynomial of degree two in the binder is settled by a sign chart at the roots the kernel can construct and check. The difference of the two sides is formed, the discriminant is built, and each root is verified by evaluating the polynomial to zero. The sign at a midpoint is checked against the leading coefficient. `{x. x * x <= 2}` is `atLeastAtMost(-sqrt(2), sqrt(2))`. `{x. x * x < 2}` is `greaterThanLessThan(-sqrt(2), sqrt(2))`. `{x. 2 <= x * x}` is `atMost(-sqrt(2)) union atLeast(sqrt(2))`. `{x. x * x = 2}` is `set({-sqrt(2), sqrt(2)})`. A factored quadratic such as `{x. (x - 1) * (x - 3) <= 0}` is `atLeastAtMost(1, 3)`. A quadratic with no real roots and a positive leading coefficient, such as `{x. x * x + 1 <= 0}`, is empty. `sup {x. x * x <= 2}` is `cauchy(sqrt(2))`. Membership follows the admitted interval or cover.
+
+A polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, stays outside the bisection, as does a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a polynomial of degree greater than two, such as `{x. x * x * x <= 2}`, and a quadratic whose discriminant the kernel cannot form as a nonnegative radicand. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 119 tests, 0 failures, about 37.89 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

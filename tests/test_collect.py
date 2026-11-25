@@ -119,10 +119,14 @@ class ComprehensionTests(unittest.TestCase):
         self.assertEqual(compound.open_gaps, ())
 
         quadratic = run(Request(ask="what is {x. x * x <= 2}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", quadratic.text(lod=1))
-        self.assertEqual(_atoms(quadratic, "atMost("), ())
-        self.assertEqual(_atoms(quadratic, "univ"), ())
-        self.assertTrue(quadratic.open_gaps)
+        self.assertEqual(quadratic.claims[0].atom, "atLeastAtMost(-sqrt(2), sqrt(2))")
+        self.assertEqual(quadratic.open_gaps, ())
+
+        cubic = run(Request(ask="what is {x. x * x * x <= 2}", seed=1))
+        self.assertIn("this comprehension is not a finite enumeration", cubic.text(lod=1))
+        self.assertEqual(_atoms(cubic, "atMost("), ())
+        self.assertEqual(_atoms(cubic, "univ"), ())
+        self.assertTrue(cubic.open_gaps)
 
         broken = run(Request(ask="what is {x. x / 0 <= 1}", seed=1))
         self.assertIn("this comprehension is not a finite enumeration", broken.text(lod=1))
