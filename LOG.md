@@ -1098,3 +1098,11 @@ Flat FLRW is in the atlas in Cartesian coordinates, with a formal scale factor `
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 364 tests, 0 failures, about 360.75 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Lorentz algebra and Dirac matrices pgi-0.98.0
+
+The Minkowski metric `eta()` is `diag(-1, 1, 1, 1)`. A boost with a rational velocity is kept only when `1 - v^2` is the square of a positive rational, so γ and γv are exact, and only when both `Λ^T η Λ` and `Λ η Λ^T` equal `η`. The so(3,1) generators satisfy `[J_i, J_j] = ε_ijk J_k`, `[K_i, K_j] = -ε_ijk J_k`, and `[J_i, K_j] = ε_ijk K_k`, and each preserves `η` infinitesimally. The Dirac matrices satisfy `{γ^μ, γ^ν} = 2 η^{μν} I`, checked on every pair.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 367 tests, 0 failures, about 403.55 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

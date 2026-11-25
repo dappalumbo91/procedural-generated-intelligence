@@ -631,9 +631,17 @@ The Schwarzschild metric in Schwarzschild coordinates is on the atlas, with mass
 
 Flat FLRW is on the atlas in Cartesian coordinates, with a formal scale factor `a(t)` whose derivatives are exact: `d(a(t), t)` and `d(a(t), t, 2)`. `metric(flrw)` is `diag(-1, a(t)^2, a(t)^2, a(t)^2)`. The Einstein tensor `G = Ric - (1/2) R g` is exact: `G_tt` is `3 * d(a(t), t)^2 / a(t)^2`, and each spatial diagonal is `-(2 * a(t) * d(a(t), t, 2) + d(a(t), t)^2)`.
 
+### The Lorentz algebra and the Dirac matrices
+
+The Minkowski metric `eta()` is `diag(-1, 1, 1, 1)`, matching the mostly-plus signature already used for Minkowski and Schwarzschild. A boost such as `boost(x, 3/5)` is kept only when `1 - v^2` is the square of a positive rational, so that `γ = 5/4` and `γv = 3/4` are exact, and only when both `Λ^T η Λ` and `Λ η Λ^T` equal `η`. A velocity such as `1/2`, whose residual is not a rational square, stays open.
+
+The so(3,1) generators `so31(jx)` through `so31(kz)` satisfy `[J_i, J_j] = ε_ijk J_k`, `[K_i, K_j] = -ε_ijk J_k`, and `[J_i, K_j] = ε_ijk K_k`, checked on every triple, and each generator preserves `η` infinitesimally: `X^T η + η X = 0`.
+
+The Dirac matrices are the mostly-plus Weyl form: `γ^0` is `[[0, I], [-I, 0]]` and `γ^i` is `[[0, σ_i], [σ_i, 0]]`. The anticommutator `{γ^μ, γ^ν}` equals `2 η^{μν} I` on every pair, which is the certificate `clifford() = 0`.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.97.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.98.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -641,5 +649,5 @@ This list is the current state as of `pgi-0.97.0`. Earlier sections above are hi
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
-- An SU(3) gauge transformation on a connection, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked, stay outside. A 3×3 or larger spectral decomposition stays open. A Hermitian matrix whose eigenvector norm is not a positive rational stays open. Mixing two different square-free radicands stays open. The Lorentz group and the Dirac algebra, and exact ODE checks of candidate solutions, stay outside.
+- An SU(3) gauge transformation on a connection, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked, stay outside. A 3×3 or larger spectral decomposition stays open. A Hermitian matrix whose eigenvector norm is not a positive rational stays open. Mixing two different square-free radicands stays open. Exact ODE checks of candidate solutions stay outside.
 - CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The modern Mercury fits are on the board since `pgi-0.53.0`. The neutron lifetime, `g_A`, muon and electron `g − 2`, and the proton radius entered in `pgi-0.56.0`. NIST ASD first ionization energies H to Ne entered in `pgi-0.57.0`, and Na to Kr in `pgi-0.59.0`. INPOP perihelion and PPN results entered in `pgi-0.58.0`. AME2020 atomic masses entered in `pgi-0.61.0`. PDG 2026 light hadron masses entered in `pgi-0.62.0`. Binary pulsar, Gravity Probe B, VLBI, and the 16 values of G entered in `pgi-0.63.0`. Hydrogen spectroscopy (1S–2S, Lamb shift, 21 cm, H-alpha, muonic hydrogen) entered in `pgi-0.64.0`. Nuclear constants (deuteron binding, alpha mass, nucleon moments) entered in `pgi-0.65.0`. Stefan–Boltzmann and Wien constants entered in `pgi-0.67.0`. The rest of the gravitational-wave catalogs are not.

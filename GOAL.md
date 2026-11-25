@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.97.0`.
+Rule version `pgi-0.98.0`.
 
 In the kernel now:
 
@@ -102,6 +102,7 @@ In the kernel now:
 - The unit 2-sphere in angular coordinates. `metric(s2, angular)` is `ds^2 = dtheta^2 + sin(theta)^2 dphi^2`. An inverse is kept only when both products are the identity. The Levi-Civita connection, the Riemann symmetries, and both Bianchi identities are checked identically. `scalar(metric(s2, angular))` is `2`, and the Ricci tensor equals the metric.
 - The Schwarzschild metric in Schwarzschild coordinates, with mass parameter `m`. The inverse multiplies back to the identity. The Levi-Civita connection is torsion-free and metric-compatible. Ricci vanishes identically, the Einstein tensor vanishes, the scalar curvature is `0`, and the Kretschmann scalar is `48 m^2 / r^6`.
 - Flat FLRW, with a formal scale factor `a(t)` and its exact derivatives. The Einstein tensor is exact: `G_tt` is `3 (da/dt)^2 / a^2`, and each spatial diagonal is `-(2 a d^2a/dt^2 + (da/dt)^2)`.
+- The Lorentz algebra so(3,1) and the Dirac matrices. The Minkowski metric is `η = diag(-1, 1, 1, 1)`. A boost with a rational velocity is kept only when `1 - v^2` is the square of a positive rational, and when both `Λ^T η Λ` and `Λ η Λ^T` equal `η`. The so(3,1) generators satisfy `[J_i, J_j] = ε_ijk J_k`, `[K_i, K_j] = -ε_ijk J_k`, and `[J_i, K_j] = ε_ijk K_k`, and each preserves `η` infinitesimally. The Dirac matrices satisfy `{γ^μ, γ^ν} = 2 η^{μν} I`, checked on every pair.
 
 Still outside the kernel, and required before a physical law can be written:
 
