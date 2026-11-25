@@ -170,9 +170,13 @@ def _set_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
     body, prelude = prepared
     from pgi.math.arbitrary import (
         BisectTheorem,
+        Cover,
+        CoverSupTheorem,
         Interval,
         IntervalSupTheorem,
         RaySupTheorem,
+        cover_sup_rule,
+        cover_value_rule,
         interpret,
         interval_sup_rule,
         interval_value_rule,
@@ -186,10 +190,14 @@ def _set_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
         lines = (*prelude, *extra)
         if isinstance(result, IntervalSupTheorem):
             return (interval_sup_rule(term, result, lines),)
+        if isinstance(result, CoverSupTheorem):
+            return (cover_sup_rule(term, result, lines),)
         if isinstance(result, RaySupTheorem | BisectTheorem):
             return (ray_sup_rule(term, result, lines),)
         if isinstance(result, Interval):
             return (interval_value_rule(term, result, lines),)
+        if isinstance(result, Cover):
+            return (cover_value_rule(term, result, lines),)
         if isinstance(result, CollectForm):
             ruled = ray_value_rule(term, result, lines)
             if ruled is None:

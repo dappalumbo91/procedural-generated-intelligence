@@ -518,3 +518,17 @@ A union of two rays that leaves a gap, such as `{x. x <= 1 or 3 <= x}`, stays ou
 The next gap is a union of two rays that leaves a gap, the complement of a nonempty finite set, and a predicate that is not affine in the binder, such as `{x. x * x <= 2}`. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
 
 `python -m unittest discover -s tests -v` finished 117 tests, 0 failures, about 49.14 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — gapped unions and finite complements pgi-0.38.0
+
+A union of admitted rays or intervals that leaves a gap is stored as those pieces in order, by `Un_iff`. `{x. x <= 1 or 3 <= x}` is `atMost(1) union atLeast(3)`. `{x. x <= 3} union {x. 5 <= x}` is `atMost(3) union atLeast(5)`. `{x. x <= 1 or x = 3}` is `atMost(1) union set({3})`. A meet keeps the pieces that survive: `{x. x <= 1 or 3 <= x} inter {x. x <= 4}` is `atMost(1) union atLeastAtMost(3, 4)`. If the right-hand piece is bounded above, the supremum is that upper bound: `sup {x. x <= 1 or (2 <= x and x <= 3)}` is 3. If the right-hand piece is an up-ray, the union is not bounded above.
+
+The complement of a finite set is the open down-ray before the least member, the open interval between consecutive members, and the open up-ray after the greatest member, by `linorder_neq_iff` and `Compl_insert`. `{x. not x = 2}` is `lessThan(2) union greaterThan(2)`. `{x. not (x = 1 or x = 2)}` is `lessThan(1) union greaterThanLessThan(1, 2) union greaterThan(2)`. The complement of a closed interval is the two outer rays: `{x. not (1 <= x and x <= 3)}` is `lessThan(1) union greaterThan(3)`. `imp_conv_disj` on a gapped implication is the same union: `{x. x <= 1 implies x <= 0}` is `atMost(0) union greaterThan(1)`.
+
+A predicate that is not affine in the binder, such as `{x. x * x <= 2}`, stays outside the bisection. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a predicate that is not affine in the binder, such as `{x. x * x <= 2}`. A nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero, stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 118 tests, 0 failures, about 40.28 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -824,13 +824,14 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertNotIn("Collect_neg_eq", plain.text(lod=2))
 
         rays = run(Request(ask="what is {x. x <= 1 or 3 <= x}", seed=1))
-        self.assertIn("this boolean connective stays outside this rule", rays.text(lod=1))
-        self.assertEqual(_atoms(rays, "set("), ())
-        self.assertEqual(_atoms(rays, "atMost("), ())
+        self.assertEqual(rays.claims[0].atom, "atMost(1) union atLeast(3)")
+        self.assertIn("Un_iff", rays.text(lod=2))
+        self.assertEqual(rays.open_gaps, ())
 
         complement = run(Request(ask="what is {x. not x = 2}", seed=1))
-        self.assertIn("this boolean connective stays outside this rule", complement.text(lod=1))
-        self.assertEqual(_atoms(complement, "set("), ())
+        self.assertEqual(complement.claims[0].atom, "lessThan(2) union greaterThan(2)")
+        self.assertIn("linorder_neq_iff", complement.text(lod=2))
+        self.assertEqual(complement.open_gaps, ())
 
         nested = run(Request(ask="what is {x. 1 <= x and x <= 3 and x <= 4}", seed=1))
         self.assertEqual(nested.claims[0].atom, "atLeastAtMost(1, 3)")
@@ -861,8 +862,9 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(implied.open_gaps, ())
 
         implied_gap = run(Request(ask="what is {x. x <= 1 implies x <= 0}", seed=1))
-        self.assertIn("this boolean connective stays outside this rule", implied_gap.text(lod=1))
-        self.assertEqual(_atoms(implied_gap, "univ"), ())
+        self.assertEqual(implied_gap.claims[0].atom, "atMost(0) union greaterThan(1)")
+        self.assertIn("imp_conv_disj", implied_gap.text(lod=2))
+        self.assertEqual(implied_gap.open_gaps, ())
 
         covered = run(Request(ask="what is {x. x <= 1 or x <= 3}", seed=1))
         self.assertEqual(covered.claims[0].atom, "atMost(3)")
@@ -902,7 +904,67 @@ class ArbitrarySetTests(unittest.TestCase):
         with self.assertRaises(KernelError):
             ConnectiveTheorem("x", domain, predicate, "Collect.disj", "atLeastAtMost", one, (three,), ())
 
+    def test_gapped_unions_and_finite_complements(self) -> None:
+        rays = run(Request(ask="what is {x. x <= 1 or 3 <= x}", seed=1))
+        self.assertEqual(rays.claims[0].atom, "atMost(1) union atLeast(3)")
+        self.assertEqual(rays.open_gaps, ())
+
+        joined = run(Request(ask="what is {x. x <= 3} union {x. 5 <= x}", seed=1))
+        self.assertEqual(joined.claims[0].atom, "atMost(3) union atLeast(5)")
+        self.assertEqual(joined.open_gaps, ())
+
+        absorbed = run(Request(ask="what is {x. x <= 1 or 3 <= x or 10 <= x}", seed=1))
+        self.assertEqual(absorbed.claims[0].atom, "atMost(1) union atLeast(3)")
+        self.assertEqual(absorbed.open_gaps, ())
+
+        punctured = run(Request(ask="what is {x. not x = 2}", seed=1))
+        self.assertEqual(punctured.claims[0].atom, "lessThan(2) union greaterThan(2)")
+        self.assertIn("linorder_neq_iff", punctured.text(lod=2))
+        self.assertEqual(punctured.open_gaps, ())
+
+        two = run(Request(ask="what is {x. not (x = 1 or x = 2)}", seed=1))
+        self.assertEqual(two.claims[0].atom, "lessThan(1) union greaterThanLessThan(1, 2) union greaterThan(2)")
+        self.assertEqual(two.open_gaps, ())
+
+        outside = run(Request(ask="what is {x. not (1 <= x and x <= 3)}", seed=1))
+        self.assertEqual(outside.claims[0].atom, "lessThan(1) union greaterThan(3)")
+        self.assertEqual(outside.open_gaps, ())
+
+        mixed = run(Request(ask="what is {x. x <= 1 or x = 3}", seed=1))
+        self.assertEqual(mixed.claims[0].atom, "atMost(1) union set({3})")
+        self.assertEqual(mixed.open_gaps, ())
+
+        met = run(Request(ask="what is {x. x <= 1 or 3 <= x} inter {x. x <= 4}", seed=1))
+        self.assertEqual(met.claims[0].atom, "atMost(1) union atLeastAtMost(3, 4)")
+        self.assertEqual(met.open_gaps, ())
+
+        bounded = run(Request(ask="what is sup {x. x <= 1 or (2 <= x and x <= 3)}", seed=1))
+        self.assertEqual(bounded.claims[0].atom, "value(3)")
+        self.assertIn("Un_iff", bounded.text(lod=2))
+        self.assertEqual(bounded.open_gaps, ())
+
+        upward = run(Request(ask="what is sup {x. x <= 1 or 3 <= x}", seed=1))
+        self.assertIn("this set is not bounded above", upward.text(lod=1))
+        self.assertEqual(_atoms(upward, "value("), ())
+
+        inside = run(Request(ask="prove 0 in {x. x <= 1 or 3 <= x}", seed=1))
+        self.assertEqual(inside.claims[0].atom, "member(0,{x. x <= 1 or 3 <= x})")
+        self.assertEqual(inside.open_gaps, ())
+
+        gap = run(Request(ask="prove 2 in {x. x <= 1 or 3 <= x}", seed=1))
+        self.assertEqual(gap.claims[0].atom, "not_member(2,{x. x <= 1 or 3 <= x})")
+        self.assertEqual(gap.open_gaps, ())
+
+        missed = run(Request(ask="prove 2 in {x. not x = 2}", seed=1))
+        self.assertEqual(missed.claims[0].atom, "not_member(2,{x. not x = 2})")
+        self.assertEqual(missed.open_gaps, ())
+
+        quadratic = run(Request(ask="what is {x. x * x <= 2}", seed=1))
+        self.assertIn("this comprehension is not a finite enumeration", quadratic.text(lod=1))
+        self.assertEqual(_atoms(quadratic, "value("), ())
+
     def test_affine_comparisons_reduce_to_rays(self) -> None:
+
         always = run(Request(ask="what is {x. x <= x + 1}", seed=1))
         self.assertEqual(always.claims[0].atom, "univ")
         self.assertIn("add_le_cancel", always.text(lod=2))

@@ -108,6 +108,8 @@ def _claim_block(support: Support, index: int, lod: int) -> list[str]:
         lines.append(f"   {support.atom} is the constructed real")
     elif support.atom.startswith("set("):
         lines.append(f"   {support.atom} is the finite set")
+    elif " union " in support.atom:
+        lines.append(f"   {support.atom} is the union of these admitted intervals")
     elif support.atom.startswith("atMost("):
         lines.append(f"   {support.atom} is the set of reals at most this bound")
     elif support.atom.startswith("atLeast("):

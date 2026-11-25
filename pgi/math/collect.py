@@ -246,6 +246,14 @@ def _relate_member(left: Term, right: Term, left_body: Term, right_body: Term, p
     if isinstance(right_value, SetTheorem):
         element = eval_element(left_body)
         return (member_rule(left, right, element, right_value, prelude),)
+    from pgi.math.arbitrary import Cover, Interval, cover_member_rule, interval_member_rule
+
+    if isinstance(right_value, Cover):
+        element = eval_element(left_body)
+        return (cover_member_rule(left, right, element, right_value, prelude),)
+    if isinstance(right_value, Interval):
+        element = eval_element(left_body)
+        return (interval_member_rule(left, right, element, right_value, prelude),)
     if not isinstance(right_value, CollectForm):
         raise NotExact("this expression is not a finite set")
     if contains_set(left_body):

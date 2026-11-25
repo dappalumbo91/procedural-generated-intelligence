@@ -55,14 +55,17 @@ associated and then met, so an interval may be met with a further ray.
 `Collect_disj_eq` unions two sides when both are finite enumerations, or
 when the two rays or intervals cover a single admitted set: one ray, one
 interval, a singleton, the empty set, or UNIV. A union that leaves a gap
-stays outside. `Collect_neg_eq` sends the complement of a ray to the
-opposite ray, by `Compl_atMost`, `Compl_atLeast`, `Compl_lessThan`, and
-`Compl_greaterThan`. A double negation is `double_compl`. `Compl_UNIV_eq`
-sends the complement of the set of every real to the empty set.
-`imp_conv_disj` rewrites implication as the disjunction of the negated
+is the union of those admitted pieces, in order, by `Un_iff`. `Collect_neg_eq`
+sends the complement of a ray to the opposite ray, by `Compl_atMost`,
+`Compl_atLeast`, `Compl_lessThan`, and `Compl_greaterThan`. The complement
+of a two-sided interval is the two outer rays. The complement of a finite
+set is the open rays and open intervals around its members, by
+`linorder_neq_iff` and `Compl_insert`. A double negation is `double_compl`.
+`Compl_UNIV_eq` sends the complement of the set of every real to the empty
+set. `imp_conv_disj` rewrites implication as the disjunction of the negated
 antecedent with the consequent. A connective whose sides this kernel cannot
-settle stays outside. A complement of a finite nonempty set, and a union of
-two rays that leaves a gap, stay outside.
+settle stays outside. A predicate that is not affine in the binder, such as
+`{x. x * x <= 2}`, stays outside the bisection.
 
 A comparison that is affine in the binder is moved to a standard ray by
 cancelling a shared summand and a nonzero coefficient, by `add_le_cancel_left`,
@@ -304,6 +307,40 @@ class IntervalSupTheorem:
 
 
 @dataclass(frozen=True)
+class Cover:
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]
+
+    def __post_init__(self) -> None:
+        if not _cover_ok(self.pieces):
+            raise KernelError("this union of intervals is not admitted")
+
+
+@dataclass(frozen=True)
+class CoverSupTheorem:
+    form: RealForm
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]
+    rule: str
+    detail: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not _cover_sup_ok(self):
+            raise KernelError(f"{self.rule} does not justify this least upper bound")
+
+
+@dataclass(frozen=True)
+class CoverMemberTheorem:
+    form: RealForm
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]
+    holds: bool
+    rule: str
+    detail: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not _cover_member_ok(self):
+            raise KernelError(f"{self.rule} does not justify this membership")
+
+
+@dataclass(frozen=True)
 class ConnectiveTheorem:
     binder: str
     domain: Term
@@ -313,6 +350,7 @@ class ConnectiveTheorem:
     bound: RealForm | None
     members: tuple[RealForm, ...]
     detail: tuple[str, ...] = ()
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...] = ()
 
     def __post_init__(self) -> None:
         if not _connective_ok(self):
@@ -599,7 +637,7 @@ def _from_connective(term: Term) -> tuple[object, tuple[str, ...]]:
     if not isinstance(binder_term, Var) or not isinstance(predicate, App):
         raise NotExact(_OUTSIDE)
     value, detail = _reduce_connective(binder_term.name, domain, predicate)
-    kind, bound, members = _connective_shape(value)
+    kind, bound, members, pieces = _connective_shape(value)
     ConnectiveTheorem(
         binder_term.name,
         domain,
@@ -609,6 +647,7 @@ def _from_connective(term: Term) -> tuple[object, tuple[str, ...]]:
         bound,
         members,
         detail,
+        pieces,
     )
     return value, detail
 
@@ -683,7 +722,12 @@ def _reduce_not(binder: str, domain: Term, predicate: Term) -> tuple[object, tup
         raise NotExact(_OUTSIDE)
     ray = classify(CollectForm(binder, inner.op, inner.args[0], inner.args[1]))
     if ray is None:
-        raise NotExact(_OUTSIDE)
+        try:
+            value = eval_set(_side_collect(binder, domain, inner))
+            complemented, extra = _complement(value)
+        except NotExact as exc:
+            raise NotExact(_OUTSIDE) from exc
+        return complemented, (_NEG, *extra)
     if ray.kind == "univ":
         return set_empty(), (
             _NEG,
@@ -737,16 +781,20 @@ def _connective_rule(domain: Term, predicate: Term) -> str:
     raise KernelError("this boolean connective stays outside this rule")
 
 
-def _connective_shape(value: object) -> tuple[str, RealForm | None, tuple[RealForm, ...]]:
+def _connective_shape(
+    value: object,
+) -> tuple[str, RealForm | None, tuple[RealForm, ...], tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]]:
+    if isinstance(value, Cover):
+        return "cover", None, (), value.pieces
     if isinstance(value, Interval):
-        return value.kind, value.lower, (value.upper,)
+        return value.kind, value.lower, (value.upper,), ()
     if isinstance(value, SetTheorem):
-        return "finite", None, value.members
+        return "finite", None, value.members, ()
     if isinstance(value, CollectForm):
         ray = classify(value)
         if ray is None:
             raise NotExact(_OUTSIDE)
-        return ray.kind, ray.bound, ()
+        return ray.kind, ray.bound, (), ()
     raise NotExact(_OUTSIDE)
 
 
@@ -757,10 +805,15 @@ def _connective_ok(theorem: ConnectiveTheorem) -> bool:
         return False
     try:
         value, _detail = _reduce_connective(theorem.binder, theorem.domain, theorem.predicate)
-        kind, bound, members = _connective_shape(value)
+        kind, bound, members, pieces = _connective_shape(value)
     except (NotExact, KernelError):
         return False
-    return kind == theorem.kind and bound == theorem.bound and members == theorem.members
+    return (
+        kind == theorem.kind
+        and bound == theorem.bound
+        and members == theorem.members
+        and pieces == theorem.pieces
+    )
 
 
 def _from_sup(term: Term) -> tuple[object, tuple[str, ...]] | None:
@@ -773,6 +826,8 @@ def _from_sup(term: Term) -> tuple[object, tuple[str, ...]] | None:
         return _ray_supremum(value), lines
     if isinstance(value, Interval):
         return _interval_supremum(value), lines
+    if isinstance(value, Cover):
+        return _cover_supremum(value), lines
     return None
 
 
@@ -1010,6 +1065,574 @@ def _from_union(term: Term) -> tuple[object, tuple[str, ...]] | None:
     return value, (*left_lines, *right_lines, *detail)
 
 
+def cover_value_rule(origin: Term, cover: Cover, prelude: tuple[str, ...] = ()) -> Rule:
+    shown = _cover_atom(cover)
+    detail = _cover_detail(cover)
+    lines = (*prelude, *detail)
+    title = pretty(origin)
+    return Rule(
+        id="math.cover",
+        layer="base",
+        stage="quantity",
+        title=f"{title} = {shown}",
+        produces=shown,
+        detail_lines=lines,
+    )
+
+
+def cover_sup_rule(origin: Term, theorem: CoverSupTheorem, prelude: tuple[str, ...] = ()) -> Rule:
+    lines = (*prelude, *theorem.detail)
+    return _quantity(origin, theorem.form, lines)
+
+
+def cover_member_rule(left: Term, right: Term, element, cover: Cover, prelude: tuple[str, ...] = ()) -> Rule:
+    from pgi.math.set import _element_parts
+    from pgi.model import Rule as _Rule
+
+    real_form, _real, _embedded = _element_parts(element)
+    holds = _in_cover(real_form, cover.pieces, _OPEN_SET)
+    detail = (
+        "Isabelle Un_iff: a real is in the union when it is in one side.",
+        f"{show_form(real_form)} {'lies in' if holds else 'lies in no piece of'} {_cover_atom(cover)}.",
+    )
+    CoverMemberTheorem(real_form, cover.pieces, holds, "Cover.member", detail)
+    atom_left = show_form(real_form)
+    atom_right = pretty(right)
+    if holds:
+        return _Rule(
+            id="math.member",
+            layer="base",
+            stage="quantity",
+            title=f"{pretty(left)} is a member of {pretty(right)}",
+            produces=f"member({atom_left},{atom_right})",
+            detail_lines=(*prelude, *detail),
+        )
+    return _Rule(
+        id="math.not_member",
+        layer="base",
+        stage="quantity",
+        title=f"{pretty(left)} is not a member of {pretty(right)}",
+        produces=f"not_member({atom_left},{atom_right})",
+        detail_lines=(*prelude, *detail),
+    )
+
+
+
+def interval_member_rule(left: Term, right: Term, element, interval: Interval, prelude: tuple[str, ...] = ()) -> Rule:
+    from pgi.math.set import _element_parts
+
+    real_form, _real, _embedded = _element_parts(element)
+    holds = _in_interval(interval.kind, interval.lower, interval.upper, real_form)
+    detail = (
+        *_interval_fact(interval),
+        f"{show_form(real_form)} {'lies in' if holds else 'does not lie in'} {_interval_atom(interval)}.",
+    )
+    atom_left = show_form(real_form)
+    atom_right = pretty(right)
+    if holds:
+        return Rule(
+            id="math.member",
+            layer="base",
+            stage="quantity",
+            title=f"{pretty(left)} is a member of {pretty(right)}",
+            produces=f"member({atom_left},{atom_right})",
+            detail_lines=(*prelude, *detail),
+        )
+    return Rule(
+        id="math.not_member",
+        layer="base",
+        stage="quantity",
+        title=f"{pretty(left)} is not a member of {pretty(right)}",
+        produces=f"not_member({atom_left},{atom_right})",
+        detail_lines=(*prelude, *detail),
+    )
+
+
+
+def _join_covers(left_value: object, right_value: object) -> tuple[object, tuple[str, ...]]:
+    pieces = _normalize_pieces((*_as_pieces(left_value), *_as_pieces(right_value)))
+    value = _from_pieces(pieces)
+    detail = (
+        "Isabelle Collect_disj_eq, or Un_iff: a real is in the union when it is in one side.",
+        "The two sides leave a gap, so the union is those admitted pieces in order.",
+        f"The union is {_pieces_atom(pieces)}.",
+    )
+    return value, detail
+
+
+def _meet_covers(left_value: object, right_value: object) -> tuple[object, tuple[str, ...]]:
+    collected: list[tuple[str, RealForm | None, tuple[RealForm, ...]]] = []
+    for left in _as_pieces(left_value):
+        for right in _as_pieces(right_value):
+            try:
+                kind, bound, members, _rule = _meet_result(left, right, _OPEN_SET)
+            except NotExact:
+                continue
+            if kind == "finite" and not members:
+                continue
+            collected.append((kind, bound, members))
+    pieces = _normalize_pieces(tuple(collected))
+    value = _from_pieces(pieces)
+    detail = (
+        "Isabelle Int_iff: a member of an intersection is a member of both sets.",
+        "Each piece of the first union is met with each piece of the second, and empty meets are dropped.",
+        f"The intersection is {_pieces_atom(pieces)}.",
+    )
+    return value, detail
+
+
+def _as_pieces(value: object) -> tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]:
+    if isinstance(value, Cover):
+        return value.pieces
+    if isinstance(value, SetTheorem):
+        if not value.members:
+            return ()
+        return (("finite", None, value.members),)
+    if isinstance(value, Interval):
+        return ((value.kind, value.lower, (value.upper,)),)
+    if isinstance(value, CollectForm):
+        ray = classify(value)
+        if ray is None:
+            raise NotExact(_OUTSIDE)
+        return ((ray.kind, ray.bound, ()),)
+    raise NotExact("union and intersection take sets")
+
+
+def _from_pieces(pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]) -> object:
+    if not pieces:
+        return set_empty()
+    if len(pieces) == 1:
+        kind, bound, members = pieces[0]
+        if kind == "finite":
+            return _finite_set(members)
+        if kind in _INTERVAL_KINDS:
+            if bound is None or len(members) != 1:
+                raise KernelError("an interval needs both bounds")
+            return Interval(kind, bound, members[0])
+        return _synthetic(kind, bound)
+    return Cover(pieces)
+
+
+def _normalize_pieces(
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...],
+) -> tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]:
+    intervals: list[tuple[str, RealForm | None, tuple[RealForm, ...]]] = []
+    points: list[RealForm] = []
+    for kind, bound, members in pieces:
+        if kind == "univ":
+            return (("univ", None, ()),)
+        if kind == "finite":
+            points.extend(members)
+            continue
+        intervals.append((kind, bound, members))
+    intervals = _merge_interval_list(intervals)
+    leftover: list[RealForm] = []
+    for point in _sorted_forms(points):
+        attached = False
+        next_intervals: list[tuple[str, RealForm | None, tuple[RealForm, ...]]] = []
+        index = 0
+        while index < len(intervals):
+            current = intervals[index]
+            if _in_piece(point, current, _OPEN_SET):
+                attached = True
+                next_intervals.extend(intervals[index:])
+                break
+            if index + 1 < len(intervals) and _point_fills(point, current, intervals[index + 1]):
+                merged = _merge_two_pieces(current, ("finite", None, (point,)))
+                merged = _merge_two_pieces(merged, intervals[index + 1])
+                next_intervals.append(merged)
+                next_intervals.extend(intervals[index + 2 :])
+                attached = True
+                break
+            closed = _close_with_point(current, point)
+            if closed is not None:
+                next_intervals.append(closed)
+                next_intervals.extend(intervals[index + 1 :])
+                attached = True
+                break
+            next_intervals.append(current)
+            index += 1
+        if attached:
+            intervals = _merge_interval_list(next_intervals)
+        else:
+            leftover.append(point)
+    grouped = _place_points(tuple(intervals), tuple(leftover))
+    return grouped
+
+
+def _merge_interval_list(
+    intervals: list[tuple[str, RealForm | None, tuple[RealForm, ...]]],
+) -> list[tuple[str, RealForm | None, tuple[RealForm, ...]]]:
+    if not intervals:
+        return []
+    ordered = list(intervals)
+    for index in range(len(ordered)):
+        least = index
+        for cursor in range(index + 1, len(ordered)):
+            left_low, _ = _piece_ends(ordered[cursor], _OPEN_SET)
+            right_low, _ = _piece_ends(ordered[least], _OPEN_SET)
+            if _lower_first(left_low, right_low, _OPEN_SET) and left_low != right_low:
+                least = cursor
+            elif left_low == right_low:
+                continue
+        ordered[index], ordered[least] = ordered[least], ordered[index]
+    merged: list[tuple[str, RealForm | None, tuple[RealForm, ...]]] = [ordered[0]]
+    for item in ordered[1:]:
+        previous = merged[-1]
+        if _pieces_connect(previous, item):
+            merged[-1] = _merge_two_pieces(previous, item)
+        else:
+            merged.append(item)
+    return merged
+
+
+def _place_points(
+    intervals: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...],
+    points: tuple[RealForm, ...],
+) -> tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]:
+    if not intervals:
+        if not points:
+            return ()
+        return (("finite", None, canonical(points)),)
+    placed: list[tuple[str, RealForm | None, tuple[RealForm, ...]]] = []
+    remaining = list(points)
+    for item in intervals:
+        before: list[RealForm] = []
+        later: list[RealForm] = []
+        low, _high = _piece_ends(item, _OPEN_SET)
+        for point in remaining:
+            if low[0] is not None and _direction(point, low[1], _OPEN_SET) == "lt":
+                before.append(point)
+            else:
+                later.append(point)
+        if before:
+            placed.append(("finite", None, canonical(tuple(before))))
+        placed.append(item)
+        remaining = later
+    if remaining:
+        placed.append(("finite", None, canonical(tuple(remaining))))
+    return tuple(placed)
+
+
+def _pieces_connect(
+    left: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    right: tuple[str, RealForm | None, tuple[RealForm, ...]],
+) -> bool:
+    if left[0] == "finite" or right[0] == "finite":
+        return False
+    left_low, left_high = _piece_ends(left, _OPEN_SET)
+    right_low, right_high = _piece_ends(right, _OPEN_SET)
+    if _lower_first(left_low, right_low, _OPEN_SET):
+        return _ends_connect(left_high, right_low, _OPEN_SET)
+    return _ends_connect(right_high, left_low, _OPEN_SET)
+
+
+def _merge_two_pieces(
+    left: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    right: tuple[str, RealForm | None, tuple[RealForm, ...]],
+) -> tuple[str, RealForm | None, tuple[RealForm, ...]]:
+    if left[0] == "finite" or right[0] == "finite":
+        raise KernelError("a finite piece does not merge as an interval")
+    low, high, _rule = _merged_ends(left, right, _OPEN_SET)
+    kind, bound, members = _from_ends(low, high, _OPEN_SET)
+    return kind, bound, members
+
+
+def _close_with_point(
+    piece: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    point: RealForm,
+) -> tuple[str, RealForm | None, tuple[RealForm, ...]] | None:
+    if piece[0] == "finite":
+        return None
+    low, high = _piece_ends(piece, _OPEN_SET)
+    if high[0] is True and high[1] is not None and _direction(point, high[1], _OPEN_SET) == "eq":
+        kind, bound, members = _from_ends(low, (False, high[1]), _OPEN_SET)
+        return kind, bound, members
+    if low[0] is True and low[1] is not None and _direction(point, low[1], _OPEN_SET) == "eq":
+        kind, bound, members = _from_ends((False, low[1]), high, _OPEN_SET)
+        return kind, bound, members
+    return None
+
+
+def _point_fills(
+    point: RealForm,
+    left: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    right: tuple[str, RealForm | None, tuple[RealForm, ...]],
+) -> bool:
+    if left[0] == "finite" or right[0] == "finite":
+        return False
+    _left_low, left_high = _piece_ends(left, _OPEN_SET)
+    right_low, _right_high = _piece_ends(right, _OPEN_SET)
+    if left_high[0] is None or right_low[0] is None:
+        return False
+    if _direction(left_high[1], right_low[1], _OPEN_SET) != "eq":
+        return False
+    if not (left_high[0] and right_low[0]):
+        return False
+    return _direction(point, left_high[1], _OPEN_SET) == "eq"
+
+
+def _piece_ends(
+    piece: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    message: str,
+) -> tuple[tuple[bool | None, RealForm | None], tuple[bool | None, RealForm | None]]:
+    kind, bound, members = piece
+    if kind == "finite":
+        if not members:
+            raise NotExact(message)
+        low = members[0]
+        high = members[0]
+        for item in members[1:]:
+            if _direction(item, low, message) == "lt":
+                low = item
+            if _direction(item, high, message) == "gt":
+                high = item
+        return (False, low), (False, high)
+    return _as_ends(kind, bound, members, message)
+
+
+def _piece_sort_key(piece: tuple[str, RealForm | None, tuple[RealForm, ...]]) -> tuple[int, str, str]:
+    low, _high = _piece_ends(piece, _OPEN_SET)
+    if low[0] is None:
+        return (0, "", "")
+    return (1, show_form(low[1]), "0" if not low[0] else "1")
+
+
+def _sorted_forms(forms: list[RealForm]) -> list[RealForm]:
+    unique: list[RealForm] = []
+    for item in forms:
+        if all(_direction(item, seen, _OPEN_SET) != "eq" for seen in unique):
+            unique.append(item)
+
+    def key(form: RealForm) -> tuple[int, str]:
+        return (0, show_form(form))
+
+    # sort by real order, not display
+    ordered = list(unique)
+    for index in range(len(ordered)):
+        least = index
+        for cursor in range(index + 1, len(ordered)):
+            if _direction(ordered[cursor], ordered[least], _OPEN_SET) == "lt":
+                least = cursor
+        ordered[index], ordered[least] = ordered[least], ordered[index]
+    return ordered
+
+
+def _in_piece(
+    form: RealForm,
+    piece: tuple[str, RealForm | None, tuple[RealForm, ...]],
+    message: str,
+) -> bool:
+    kind, bound, members = piece
+    if kind == "finite":
+        return any(_direction(form, item, message) == "eq" for item in members)
+    return _in_side(form, kind, bound, members, message)
+
+
+def _in_cover(
+    form: RealForm,
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...],
+    message: str,
+) -> bool:
+    return any(_in_piece(form, piece, message) for piece in pieces)
+
+
+def _cover_ok(pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]) -> bool:
+    if len(pieces) < 2:
+        return False
+    previous = None
+    for piece in pieces:
+        kind, bound, members = piece
+        if kind == "univ":
+            return False
+        if kind == "finite":
+            if not members or members != canonical(members) or not all(_canonical(item) for item in members):
+                return False
+        elif kind in _INTERVAL_KINDS:
+            if bound is None or len(members) != 1 or not _canonical(bound) or not _canonical(members[0]):
+                return False
+            if _direction(bound, members[0], _OPEN_SET) != "lt":
+                return False
+        elif kind in {"atMost", "atLeast", "lessThan", "greaterThan"}:
+            if bound is None or members or not _canonical(bound):
+                return False
+        else:
+            return False
+        if previous is not None:
+            if not _lower_first(_piece_ends(previous, _OPEN_SET)[0], _piece_ends(piece, _OPEN_SET)[0], _OPEN_SET):
+                return False
+            if _pieces_connect(previous, piece):
+                return False
+        previous = piece
+    return True
+
+
+def _cover_atom(cover: Cover) -> str:
+    return _pieces_atom(cover.pieces)
+
+
+def _pieces_atom(pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...]) -> str:
+    if not pieces:
+        return "set({})"
+    return " union ".join(_piece_atom(*piece) for piece in pieces)
+
+
+def _piece_atom(kind: str, bound: RealForm | None, members: tuple[RealForm, ...]) -> str:
+    if kind == "finite":
+        shown = ", ".join(show_form(item) for item in members)
+        return "set({" + shown + "})"
+    if kind == "univ":
+        return "univ"
+    if kind in _INTERVAL_KINDS:
+        return f"{kind}({show_form(bound)}, {show_form(members[0])})"
+    return f"{kind}({show_form(bound)})"
+
+
+def _cover_detail(cover: Cover) -> tuple[str, ...]:
+    return (
+        "Isabelle Un_iff: a real is in the union when it is in one side.",
+        "The pieces are disjoint admitted rays or intervals, stored in order from the left.",
+        f"The union is {_cover_atom(cover)}.",
+    )
+
+
+def _cover_supremum(cover: Cover) -> CoverSupTheorem:
+    form, rule, detail = _cover_sup_data(cover.pieces)
+    return CoverSupTheorem(form, cover.pieces, rule, detail)
+
+
+def _cover_sup_data(
+    pieces: tuple[tuple[str, RealForm | None, tuple[RealForm, ...]], ...],
+) -> tuple[RealForm, str, tuple[str, ...]]:
+    last = pieces[-1]
+    kind, bound, members = last
+    if kind in {"atLeast", "greaterThan", "univ"}:
+        raise NotExact(
+            f"{_UNBOUNDED}. The right-hand piece of this union is not bounded above. "
+            "Isabelle Un_iff puts a member of that piece in the union. complete_real assumes a set bounded above."
+        )
+    if kind == "finite":
+        form = members[-1]
+        for item in members:
+            if _direction(item, form, _OPEN_SET) == "gt":
+                form = item
+        detail = (
+            "Isabelle Un_iff: a real is in the union when it is in one side.",
+            "Every earlier piece lies to the left of this finite last piece.",
+            "Isabelle cSup_eq_Max: the least upper bound of a nonempty finite set is its maximum.",
+            f"The bound is {show_form(form)}.",
+        )
+        return form, "Cover.sup", detail
+    if kind == "atMost" or (kind in _INTERVAL_KINDS and kind not in _OPEN_UPPER):
+        form = bound if kind == "atMost" else members[0]
+        detail = (
+            "Isabelle Un_iff: a real is in the union when it is in one side.",
+            "Every earlier piece lies to the left of this last piece, so the least upper bound is the upper bound of that piece.",
+            "The last piece contains its upper bound, so cSup_eq_maximum applies to that piece.",
+            f"The bound is {show_form(form)}.",
+        )
+        return form, "Cover.sup", detail
+    form = bound if kind == "lessThan" else members[0]
+    detail = (
+        "Isabelle Un_iff: a real is in the union when it is in one side.",
+        "Every earlier piece lies to the left of this last piece, so the least upper bound is the open upper bound of that piece.",
+        *_bisect_detail(form),
+    )
+    return form, "Cover.bisect", detail
+
+
+def _cover_sup_ok(theorem: CoverSupTheorem) -> bool:
+    if not _canonical(theorem.form) or not _cover_ok(theorem.pieces):
+        return False
+    try:
+        form, rule, _detail = _cover_sup_data(theorem.pieces)
+    except (NotExact, KernelError):
+        return False
+    return form == theorem.form and rule == theorem.rule
+
+
+def _cover_member_ok(theorem: CoverMemberTheorem) -> bool:
+    if not _canonical(theorem.form) or not _cover_ok(theorem.pieces):
+        return False
+    try:
+        holds = _in_cover(theorem.form, theorem.pieces, _OPEN_SET)
+    except (NotExact, KernelError):
+        return False
+    return holds == theorem.holds and theorem.rule == "Cover.member"
+
+
+def _complement_finite(members: tuple[RealForm, ...]) -> tuple[object, tuple[str, ...]]:
+    if not members:
+        return _synthetic("univ", None), (
+            "Isabelle Compl_empty: - {} = UNIV.",
+            _DOUBLE,
+        )
+    points = _sorted_forms(list(members))
+    pieces: list[tuple[str, RealForm | None, tuple[RealForm, ...]]] = [("lessThan", points[0], ())]
+    for index in range(len(points) - 1):
+        left, right = points[index], points[index + 1]
+        if _direction(left, right, _OPEN_SET) != "lt":
+            raise KernelError("the finite members were not strictly increasing")
+        pieces.append(("greaterThanLessThan", left, (right,)))
+    pieces.append(("greaterThan", points[-1], ()))
+    value = _from_pieces(_normalize_pieces(tuple(pieces)))
+    detail = (
+        "Isabelle Collect_neg_eq: {x. not P x} = - {x. P x}.",
+        "Isabelle linorder_neq_iff: (x ≠ a) = (x < a ∨ a < x).",
+        "Isabelle Compl_insert: the complement of an insertion is the complement of the rest, punctured at the new point.",
+        f"The complement is {_pieces_atom(_as_pieces(value))}.",
+    )
+    return value, detail
+
+
+def _complement_piece(
+    piece: tuple[str, RealForm | None, tuple[RealForm, ...]],
+) -> tuple[object, tuple[str, ...]]:
+    kind, bound, members = piece
+    if kind == "finite":
+        return _complement_finite(members)
+    if kind in _COMPLEMENT:
+        opposite, line = _COMPLEMENT[kind]
+        return _synthetic(opposite, bound), (
+            "Isabelle Collect_neg_eq: {x. not P x} = - {x. P x}.",
+            line,
+            _DOUBLE,
+        )
+    if kind not in _INTERVAL_KINDS or bound is None or len(members) != 1:
+        raise NotExact(_OUTSIDE)
+    upper = members[0]
+    left_kind = "lessThan" if kind not in _OPEN_LOWER else "atMost"
+    right_kind = "greaterThan" if kind not in _OPEN_UPPER else "atLeast"
+    pieces = _normalize_pieces(((left_kind, bound, ()), (right_kind, upper, ())))
+    value = _from_pieces(pieces)
+    detail = (
+        "Isabelle Collect_neg_eq: {x. not P x} = - {x. P x}.",
+        "The complement of a two-sided interval is the down-ray strictly below the lower end, union the up-ray strictly above the upper end, with each end closed when that end of the interval was open.",
+        f"The complement is {_pieces_atom(pieces)}.",
+        _DOUBLE,
+    )
+    return value, detail
+
+
+def _complement_cover(cover: Cover) -> tuple[object, tuple[str, ...]]:
+    value: object | None = None
+    lines: tuple[str, ...] = (
+        "Isabelle Compl_Un: - (A ∪ B) = -A ∩ -B.",
+        "The complement of the union is the intersection of the complements of the pieces.",
+    )
+    for piece in cover.pieces:
+        complemented, extra = _complement_piece(piece)
+        lines = (*lines, *extra)
+        if value is None:
+            value = complemented
+        else:
+            value, meet_detail = _combine(value, complemented)
+            lines = (*lines, *meet_detail)
+    if value is None:
+        return set_empty(), lines
+    return value, lines
+
+
 def affine_verdict(binder: str, relation: str, left: Term, right: Term) -> tuple[str, RealForm | None] | None:
     if relation == "lt" and _is_binder(left, binder) and _is_binder(right, binder):
         return None
@@ -1151,9 +1774,14 @@ def _affine_lines(form: CollectForm) -> tuple[str, ...]:
 
 
 def _join(left_value: object, right_value: object) -> tuple[object, tuple[str, ...]]:
-    left = _meet_side(left_value)
-    right = _meet_side(right_value)
-    kind, bound, members, rule = _join_result(left, right, _OUTSIDE)
+    if isinstance(left_value, Cover) or isinstance(right_value, Cover):
+        return _join_covers(left_value, right_value)
+    try:
+        left = _meet_side(left_value)
+        right = _meet_side(right_value)
+        kind, bound, members, rule = _join_result(left, right, _OUTSIDE)
+    except NotExact:
+        return _join_covers(left_value, right_value)
     detail = _join_detail(rule, bound, members)
     RayJoinTheorem(
         left[0],
@@ -1400,10 +2028,12 @@ def _complement(value: object) -> tuple[object, tuple[str, ...]]:
             "Isabelle Compl_empty: - {} = UNIV.",
             _DOUBLE,
         )
+    if isinstance(value, Cover):
+        return _complement_cover(value)
     if isinstance(value, Interval):
-        raise NotExact(_OUTSIDE)
+        return _complement_piece((value.kind, value.lower, (value.upper,)))
     if isinstance(value, SetTheorem):
-        raise NotExact(_OUTSIDE)
+        return _complement_finite(value.members)
     if not isinstance(value, CollectForm):
         raise NotExact(_OUTSIDE)
     ray = classify(value)
@@ -1481,6 +2111,8 @@ def _join_detail(rule: str, bound: RealForm | None, members: tuple[RealForm, ...
 
 
 def _combine(left_value: object, right_value: object) -> tuple[object, tuple[str, ...]]:
+    if isinstance(left_value, Cover) or isinstance(right_value, Cover):
+        return _meet_covers(left_value, right_value)
     left = _meet_side(left_value)
     right = _meet_side(right_value)
     kind, bound, members, rule = _meet_result(left, right, _OPEN_SET)
