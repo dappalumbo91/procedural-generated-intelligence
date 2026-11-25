@@ -423,9 +423,17 @@ PSR J0740+6620: the Fonseca 2021 Shapiro-delay mass is `2.08^{+0.07}_{-0.07}` M_
 
 The tests are data-only. The nominal values are exact, and each sits inside the uncertainty of the estimate it was rounded from. B3's own rule holds: the nominal GM digits are where the TCB, TT, and TDB values agree. Bond and Joyce agree on the mass and on the radius. The four NICER intervals overlap. NSSDC's 3.8 cm/yr matches the LLR rate to its printed digit. This adds 33 records.
 
+### Nuclear and particle extras: light nuclei, neutron Q, pion, kaon, and muon lifetimes
+
+AME2020 now covers the stable nuclides from lithium to oxygen: ⁶Li, ⁷Li, ⁹Be, ¹⁰B, ¹¹B, ¹³C, ¹⁴N, ¹⁵N, ¹⁷O, and ¹⁸O, joining the ¹²C and ¹⁶O already present. Each has its atomic mass, mass excess, and binding energy per nucleon, copied unrounded from mass.mas20 at 1σ. The neutron row's beta-decay column gives Q_β− = `782.3470 ± 0.0004` keV. That is the energy the brief calls the decay endpoint. The record stores AME's Q as printed and does not compute an electron endpoint from it.
+
+The PDG 2026 lifetimes are stored as the summary table prints them. τ(π±) `(2.6033±0.0005)E-8` s and τ(π0) `(8.43±0.13)E-17` s. τ(K±) `(1.2380±0.0020)E-8` s, which is PDG's fit. τ(K_S) `(8.954±0.004)E-11` s, which assumes CPT. τ(K_L) `(5.116±0.021)E-8` s, also a fit. τ(μ) `(2.1969811±0.0000022)E-6` s. PDG's alternative entries (the average where the fit is shown, and the result without CPT) are named in notes but not stored. MuLan's own result is `2196980.3(2.2)` ps (1.0 ppm). Its abstract states no level, so the record says so.
+
+The tests are data-only. Each AME row's mass, excess, and A agree under AME's own definition Δ = (M − A)·u, using AME's u. ¹⁶O has the highest B/A among the light set and ⁶Li the lowest. The neutron Q equals Δ(n) − Δ(¹H) to its printed digit. The lifetimes order as π0 < K_S < K± < π± < K_L < μ. MuLan agrees with the PDG average. This adds 38 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.74.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.75.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

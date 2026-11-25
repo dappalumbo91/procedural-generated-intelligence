@@ -2238,7 +2238,62 @@ ASTROPHYSICS: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS
+_AME_LIGHT = (
+    # (sym, name, z, n, a, mass excess keV, unc, B/A keV, unc, atomic mass micro-u, unc), from mass_1.mas20.txt
+    ("li6", "lithium-6", 3, 3, 6, "14086.88044", "0.00144", "5332.3312", "0.0003", "6 015122.88742", "0.00155"),
+    ("li7", "lithium-7", 3, 4, 7, "14907.10463", "0.00419", "5606.4401", "0.0006", "7 016003.43426", "0.00450"),
+    ("be9", "beryllium-9", 4, 5, 9, "11348.451", "0.076", "6462.6693", "0.0085", "9 012183.062", "0.082"),
+    ("b10", "boron-10", 5, 5, 10, "12050.611", "0.015", "6475.0835", "0.0015", "10 012936.862", "0.016"),
+    ("b11", "boron-11", 5, 6, 11, "8667.708", "0.012", "6927.7323", "0.0011", "11 009305.166", "0.013"),
+    ("c13", "carbon-13", 6, 7, 13, "3125.00933", "0.00023", "7469.8495", "0.0002", "13 003354.83534", "0.00025"),
+    ("n14", "nitrogen-14", 7, 7, 14, "2863.41683", "0.00022", "7475.6148", "0.0002", "14 003074.00425", "0.00024"),
+    ("n15", "nitrogen-15", 7, 8, 15, "101.43809", "0.00058", "7699.4603", "0.0002", "15 000108.89827", "0.00062"),
+    ("o17", "oxygen-17", 8, 9, 17, "-808.76421", "0.00064", "7750.7291", "0.0002", "16 999131.75595", "0.00069"),
+    ("o18", "oxygen-18", 8, 10, 18, "-782.81634", "0.00064", "7767.0981", "0.0002", "17 999159.61214", "0.00069"),
+)
+
+
+def _ame_light(sym: str, name: str, z: int, n: int, a: int, dm: str, dmu: str, ba: str, bau: str, m: str, mu: str) -> tuple[Quantity, ...]:
+    label = sym[0].upper() + sym[1:].rstrip("0123456789")
+    tag = f"{a}{label}"
+    return (
+        _ame(f"ame2020.{sym}.atomic_mass", f"atomic mass of {name}", f"M({tag})", m, mu, "micro-u", z=z, n=n, a=a, phrases=(f"atomic mass of {name}",)),
+        _ame(f"ame2020.{sym}.mass_excess", f"mass excess of {name}", f"Delta({tag})", dm, dmu, "keV", z=z, n=n, a=a, phrases=(f"mass excess of {name}",)),
+        _ame(f"ame2020.{sym}.binding_per_nucleon", f"binding energy per nucleon of {name}", f"B/A({tag})", ba, bau, "keV", z=z, n=n, a=a,
+             phrases=(f"binding energy per nucleon of {name}", "binding energy per nucleon")),
+    )
+
+
+_PDG_LIFE_NOTE = "PDG 2026 summary-table value."
+_PDG_SF = "The PDG database stores a scale factor of {0} for this error."
+
+NUCLEAR_PARTICLE_B6: tuple[Quantity, ...] = tuple(q for row in _AME_LIGHT for q in _ame_light(*row)) + (
+    _q("ame2020.n.beta_decay_energy", "beta-decay energy of the free neutron", "Q_beta-(n)", "782.3470", "0.0004", "keV", kind="standard uncertainty",
+       source=AME2020_SOURCE, edition=AME2020_EDITION, url=AME2020_PAPER_II, retrieved_from=AME2020_FILE, keys=("ame2020", "neutron decay"),
+       phrases=("neutron beta decay", "neutron beta-decay energy", "neutron decay endpoint", "beta-decay endpoint"),
+       notes=("Read from the 'B- beta' column of the neutron row in mass.mas20: 782.3470 with uncertainty 0.0004 keV.", _AME_SIGMA,
+              "AME tabulates the beta-decay energy Q; the record stores that column and does not compute an electron endpoint from it.", _AME_FILE)),
+    _pdg("pdg2026.pi_plus_lifetime", "charged pion mean life", "tau_pi+-", "2.6033 e-8", "0.0005 e-8", "s", node="S008T", keys=("pion",), phrases=("pion lifetime", "charged pion lifetime", "pion mean life"),
+         notes=("Printed as (2.6033+-0.0005)E-8 s.", _PDG_LIFE_NOTE, _PDG_SF.format("1.174286"), _API_NOTE)),
+    _pdg("pdg2026.pi0_lifetime", "neutral pion mean life", "tau_pi0", "8.43 e-17", "0.13 e-17", "s", node="S009T", keys=("pion",), phrases=("pion lifetime", "neutral pion lifetime", "pi0 lifetime"),
+         notes=("Printed as (8.43+-0.13)E-17 s.", _PDG_LIFE_NOTE, _PDG_SF.format("1.245535"), _API_NOTE)),
+    _pdg("pdg2026.k_plus_lifetime", "charged kaon mean life", "tau_K+-", "1.2380 e-8", "0.0020 e-8", "s", node="S010T", keys=("kaon",), phrases=("kaon lifetime", "charged kaon lifetime", "kaon mean life"),
+         notes=("Printed as (1.2380+-0.0020)E-8 s, PDG's fit value. PDG's average, (1.2379+-0.0021)E-8 s, is in the database but not stored.", _PDG_SF.format("1.839949"), _API_NOTE)),
+    _pdg("pdg2026.k_short_lifetime", "K_S mean life, assuming CPT", "tau_KS", "8.954 e-11", "0.004 e-11", "s", node="S012T", keys=("kaon",), phrases=("kaon lifetime", "k short lifetime", "ks lifetime"),
+         notes=("Printed as (8.954+-0.004)E-11 s under 'Assuming CPT'. Without assuming CPT PDG prints (8.9564+-0.0033)E-11 s; that value is not stored.", _PDG_SF.format("1.122566"), _API_NOTE)),
+    _pdg("pdg2026.k_long_lifetime", "K_L mean life", "tau_KL", "5.116 e-8", "0.021 e-8", "s", node="S013T", keys=("kaon",), phrases=("kaon lifetime", "k long lifetime", "kl lifetime"),
+         notes=("Printed as (5.116+-0.021)E-8 s, PDG's fit value. PDG's average, (5.099+-0.021)E-8 s, is in the database but not stored.", _PDG_SF.format("1.067168"), _API_NOTE)),
+    _pdg("pdg2026.mu_lifetime", "muon mean life", "tau_mu", "2.1969811 e-6", "0.0000022 e-6", "s", node="S004T", keys=("muon",), phrases=("muon lifetime", "muon mean life"),
+         notes=("Printed as (2.1969811+-0.0000022)E-6 s. PDG lists MuLan (TISHCHENKO 2013) as (2.1969803+-0.0000021+-0.0000007) E-6 s and uses it in the average.", _API_NOTE)),
+    _q("mulan2013.mu_lifetime", "positive muon lifetime, MuLan", "tau_mu+", "2196980.3", "2.2", "ps", kind="uncertainty as printed, level not stated", printed="2196980.3(2.2)",
+       source="V. Tishchenko et al. (MuLan Collaboration), Detailed report of the MuLan measurement of the positive muon lifetime and determination of the Fermi constant, Phys. Rev. D 87, 052003 (2013), doi:10.1103/PhysRevD.87.052003, arXiv:1211.0960.",
+       edition="Phys. Rev. D 87 (2013)", url="https://doi.org/10.1103/PhysRevD.87.052003", retrieved_from="https://export.arxiv.org/api/query?id_list=1211.0960",
+       keys=("mulan", "muon"), phrases=("muon lifetime", "muon mean life", "mulan"),
+       notes=("Printed in the abstract as tau_mu(MuLan) = 2196980.3(2.2) ps (1.0 ppm).", "The abstract also gives G_F(MuLan) = 1.1663787(6) x 10^-5 GeV^-2; that is a derived quantity and is not stored here.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS
 
 

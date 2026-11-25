@@ -912,3 +912,11 @@ IAU 2015 B3 went in: eleven exact nominal constants and the best estimates behin
 The tests check B3's own rounding rules and that the independent measurements agree. That is 33 records, with no theory.
 
 `python -m unittest discover -s tests -v` finished 271 tests, 0 failures, about 156.02 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — nuclear and particle extras: AME2020 Li to O, neutron Q, pion, kaon, and muon lifetimes pgi-0.75.0
+
+AME2020 rows went in for ten more stable light nuclides, plus the neutron's beta-decay energy, 782.3470(4) keV. PDG 2026 gives the pion, kaon, and muon lifetimes as printed, with fit and average variants noted. MuLan is 2196980.3(2.2) ps.
+
+The tests check AME's own definitions (Δ = (M − A)u and Q = Δ(n) − Δ(1H)), the B/A extremes, the lifetime ordering, and MuLan against PDG. That is 38 records.
+
+`python -m unittest discover -s tests -v` finished 275 tests, 0 failures, about 132.12 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -1025,6 +1025,46 @@ class AstrophysicsTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class NuclearParticleBatchSixTests(unittest.TestCase):
+    LIGHT = ("li6", "li7", "be9", "b10", "b11", "c13", "n14", "n15", "o17", "o18")
+
+    def test_light_nuclei_rows_are_complete_and_consistent_with_their_mass_numbers(self) -> None:
+        for sym in self.LIGHT:
+            mass = quantity(f"ame2020.{sym}.atomic_mass")
+            a = int("".join(ch for ch in sym if ch.isdigit()))
+            self.assertLess(abs(mass.value / 10**6 - a), Fraction(1, 50), sym)
+            # AME's mass excess is M - A u; both columns are in the same file row, so they must agree to the file's own precision.
+            excess = quantity(f"ame2020.{sym}.mass_excess")
+            u_kev = quantity("ame2020.u_kev")
+            offset = mass.value / 10**6 - a
+            allowance = excess.uncertainty + mass.uncertainty / 10**6 * u_kev.value + abs(offset) * u_kev.uncertainty
+            self.assertLessEqual(abs(offset * u_kev.value - excess.value), allowance, sym)
+        binding = {sym: quantity(f"ame2020.{sym}.binding_per_nucleon").value for sym in self.LIGHT + ("o16",)}
+        self.assertEqual(max(binding, key=binding.get), "o16")
+        self.assertEqual(min(binding, key=binding.get), "li6")
+
+    def test_neutron_beta_energy_is_the_mass_excess_difference(self) -> None:
+        # AME defines Q(beta-) as the atomic mass difference, so the column must equal Delta(n) - Delta(1H) to its printed precision.
+        q = quantity("ame2020.n.beta_decay_energy")
+        gap = quantity("ame2020.n.mass_excess").value - quantity("ame2020.h1.mass_excess").value
+        self.assertLessEqual(abs(gap - q.value), q.uncertainty)
+
+    def test_lifetimes(self) -> None:
+        order = ["pi0", "k_short", "k_plus", "pi_plus", "k_long", "mu"]
+        values = [quantity(f"pdg2026.{name}_lifetime").value for name in order]
+        self.assertEqual(values, sorted(values))
+        mulan, pdg = quantity("mulan2013.mu_lifetime"), quantity("pdg2026.mu_lifetime")
+        self.assertEqual(mulan.unit, "ps")
+        gap = mulan.value * Fraction(1, 10**12) - pdg.value
+        self.assertLess(gap**2, (mulan.uncertainty * Fraction(1, 10**12)) ** 2 + pdg.uncertainty**2)
+
+    def test_nuclear_particle_asks_link(self) -> None:
+        session = unfold(Request(ask="what is the kaon lifetime", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"pdg2026.k_plus_lifetime", "pdg2026.k_short_lifetime", "pdg2026.k_long_lifetime"} <= linked)
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
