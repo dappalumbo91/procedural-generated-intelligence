@@ -478,7 +478,9 @@ def _irreducible(poly: Poly) -> bool:
     if n <= 3:
         return True
     if n > POLY_DEGREE_LIMIT:
-        return False
+        from pgi.math.algfield import _is_proved_irreducible
+
+        return _is_proved_irreducible(poly)
     return not _kronecker_factors(poly, n // 2)
 
 
@@ -495,7 +497,9 @@ def factor_square_free(poly: Poly) -> tuple[Poly, ...]:
         # Could not split, even though a rational-root-free cubic is irreducible.
         if degree(poly) <= 3:
             return (poly,)
-        raise NotExact("this polynomial stays outside this rule")
+        from pgi.math.algfield import factor_primitive_square_free
+
+        return factor_primitive_square_free(poly)
     factor = factors[0]
     rest = _quo_int(poly, factor)
     return tuple((*factor_square_free(factor), *factor_square_free(rest)))
@@ -513,7 +517,7 @@ def _sturm_chain(poly: Poly) -> tuple[RatPoly, ...]:
         if rem == (_ZERO,):
             break
         chain.append(tuple(_qneg(coeff) for coeff in rem))
-        if len(chain) > POLY_DEGREE_LIMIT + 4:
+        if len(chain) > max(POLY_DEGREE_LIMIT + 4, degree(poly) + 4):
             raise NotExact("this polynomial stays outside this rule")
     # drop a trailing zero if present
     if chain[-1] == (_ZERO,):
@@ -736,7 +740,7 @@ def _algebraic_ok(number: AlgebraicReal) -> bool:
         return False
     if degree(poly) < 2:
         return False
-    if degree(poly) > POLY_DEGREE_LIMIT:
+    if degree(poly) > 64:
         return False
     if not _irreducible(poly):
         return False

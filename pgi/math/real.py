@@ -6968,7 +6968,7 @@ def _enclose(form: RealForm, depth: int) -> tuple[Ratio, Ratio]:
         )
         lower, upper = _absorb(lower, upper, coeff, left, right)
     for coeff, coeffs, index in form.algebras:
-        left, right = _algebra_bounds(coeffs, index)
+        left, right = _algebra_bounds(coeffs, index, depth)
         lower, upper = _absorb(lower, upper, coeff, left, right)
     if _qcmp(lower, upper) > 0:
         raise KernelError("enclosure crossed itself")
@@ -7335,10 +7335,12 @@ def _algebra_piece(coeff: Ratio, coeffs: tuple[int, ...], index: int) -> tuple[s
     return _scaled_piece(show_algebraic(AlgebraicReal(coeffs, index)), coeff)
 
 
-def _algebra_bounds(coeffs: tuple[int, ...], index: int) -> tuple[Ratio, Ratio]:
+def _algebra_bounds(coeffs: tuple[int, ...], index: int, depth: int = 8) -> tuple[Ratio, Ratio]:
     from pgi.math.algebraic import AlgebraicReal
+    from pgi.math.algfield import refine_interval
 
-    return AlgebraicReal(coeffs, index).interval
+    low, high = AlgebraicReal(coeffs, index).interval
+    return refine_interval(coeffs, low, high, max(8, depth))
 
 
 def _compare_algebras(left: RealForm, right: RealForm) -> str:
@@ -7455,6 +7457,127 @@ def real_of_algebraic(term: Term) -> RealTheorem:
             "A Sturm sequence isolates that unique root in a rational interval, and the index is the place of the root among the real roots, ordered increasingly.",
         ),
     )
+
+
+
+def algebraic_of_form(form: RealForm):
+    """This normal form as a rational or a checked real algebraic number."""
+
+    from pgi.math.algfield import (
+        Alg,
+        algebraic_add,
+        algebraic_nth_root,
+        algebraic_scale,
+        algebraic_sqrt,
+        algebraic_neg,
+    )
+    from pgi.math.algebraic import AlgebraicReal
+
+    if _is_rational(form):
+        return form.constant
+
+    acc: Alg | None = None
+
+    def add(piece) -> None:
+        nonlocal acc
+        acc = piece if acc is None else algebraic_add(acc, piece)
+
+    def ratio_of(value: int | Ratio) -> Ratio:
+        return value if isinstance(value, Ratio) else _ratio(value, 1)
+
+    if form.constant.num != 0:
+        add(form.constant)
+    for coeff, rad in form.terms:
+        add(algebraic_scale(algebraic_sqrt(ratio_of(rad)), coeff))
+    for coeff, base, numer, log_den in form.towers:
+        radicand = ratio_of(base ** numer)
+        root = algebraic_nth_root(radicand, 1 << log_den, True)
+        add(algebraic_scale(root, coeff))
+    for coeff, constant, sqrt_coeff, rad in form.nests:
+        inner = algebraic_add(ratio_of(constant), algebraic_scale(algebraic_sqrt(ratio_of(rad)), ratio_of(sqrt_coeff)))
+        add(algebraic_scale(algebraic_sqrt(inner), coeff))
+    for coeff, left_c, left_r, right_c, right_r in form.pairs:
+        inner = algebraic_add(
+            algebraic_scale(algebraic_sqrt(ratio_of(left_r)), ratio_of(left_c)),
+            algebraic_scale(algebraic_sqrt(ratio_of(right_r)), ratio_of(right_c)),
+        )
+        add(algebraic_scale(algebraic_sqrt(inner), coeff))
+    for coeff, mult, constant, sqrt_coeff, rad in form.deeps:
+        inner = algebraic_add(ratio_of(constant), algebraic_scale(algebraic_sqrt(ratio_of(rad)), ratio_of(sqrt_coeff)))
+        add(algebraic_scale(algebraic_sqrt(algebraic_scale(inner, ratio_of(mult))), coeff))
+    for coeff, mult, left_c, left_r, right_c, right_r in form.highs:
+        inner = algebraic_add(
+            algebraic_scale(algebraic_sqrt(ratio_of(left_r)), ratio_of(left_c)),
+            algebraic_scale(algebraic_sqrt(ratio_of(right_r)), ratio_of(right_c)),
+        )
+        add(algebraic_scale(algebraic_sqrt(algebraic_scale(algebraic_sqrt(inner), ratio_of(mult))), coeff))
+    for coeff, pmult, hmult, left_c, left_r, right_c, right_r in form.peaks:
+        inner = algebraic_add(
+            algebraic_scale(algebraic_sqrt(ratio_of(left_r)), ratio_of(left_c)),
+            algebraic_scale(algebraic_sqrt(ratio_of(right_r)), ratio_of(right_c)),
+        )
+        body = algebraic_sqrt(inner)
+        body = algebraic_sqrt(algebraic_scale(body, ratio_of(hmult)))
+        body = algebraic_sqrt(algebraic_scale(body, ratio_of(pmult)))
+        add(algebraic_scale(body, coeff))
+    for coeff, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.crests:
+        inner = algebraic_add(
+            algebraic_scale(algebraic_sqrt(ratio_of(left_r)), ratio_of(left_c)),
+            algebraic_scale(algebraic_sqrt(ratio_of(right_r)), ratio_of(right_c)),
+        )
+        body = algebraic_sqrt(inner)
+        body = algebraic_sqrt(algebraic_scale(body, ratio_of(hmult)))
+        body = algebraic_sqrt(algebraic_scale(body, ratio_of(pmult)))
+        body = algebraic_sqrt(algebraic_scale(body, ratio_of(qmult)))
+        add(algebraic_scale(body, coeff))
+    for coeff, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.summits:
+        inner = algebraic_add(
+            algebraic_scale(algebraic_sqrt(ratio_of(left_r)), ratio_of(left_c)),
+            algebraic_scale(algebraic_sqrt(ratio_of(right_r)), ratio_of(right_c)),
+        )
+        body = algebraic_sqrt(inner)
+        for mult in (hmult, pmult, qmult, smult):
+            body = algebraic_sqrt(algebraic_scale(body, ratio_of(mult)))
+        add(algebraic_scale(body, coeff))
+    for coeff, amult, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.apexes:
+        inner = algebraic_add(
+            algebraic_scale(algebraic_sqrt(ratio_of(left_r)), ratio_of(left_c)),
+            algebraic_scale(algebraic_sqrt(ratio_of(right_r)), ratio_of(right_c)),
+        )
+        body = algebraic_sqrt(inner)
+        for mult in (hmult, pmult, qmult, smult, amult):
+            body = algebraic_sqrt(algebraic_scale(body, ratio_of(mult)))
+        add(algebraic_scale(body, coeff))
+    for coeff, extra, amult, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r in form.shells:
+        inner = algebraic_add(
+            algebraic_scale(algebraic_sqrt(ratio_of(left_r)), ratio_of(left_c)),
+            algebraic_scale(algebraic_sqrt(ratio_of(right_r)), ratio_of(right_c)),
+        )
+        body = algebraic_sqrt(inner)
+        for mult in (hmult, pmult, qmult, smult, amult, *extra):
+            body = algebraic_sqrt(algebraic_scale(body, ratio_of(mult)))
+        add(algebraic_scale(body, coeff))
+    for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds:
+        inner = algebraic_add(ratio_of(constant), algebraic_scale(algebraic_sqrt(ratio_of(rad)), ratio_of(sqrt_coeff)))
+        body = algebraic_sqrt(algebraic_scale(inner, ratio_of(mult)))
+        for item in extra:
+            body = algebraic_sqrt(algebraic_scale(body, ratio_of(item)))
+        add(algebraic_scale(body, coeff))
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        # coeff * sqrt(constant + first_coeff * sqrt(first) + second_coeff * sqrt(second) + product_coeff * sqrt(first*second))
+        inner = ratio_of(constant)
+        inner = algebraic_add(inner, algebraic_scale(algebraic_sqrt(ratio_of(first)), ratio_of(first_coeff)))
+        inner = algebraic_add(inner, algebraic_scale(algebraic_sqrt(ratio_of(second)), ratio_of(second_coeff)))
+        inner = algebraic_add(inner, algebraic_scale(algebraic_sqrt(ratio_of(first * second)), ratio_of(product_coeff)))
+        add(algebraic_scale(algebraic_sqrt(inner), coeff))
+    for coeff, coeffs, index in form.algebras:
+        piece = AlgebraicReal(coeffs, index)
+        if coeff != _ratio(1, 1):
+            piece = algebraic_scale(piece, coeff)
+        add(piece)
+    if acc is None:
+        return _ratio(0, 1)
+    return acc
 
 
 def form_of_algebraic(coeffs: tuple[int, ...], index: int, coeff: Ratio | None = None) -> RealForm:

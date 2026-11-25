@@ -1093,9 +1093,43 @@ class ArbitrarySetTests(unittest.TestCase):
         self.assertEqual(irreducible.claims[0].atom, "set({root(x^3 + x + 1, 1)})")
         self.assertEqual(irreducible.open_gaps, ())
 
+
+
+    def test_algebraic_coefficient_sign_charts(self) -> None:
         unformable = run(Request(ask="what is {x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}", seed=1))
-        self.assertIn("this comprehension is not a finite enumeration", unformable.text(lod=1))
-        self.assertTrue(unformable.open_gaps)
+        self.assertEqual(
+            unformable.claims[0].atom,
+            "atLeastAtMost(root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 1), root(x^32 - 20 * x^24 - 666 * x^16 - 3860 * x^8 + 1, 4))",
+        )
+        self.assertEqual(unformable.open_gaps, ())
+
+        cubic = run(Request(ask="what is {x. x * x * x <= sqrt(2)}", seed=1))
+        self.assertEqual(cubic.claims[0].atom, "atMost(root(x^6 - 2, 2))")
+        self.assertEqual(cubic.open_gaps, ())
+
+        opened = run(Request(ask="what is {x. x * x * x < sqrt(2)}", seed=1))
+        self.assertEqual(opened.claims[0].atom, "lessThan(root(x^6 - 2, 2))")
+        self.assertEqual(opened.open_gaps, ())
+
+        above = run(Request(ask="what is {x. x * x * x >= sqrt(2)}", seed=1))
+        self.assertEqual(above.claims[0].atom, "atLeast(root(x^6 - 2, 2))")
+        self.assertEqual(above.open_gaps, ())
+
+        bound = run(Request(ask="what is sup {x. x * x * x <= sqrt(2)}", seed=1))
+        self.assertEqual(bound.claims[0].atom, "cauchy(root(x^6 - 2, 2))")
+        self.assertEqual(bound.open_gaps, ())
+
+        inside = run(Request(ask="prove 1 in {x. x * x * x <= sqrt(2)}", seed=1))
+        self.assertEqual(inside.claims[0].atom, "member(1,{x. x * x * x <= sqrt(2)})")
+        self.assertEqual(inside.open_gaps, ())
+
+        missed = run(Request(ask="prove 2 in {x. x * x * x <= sqrt(2)}", seed=1))
+        self.assertEqual(missed.claims[0].atom, "not_member(2,{x. x * x * x <= sqrt(2)})")
+        self.assertEqual(missed.open_gaps, ())
+
+        related = run(Request(ask="what is {x. (x * x - 2) * (x - sqrt(2)) <= 0}", seed=1))
+        self.assertEqual(related.claims[0].atom, "atMost(-sqrt(2)) union set({sqrt(2)})")
+        self.assertEqual(related.open_gaps, ())
 
     def test_ge_and_gt_rewrite_to_le_and_lt(self) -> None:
 

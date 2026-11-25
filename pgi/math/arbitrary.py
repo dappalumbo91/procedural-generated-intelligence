@@ -1716,8 +1716,11 @@ def _polynomial_set(
     if rat_coeffs is not None:
         return _rational_poly_set(rat_coeffs, relation)
     if len(coeffs) == 3:
-        return _quadratic_set(coeffs, relation)
-    raise NotExact(_NOT_FINITE)
+        try:
+            return _quadratic_set(coeffs, relation)
+        except NotExact:
+            pass
+    return _algebraic_poly_set(coeffs, relation)
 
 
 
@@ -1872,7 +1875,107 @@ def _form_interval(form: RealForm) -> tuple[Ratio, Ratio]:
     return _enclose(form, 8)
 
 
+
+def _algebraic_poly_set(
+    coeffs: tuple[RealForm, ...],
+    relation: str,
+) -> tuple[object, tuple[RealForm, ...], tuple[str, ...]]:
+    from pgi.math.algfield import is_root_of_poly, roots_of_algebraic_polynomial, sign_at_algebraic
+    from pgi.math.real import algebraic_of_form
+
+    if relation not in {"eq", "lt", "le"}:
+        raise NotExact(_NOT_FINITE)
+    alg_coeffs = tuple(algebraic_of_form(coeff) for coeff in coeffs)
+    found = roots_of_algebraic_polynomial(alg_coeffs)
+    converted: list[tuple[RealForm, int]] = []
+    for root, multiplicity in found:
+        from pgi.math.algebraic import AlgebraicReal
+        from pgi.math.rational import Ratio as Rat
+
+        if isinstance(root, Rat):
+            form = real_of_rat(root).form
+        elif isinstance(root, AlgebraicReal):
+            form = try_radical_form(root.coeffs, root.index)
+            if form is None:
+                form = form_of_algebraic(root.coeffs, root.index)
+        else:
+            raise KernelError("an unexpected root kind")
+        converted.append((form, multiplicity))
+    # Infer multiplicity parity from a sign chart of the original polynomial.
+    forms = [form for form, _mult in converted]
+    points = _sign_test_points(forms)
+    signs = [sign_at_algebraic(alg_coeffs, point) for point in points]
+    if any(sign == 0 for sign in signs):
+        raise KernelError("a sign-chart test point was a root")
+    if forms and len(signs) != len(forms) + 1:
+        raise KernelError("the sign chart was missing an interval")
+    adjusted: list[tuple[RealForm, int]] = []
+    if not forms:
+        adjusted = []
+    else:
+        for index, (form, _mult) in enumerate(converted):
+            left_sign, right_sign = signs[index], signs[index + 1]
+            if left_sign == right_sign:
+                adjusted.append((form, 2))
+            else:
+                adjusted.append((form, 1))
+    # Reuse the integer-chart builder by passing a dummy poly and pre-checked signs?
+    # Build the set directly from signs and forms.
+    value = _chart_from_signs(relation, adjusted, signs)
+    roots = tuple(form for form, _mult in adjusted)
+    shown_roots = ", ".join(show_form(form) for form in roots) if roots else "none"
+    detail = (
+        "The comparison is a polynomial in the binder, with algebraic coefficients.",
+        "A resultant (the norm, or a multiple of the norm) reduces the predicate to a rational polynomial.",
+        "A Sturm sequence isolates the candidate real roots. A candidate is kept only when it is checked to vanish in the original polynomial.",
+        "Isolating intervals are refined until every sign in the chart is certain.",
+        "When a root is an admitted radical, the radical form is kept after it is checked against the minimal polynomial.",
+        f"The real roots are {shown_roots}.",
+        f"The set is {_value_atom(value)}.",
+    )
+    return value, roots, detail
+
+
+def _chart_from_signs(
+    relation: str,
+    roots: list[tuple[RealForm, int]],
+    signs: list[int],
+) -> object:
+    if relation not in {"eq", "lt", "le"}:
+        raise NotExact(_NOT_FINITE)
+    forms = [form for form, _mult in roots]
+    if relation == "eq":
+        return _finite_set(tuple(forms)) if forms else set_empty()
+    if not forms:
+        positive = signs[0] > 0
+        return _constant_sign(relation, positive)
+    value: object | None = None
+    for index, sign in enumerate(signs):
+        if sign > 0:
+            continue
+        lower = None if index == 0 else forms[index - 1]
+        upper = None if index == len(forms) else forms[index]
+        closed = relation == "le"
+        piece = _chart_piece(lower, upper, closed)
+        value = piece if value is None else _join(value, piece)[0]
+    if relation == "le":
+        for index, (form, multiplicity) in enumerate(roots):
+            left_sign = signs[index]
+            right_sign = signs[index + 1]
+            if left_sign > 0 and right_sign > 0:
+                if multiplicity % 2 != 0:
+                    raise KernelError("an odd-multiplicity root did not change sign")
+                piece = _finite_set((form,))
+                value = piece if value is None else _join(value, piece)[0]
+            elif left_sign == right_sign and multiplicity % 2 != 0:
+                raise KernelError("an odd-multiplicity root did not change sign")
+            elif left_sign != right_sign and multiplicity % 2 == 0:
+                raise KernelError("an even-multiplicity root changed sign")
+    return value if value is not None else set_empty()
+
+
 def _quadratic_set(
+
     coeffs: tuple[RealForm, ...],
     relation: str,
 ) -> tuple[object, tuple[RealForm, ...], tuple[str, ...]]:
