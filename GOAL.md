@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.46.0`.
+Rule version `pgi-0.47.0`.
 
 In the kernel now:
 
@@ -99,7 +99,7 @@ Still outside the kernel, and required before a physical law can be written:
 - A set whose upper-bound predicate the kernel cannot decide. The bisection runs for a lessThan ray and for an interval whose upper end is open. An affine comparison in the binder is decided: `{x. x <= x + 1}` is UNIV and is not bounded above. A polynomial comparison, with rational or algebraic coefficients, is decided by a checked sign chart: `{x. x * x <= 2}` is atLeastAtMost(-sqrt(2), sqrt(2)) and its supremum is sqrt(2); `{x. x * x * x <= 2}` is atMost(root(x^3 - 2, 1)); `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}` is atLeastAtMost of the two real square roots of that radicand; `{x. x * x * x <= sqrt(2)}` is atMost(root(x^6 - 2, 2)). `>=` and `>` are rewritten to `<=` and `<` by flipping the sides. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A boolean connective whose sides the kernel can settle individually is composed: `{x. x * x <= 2 and 0 <= x}` is atLeastAtMost(0, sqrt(2)). A boolean connective whose sides the kernel cannot settle stays outside. A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring and checked by `real_sqrt_unique`. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A negative radicand stays open. Division by zero stays open.
 - Linear algebra, manifolds, differential geometry, Hilbert space, and gauge theory.
 - Any encoding of general relativity or the Standard Model.
-- CODATA recommended values, the Particle Data Group listings, gravitational-wave catalogs, and atomic-clock comparisons. They will enter as sourced anchors or bounds. They will not be typed in as theorems.
+- The Particle Data Group listings, gravitational-wave catalogs, and atomic-clock comparisons. They will enter as sourced anchors or bounds. They will not be typed in as theorems. The CODATA 2022 recommended values entered that way in `pgi-0.47.0`.
 - The Mercury perihelion residual, in arcseconds, once a sourced reduction is admitted. Newtonian gravity is the historical effective theory that left that residual. The number itself is not stored, because it has not been admitted as an observable.
 - A stored spectral formula for the Rayleigh–Jeans tail. The failure itself is on the board. The formula is not.
 
@@ -114,6 +114,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `obstruction.perturbative_einstein` | Obstruction | Goroff and Sagnotti: the S-matrix of pure Einstein gravity diverges at two loops in four dimensions. Perturbative Einstein-Hilbert quantum gravity is not an ultraviolet-complete source code. The result does not choose the replacement. |
 | `bound.sk_proton` | Experimental bound | Super-Kamiokande, Phys. Rev. D 102, 112011 (2020): in 450 kton·years from April 1996 to May 2018, no candidates for `p → e+ π0`, and `τ/B > 2.4 × 10^34` years at 90% CL. One `p → μ+ π0` candidate is consistent with atmospheric-neutrino background, with `τ/B > 1.6 × 10^34` years at 90% CL. A model whose predicted partial lifetime sits below the matching bound is blocked. No grand-unified lifetime is stored. The bound does not exclude every unified model. |
 | `anchor.c_si` | Definitional anchor | The BIPM definition of the metre fixes `c` at `299792458` m/s exactly. That is a unit definition. It is not a number this system derived. |
+| `codata2022.*` | Definitional and measured anchors | CODATA 2022: P. J. Mohr, D. B. Newell, B. N. Taylor, and E. Tiesinga, Rev. Mod. Phys. 97, 025002 (2025), as served by the NIST Reference on Constants on 2026-11-25, one NIST page per constant. The seven SI defining constants (`Δν_Cs`, `c`, `h`, `e`, `k`, `N_A`, `K_cd`) are exact rationals; `c` stays on the board as `anchor.c_si`. `G`, `α`, `1/α`, `m_e`, `m_p`, `m_n`, their MeV energy equivalents, `m_p/m_e`, `R_∞`, `a_0`, `μ_0`, `ε_0`, and `G_F` carry the standard uncertainty NIST quotes. Claiming to derive a defining constant contests the board. No constant is derived. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |
 | `known.rayleigh_jeans` | Known mistake | Classical equipartition does not give the blackbody spectrum. Rayleigh, Phil. Mag. 49 (1900) 539–540. Jeans, Phil. Mag. 10 (1905) 91–98, and Proc. R. Soc. A 76 (1905) 545–552: the equipartition law sends the energy into waves of infinitesimal wavelength and is not the radiation found in nature. No spectral formula is stored. |
 | `primitive.integer_ring` | Math primitive | The integer ring already checked in `pgi/math`. It is arithmetic, not a physical law. |

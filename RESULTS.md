@@ -212,9 +212,17 @@ A sign that an isolating enclosure cannot decide is settled by a Sturm or algebr
 
 A boolean connective whose sides the kernel can settle individually is composed by the Collect lemmas, rather than left outside. Each side is reduced first: a polynomial or algebraic-coefficient comparison becomes its checked sign chart, and a ray stays a ray. Conjunction is intersection, disjunction is union, negation is complement, and implication is rewritten to `not P or Q`. `{x. x * x <= 2 and 0 <= x}` is `atLeastAtMost(0, sqrt(2))`. `{x. not x * x <= 2}` is `lessThan(-sqrt(2)) union greaterThan(sqrt(2))`. `{x. x * x <= 2 or x * x * x <= 2}` is `atMost(sqrt(2))`. `{x. x * x <= 2 implies x <= 3}` is `univ`. `{x. x * x * x <= sqrt(2) and 0 <= x}` is `atLeastAtMost(0, root(x^6 - 2, 2))`. `sup {x. x * x <= 2 and 0 <= x}` is `cauchy(sqrt(2))`. A boolean connective whose sides the kernel cannot settle stays outside.
 
+### CODATA 2022 constants on the board
+
+The first sourced numbers are the CODATA 2022 recommended values, P. J. Mohr, D. B. Newell, B. N. Taylor, and E. Tiesinga, Rev. Mod. Phys. 97, 025002 (2025), as the NIST Reference on Constants served them on 2026-11-25. They live in `pgi/corpus/measured.py`. Each value is the text NIST prints, and the rational is parsed from that text. A value NIST prints with a trailing ellipsis, such as `hbar`, is refused by the parser and is not stored.
+
+The seven SI defining constants are exact rationals: `Δν_Cs = 9 192 631 770 Hz`, `c = 299 792 458 m s^-1`, `h = 6.626 070 15 e-34 J Hz^-1`, `e = 1.602 176 634 e-19 C`, `k = 1.380 649 e-23 J K^-1`, `N_A = 6.022 140 76 e23 mol^-1`, `K_cd = 683 lm W^-1`. The measured core set carries its standard uncertainty: `G = 6.674 30(15) e-11 m^3 kg^-1 s^-2`, `α = 7.297 352 5643(11) e-3`, `1/α = 137.035 999 177(21)`, `m_e = 9.109 383 7139(28) e-31 kg`, `m_p = 1.672 621 925 95(52) e-27 kg`, `m_n = 1.674 927 500 56(85) e-27 kg`, the three MeV energy equivalents, `m_p/m_e = 1836.152 673 426(32)`, `R_∞ = 10 973 731.568 157(12) m^-1`, `a_0 = 5.291 772 105 44(82) e-11 m`, `μ_0 = 1.256 637 061 27(20) e-6 N A^-2`, `ε_0 = 8.854 187 8188(14) e-12 F m^-1`, and `G_F/(ħc)^3 = 1.166 3787(6) e-5 GeV^-2`. That is 22 quantities and 21 new board records; `c` stays `anchor.c_si`.
+
+The tests check the stored numbers against each other in exact rational arithmetic, never against a number this system derived. `e^2/(2 ε_0 h c)` agrees with `α` inside the combined standard uncertainty. So do `2 α h/(e^2 c)` with `μ_0`, `μ_0 ε_0 c^2` with 1, `1/α` with the inverse, `α^2 m_e c/(2h)` with `R_∞`, `α/(4π R_∞)` with `a_0` at both ends of a Machin enclosure of π, `m_p/m_e` with the ratio, and each `m c^2/e` with its MeV equivalent. Moving `ε_0` by ten standard uncertainties fails the `α` check. Asserting `derived(codata2022.h)` contests the board.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.46.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.47.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -223,4 +231,4 @@ This list is the current state as of `pgi-0.46.0`. Earlier sections above are hi
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
 - Linear algebra, manifolds, differential geometry, Hilbert space, and gauge theory are still ahead of any physical law.
-- CODATA, the Particle Data Group, gravitational-wave catalogs, the Mercury residual in arcseconds, and a stored Rayleigh–Jeans formula are still not ingested.
+- The Particle Data Group, gravitational-wave catalogs, the Mercury residual in arcseconds, and a stored Rayleigh–Jeans formula are still not ingested. CODATA 2022 is on the board.

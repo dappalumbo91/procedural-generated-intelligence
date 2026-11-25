@@ -12,12 +12,15 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from pgi.corpus.measured import QUANTITIES, Quantity
+
 KINDS = frozenset(
     {
         "known_mistake",
         "obstruction",
         "experimental_bound",
         "definitional_anchor",
+        "measured_anchor",
         "open_problem",
         "effective_limit",
         "math_primitive",
@@ -30,6 +33,7 @@ _URL_KINDS = frozenset(
         "obstruction",
         "experimental_bound",
         "definitional_anchor",
+        "measured_anchor",
         "open_problem",
         "effective_limit",
     }
@@ -299,6 +303,43 @@ RECORDS: tuple[Record, ...] = (
         forbids=("law(an_order_ray_is_a_finite_enumeration)",),
     ),
 )
+
+
+def _quantity_statement(item: Quantity) -> tuple[str, ...]:
+    unit = f" {item.unit}" if item.unit else ""
+    lines = [f"{item.edition}: {item.name}, {item.symbol} = {item.value_text}{unit}."]
+    if item.exact:
+        lines.append("The value is exact. It is a definitional anchor. It is not a number derived by this system.")
+    elif item.lower_text:
+        lines.append(
+            f"The {item.uncertainty_kind} is +{item.uncertainty_text} -{item.lower_text}{unit}, as the source quotes it."
+        )
+        lines.append("The value is a measured anchor. It is data, not a number derived by this system.")
+    else:
+        lines.append(f"The {item.uncertainty_kind} is {item.uncertainty_text}{unit}, as the source quotes it.")
+        lines.append("The value is a measured anchor. It is data, not a number derived by this system.")
+    lines.extend(item.notes)
+    lines.append(f"Retrieved {item.retrieved} from {item.retrieved_from}.")
+    return tuple(lines)
+
+
+def _quantity_record(item: Quantity) -> Record:
+    unit = f" {item.unit}" if item.unit else ""
+    return Record(
+        id=item.id,
+        kind="definitional_anchor" if item.exact else "measured_anchor",
+        standing="anchor",
+        title=f"{item.edition}: {item.name} {item.value_text}{unit}",
+        keys=item.keys,
+        phrases=item.phrases,
+        statement=_quantity_statement(item),
+        source=f"{item.source} Edition: {item.edition}.",
+        url=item.url,
+        forbids=(f"derived({item.id})",) if item.exact else (),
+    )
+
+
+RECORDS = RECORDS + tuple(_quantity_record(item) for item in QUANTITIES if item.record)
 
 
 def audit_records(records: tuple[Record, ...] = RECORDS) -> None:

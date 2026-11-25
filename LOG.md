@@ -630,3 +630,15 @@ A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide
 The next work, in GOAL order, is linear algebra. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 131 tests, 0 failures, about 51.91 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — CODATA 2022 constants on the board pgi-0.47.0
+
+The first sourced numbers are on the board. `pgi/corpus/measured.py` holds the CODATA 2022 recommended values, P. J. Mohr, D. B. Newell, B. N. Taylor, and E. Tiesinga, Rev. Mod. Phys. 97, 025002 (2025), doi:10.1103/RevModPhys.97.025002, read from https://physics.nist.gov/cuu/Constants/Table/allascii.txt on 2026-11-25. Each record cites its own NIST page. Each value is the printed text, and the rational is parsed from it. A printed value that ends in an ellipsis is refused.
+
+The seven SI defining constants are exact rationals, and a claim to have derived one contests the board. `c` stays `anchor.c_si`. The measured set is `G`, `α`, `1/α`, `m_e`, `m_p`, `m_n`, their MeV equivalents, `m_p/m_e`, `R_∞`, `a_0`, `μ_0`, `ε_0`, and `G_F`, each with the standard uncertainty NIST quotes. The board kinds gain `measured_anchor`. That is 22 quantities and 21 new records.
+
+The stored numbers are checked against one another in exact rational arithmetic: `α` from `e`, `h`, `c`, and `ε_0`; `μ_0` from `α`; `μ_0 ε_0 c^2 = 1`; `1/α`; `R_∞` from `α`, `m_e`, `c`, and `h`; `a_0` from `α` and `R_∞` with a Machin enclosure of π; `m_p/m_e`; and the MeV equivalents. Each agrees inside the combined standard uncertainty. A planted ten-sigma shift in `ε_0` is caught. No relation is stored as a claim.
+
+The next slice is the Particle Data Group: the W, Z, Higgs, and top masses, the leptons, the light quarks as quoted, `α_s(M_Z)`, `G_F`, `sin^2 θ_W`, and the CKM fit.
+
+`python -m unittest discover -s tests -v` finished 144 tests, 0 failures, about 49.35 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
