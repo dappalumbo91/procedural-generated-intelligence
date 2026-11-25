@@ -859,3 +859,12 @@ Finite-dimensional inner product spaces over Q(i) and Q(√d, i) are exact. An i
 The next mathematics is gauge theory. Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 240 tests, 0 failures, about 65.27 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+## 2026-11-25 — su(2), su(3), and exact U(1) and SU(2) gauge checks pgi-0.69.0
+
+The su(2) generators are T_a = σ_a / 2 and satisfy [T_a, T_b] = i ε_abc T_c. The su(3) generators are T_a = λ_a / 2, and their Gell-Mann structure constants, including √3 / 2, are checked exactly. The Jacobi identity holds for both algebras. The Killing form agrees with 2n tr(T_a T_b): it is 2 δ_ab for su(2) and 3 δ_ab for su(3). `commutator(su2(x), su2(y))` is `i * su2(z)`, and `structure(su3, 4, 5, 8)` is `1/2 * sqrt(3)`.
+
+A U(1) field strength is F = ∂_x A_y − ∂_y A_x, with exact rational partials, and is invariant under A ↦ A + dλ. `fieldstrength(u1, x * y, x)` is `-x + 1`. An SU(2) field strength of constant components transforms as F ↦ U F U† for a special unitary U, and tr(F²) is invariant. A connection built as U dU† from a rational SU(2) rotation in x + y is pure gauge, and its field strength vanishes identically. An SU(3) gauge transformation on a connection stays open.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 246 tests, 0 failures, about 72.20 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

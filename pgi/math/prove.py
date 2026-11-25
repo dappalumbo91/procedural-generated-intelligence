@@ -30,6 +30,7 @@ from pgi.math.real import eval_real, real_equality_rules, real_order_rule, real_
 from pgi.math.matrix import eval_lin_result, has_matrix, lin_equality_rules, lin_value_rule
 from pgi.math.manifold import eval_man_result, has_manifold, man_equality_rules, man_value_rule, side_as_man_or_field
 from pgi.math.hilbert import eval_hilbert_result, has_hilbert, hilbert_equality_rules, hilbert_value_rule, side_as_hilbert
+from pgi.math.gauge import eval_gauge_result, has_gauge, gauge_equality_rules, gauge_value_rule, side_as_gauge
 from pgi.math.poly import eval_sym_result, has_symbolic, sym_equality_rules, sym_value_rule
 from pgi.math.quant import is_quantifier, quantifier_rules
 from pgi.math.set import (
@@ -88,6 +89,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return conflicts
         if _has_set(equation.left) or _has_set(equation.right):
             return _set_equation(equation, anchors)
+        if has_gauge(equation.left) or has_gauge(equation.right):
+            return _gauge_equation(equation, anchors)
         if has_hilbert(equation.left) or has_hilbert(equation.right):
             return _hilbert_equation(equation, anchors)
         if has_manifold(equation.left) or has_manifold(equation.right):
@@ -111,6 +114,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return conflicts
     if _has_set(term):
         return _set_value(term, anchors)
+    if has_gauge(term):
+        return _gauge_value(term, anchors)
     if has_hilbert(term):
         return _hilbert_value(term, anchors)
     if has_manifold(term):
@@ -413,6 +418,34 @@ def _real_order(body: str, anchors: dict[str, Theorem]) -> tuple[Rule, ...] | No
     except NotExact as exc:
         return (_note(str(exc)),)
     return (real_order_rule(left, right, left_real, right_real, (*left_closed[1], *right_closed[1])),)
+
+
+def _gauge_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    try:
+        result = eval_gauge_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (gauge_value_rule(term, result, prelude),)
+
+
+def _gauge_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left_sub = _substitute(equation.left, anchors)
+    right_sub = _substitute(equation.right, anchors)
+    left_body = left_sub.formula.right
+    right_body = right_sub.formula.right
+    prelude = (
+        *(trace(left_sub) if left_sub.rule != "Eq.refl" else ()),
+        *(trace(right_sub) if right_sub.rule != "Eq.refl" else ()),
+    )
+    try:
+        left_value = side_as_gauge(left_body)
+        right_value = side_as_gauge(right_body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return gauge_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
 
 
 def _hilbert_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:

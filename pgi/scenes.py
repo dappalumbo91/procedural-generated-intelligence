@@ -272,6 +272,12 @@ def demo_text() -> str:
         "=== a spin-1/2 inner product ===",
         unfold(Request(ask="what is inner(ket(plus), ket(minus))", lod=2, seed=1)).text(lod=2),
         "",
+        "=== su(2) commutation ===",
+        unfold(Request(ask="prove commutator(su2(x), su2(y)) = i * su2(z)", lod=2, seed=1)).text(lod=2),
+        "",
+        "=== a U(1) field strength ===",
+        unfold(Request(ask="what is fieldstrength(u1, x * y, x)", lod=2, seed=1)).text(lod=2),
+        "",
         "=== opera timing is linked, not settled ===",
         unfold(Request(ask="what happened with the opera neutrinos", seed=1)).text(lod=1),
     ]
