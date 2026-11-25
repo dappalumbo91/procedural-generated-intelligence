@@ -1484,9 +1484,44 @@ ATOMIC_SPECTROSCOPY: tuple[Quantity, ...] = (
        notes=("Printed in CODATA 2022 Table XIV as E_L^(exp)(mu H) = 202.3706(23) meV, relative standard uncertainty 1.1 x 10^-5. The Science abstract does not print the Lamb shift, and the paper body was not reachable, so the value is taken from CODATA's input table.",)),
 )
 
+_NUCLEAR = ("nuclear",)
+
+NUCLEAR_CODATA: tuple[Quantity, ...] = (
+    _q("codata2022.e_b_deuteron", "deuteron binding energy", "E_B(d)", "2224.566 40", "0.000 38", "keV",
+       kind="standard uncertainty", printed="2224.566 40(38)",
+       source=CODATA_2022_G_SOURCE.replace("Table XXX.", "Sec. II.B, text after Eq. (7)."), edition=CODATA_2022_EDITION,
+       url="https://doi.org/10.1103/RevModPhys.97.025002", retrieved_from="https://arxiv.org/abs/2409.03787",
+       keys=_NUCLEAR, phrases=("deuteron binding", "binding energy of the deuteron"),
+       notes=("Printed as 'We find E_B(d) = 2224.566 40(38) keV with a relative uncertainty of 1.7 x 10^-7.' It follows from the Kessler et al. (1999) neutron-capture gamma-ray wavelength, input datum D14. The NIST constants table has no separate entry for it.",)),
+    _codata("codata2022.m_d", "deuteron mass", "m_d", "3.343 583 7768 e-27", "0.000 000 0010 e-27", "kg", "md",
+            keys=_NUCLEAR, phrases=("deuteron mass",)),
+    _codata("codata2022.m_d_u", "deuteron mass in u", "m_d", "2.013 553 212 544", "0.000 000 000 015", "u", "mdu",
+            keys=_NUCLEAR, phrases=("deuteron mass",)),
+    _codata("codata2022.m_d_c2_mev", "deuteron mass energy equivalent in MeV", "m_d c^2", "1875.612 945 00", "0.000 000 58", "MeV", "mdc2mev",
+            keys=_NUCLEAR, phrases=("deuteron mass",)),
+    _codata("codata2022.m_alpha", "alpha particle mass", "m_alpha", "6.644 657 3450 e-27", "0.000 000 0021 e-27", "kg", "mal",
+            keys=_NUCLEAR, phrases=("alpha particle mass", "alpha-particle mass", "helium-4 nucleus")),
+    _codata("codata2022.m_alpha_u", "alpha particle mass in u", "m_alpha", "4.001 506 179 129", "0.000 000 000 062", "u", "malu",
+            keys=_NUCLEAR, phrases=("alpha particle mass", "alpha-particle mass", "helium-4 nucleus")),
+    _codata("codata2022.m_alpha_c2_mev", "alpha particle mass energy equivalent in MeV", "m_alpha c^2", "3727.379 4118", "0.000 0012", "MeV", "malc2mev",
+            keys=_NUCLEAR, phrases=("alpha particle mass", "alpha-particle mass", "helium-4 nucleus")),
+    _codata("codata2022.mu_n_nuclear", "nuclear magneton", "mu_N", "5.050 783 7393 e-27", "0.000 000 0016 e-27", "J T^-1", "mun",
+            keys=("magneton",), phrases=("nuclear magneton",)),
+    _codata("codata2022.mu_p", "proton magnetic moment", "mu_p", "1.410 606 795 45 e-26", "0.000 000 000 60 e-26", "J T^-1", "mup",
+            keys=_NUCLEAR, phrases=("proton magnetic moment", "magnetic moment of the proton", "nucleon magnetic moment")),
+    _codata("codata2022.mu_n", "neutron magnetic moment", "mu_n", "-9.662 3653 e-27", "0.000 0023 e-27", "J T^-1", "munn",
+            keys=_NUCLEAR, phrases=("neutron magnetic moment", "magnetic moment of the neutron", "nucleon magnetic moment")),
+    _codata("codata2022.mu_p_over_mu_n_nuclear", "proton magnetic moment to nuclear magneton ratio", "mu_p/mu_N", "2.792 847 344 63", "0.000 000 000 82", "", "mupsmun",
+            keys=_NUCLEAR, phrases=("proton magnetic moment", "nucleon magnetic moment")),
+    _codata("codata2022.mu_n_over_mu_n_nuclear", "neutron magnetic moment to nuclear magneton ratio", "mu_n/mu_N", "-1.913 042 76", "0.000 000 45", "", "munsmun",
+            keys=_NUCLEAR, phrases=("neutron magnetic moment", "nucleon magnetic moment")),
+    _codata("codata2022.mu_n_over_mu_p", "neutron-proton magnetic moment ratio", "mu_n/mu_p", "-0.684 979 35", "0.000 000 16", "", "munsmup",
+            keys=_NUCLEAR, phrases=("neutron magnetic moment", "proton magnetic moment", "nucleon magnetic moment")),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS + GRAVITY_TESTS + ATOMIC_SPECTROSCOPY
+    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS + GRAVITY_TESTS + ATOMIC_SPECTROSCOPY + NUCLEAR_CODATA
 )
 
 

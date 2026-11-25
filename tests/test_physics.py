@@ -691,6 +691,55 @@ class AtomicSpectroscopyTests(unittest.TestCase):
             self.assertEqual(session.retracted, ())
 
 
+class NuclearCodataTests(unittest.TestCase):
+    def test_deuteron_binding_from_masses_and_ame(self) -> None:
+        binding = quantity("codata2022.e_b_deuteron")
+        self.assertEqual(parse_concise(binding.printed), (binding.value, binding.uncertainty))
+        n, p, d = quantity("codata2022.m_n_c2_mev"), quantity("codata2022.m_p_c2_mev"), quantity("codata2022.m_d_c2_mev")
+        from_masses = (n.value + p.value - d.value) * 1000
+        sigma2 = (n.uncertainty**2 + p.uncertainty**2 + d.uncertainty**2) * 10**6
+        self.assertLessEqual((from_masses - binding.value) ** 2, sigma2 + binding.uncertainty**2)
+        ame = quantity("ame2020.h2.binding_per_nucleon")
+        self.assertLessEqual((2 * ame.value - binding.value) ** 2, (2 * ame.uncertainty) ** 2 + binding.uncertainty**2)
+
+    def test_alpha_mass_units_agree_and_match_ame_helium_4(self) -> None:
+        kg, u, mev = quantity("codata2022.m_alpha"), quantity("codata2022.m_alpha_u"), quantity("codata2022.m_alpha_c2_mev")
+        c, e = quantity("codata2022.c").value, quantity("codata2022.e").value
+        from_kg = kg.value * c**2 / e / 10**6
+        self.assertLessEqual((from_kg - mev.value) ** 2, mev.uncertainty**2 + (kg.uncertainty * c**2 / e / 10**6) ** 2)
+        # AME2020's u in keV is the CODATA 2018 conversion; against CODATA 2022 it reads about 5 eV low for the alpha.
+        u_kev = quantity("ame2020.u_kev")
+        from_u = u.value * u_kev.value / 1000
+        self.assertGreater((mev.value - from_u) ** 2, 9 * (mev.uncertainty**2 + (u.value * u_kev.uncertainty / 1000) ** 2))
+        # Atom = nucleus + 2 electrons - electron binding; the binding is He I plus a hydrogen-like He II.
+        m_e_u = quantity("codata2022.m_e").value * u.value / kg.value
+        atom = quantity("ame2020.he4.atomic_mass")
+        binding_ev = (u.value + 2 * m_e_u - atom.value / 10**6) * u_kev.value * 1000
+        expected = quantity("asd512.ie.he").value + 4 * quantity("codata2022.ryd_hc_ev").value
+        atom_sigma_ev = atom.uncertainty / 10**6 * u_kev.value * 1000
+        self.assertLessEqual(abs(binding_ev - expected), 3 * atom_sigma_ev)
+        self.assertTrue(78 < binding_ev < 80)
+
+    def test_magnetic_moments_are_consistent(self) -> None:
+        mu_p, mu_n, mu_nuc = quantity("codata2022.mu_p"), quantity("codata2022.mu_n"), quantity("codata2022.mu_n_nuclear")
+        p_ratio, n_ratio = quantity("codata2022.mu_p_over_mu_n_nuclear"), quantity("codata2022.mu_n_over_mu_n_nuclear")
+        ratio = quantity("codata2022.mu_n_over_mu_p")
+        self.assertGreater(mu_p.value, 0)
+        self.assertLess(mu_n.value, 0)
+        self.assertLessEqual((p_ratio.value * mu_nuc.value - mu_p.value) ** 2, mu_p.uncertainty**2)
+        self.assertLessEqual((n_ratio.value * mu_nuc.value - mu_n.value) ** 2, mu_n.uncertainty**2)
+        self.assertLessEqual((n_ratio.value / p_ratio.value - ratio.value) ** 2, ratio.uncertainty**2)
+        self.assertLessEqual((mu_n.value / mu_p.value - ratio.value) ** 2, ratio.uncertainty**2)
+        # Both moments are far from the Dirac values 1 and 0.
+        self.assertGreater(p_ratio.value - 1, Fraction(17, 10))
+
+    def test_nucleon_moment_ask_links(self) -> None:
+        session = unfold(Request(ask="nucleon magnetic moment", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertEqual(linked, {"codata2022.mu_p", "codata2022.mu_n", "codata2022.mu_p_over_mu_n_nuclear", "codata2022.mu_n_over_mu_n_nuclear", "codata2022.mu_n_over_mu_p"})
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

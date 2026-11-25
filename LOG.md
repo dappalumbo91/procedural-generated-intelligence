@@ -822,3 +822,13 @@ Hydrogen spectroscopy is on the board. 1S–2S, Parthey et al. 2011, arXiv:1107.
 That is 13 new records. The next slice is nuclear.
 
 `python -m unittest discover -s tests -v` finished 219 tests, 0 failures, about 54.55 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — nuclear constants: deuteron binding, alpha mass, nucleon moments pgi-0.65.0
+
+The nuclear constants are on the board from CODATA 2022. The deuteron binding energy `2224.566 40(38)` keV is taken from the paper's Sec. II.B, because the NIST table does not list it. The deuteron and alpha-particle masses are stored in kg, u, and MeV. The nuclear magneton, μ_p and μ_n in J/T and in nuclear magnetons, and CODATA's μ_n/μ_p ratio are stored too. All are 1σ.
+
+The tests close the loops. The CODATA masses give the binding energy, and AME2020's ²H binding per nucleon agrees. The alpha kg-to-MeV conversion holds with the exact c and e. AME2020's u-to-keV factor is CODATA 2018's, which puts the alpha about 5 eV low against CODATA 2022, and a test pins that gap. AME ⁴He minus the alpha and two electrons gives 79 eV, which matches ASD He I plus 4 Ry. The moment ratios multiply out.
+
+That is 13 new records. The next slice is Stefan–Boltzmann and Wien.
+
+`python -m unittest discover -s tests -v` finished 223 tests, 0 failures, about 65.68 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

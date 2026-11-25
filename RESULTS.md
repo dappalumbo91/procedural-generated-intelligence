@@ -330,9 +330,17 @@ Muonic hydrogen comes from Antognini et al., Science 339, 417 (2013), via the Pu
 
 The tests check the following. Parthey and Matveev differ by 17 Hz, inside 2σ combined. The 1S–2S frequency over `(3/4) R∞ c` with the reduced mass sits between α³ and α² of 1. York and Harvard agree within 2σ but not 1σ. `c/ν_H` is between 21.10 and 21.11 cm. The H-alpha blend and its Ritz value agree. The strongest component is within 3 printed uncertainties of the blend, and the reduced-mass Balmer wavelength in vacuum is longer than the air Ritz value by less than 0.2 nm. The muonic `r_E` agrees with CODATA 2022 `r_p` and with PDG 2026, and with York's `0.833 ± 0.010` fm. The muonic and H-alpha asks link exactly their records. That is 13 new records.
 
+### Nuclear constants: deuteron binding, alpha-particle mass, nucleon magnetic moments
+
+The nuclear constants come from CODATA 2022 as measured anchors. All are 1σ and served by the NIST constants table, except one: the deuteron binding energy has no table entry. It is printed in the CODATA 2022 paper, Sec. II.B, as `E_B(d) = 2224.566 40(38)` keV, from the Kessler et al. (1999) neutron-capture gamma-ray wavelength, and it is cited to that sentence.
+
+The deuteron mass is stored in kg, u, and MeV. The alpha-particle mass is `6.644 657 3450(21) × 10^−27` kg, `4.001 506 179 129(62)` u, and `3727.379 4118(12)` MeV. The nuclear magneton is stored. The proton and neutron magnetic moments are stored in J/T and in nuclear magnetons, along with CODATA's own neutron-to-proton ratio, `−0.684 979 35(16)`.
+
+The tests check the following. `m_n c² + m_p c² − m_d c²` reproduces `E_B(d)` within the combined uncertainty, and so does twice the AME2020 binding energy per nucleon of ²H. The alpha mass in kg, converted with the exact c and e, gives the MeV entry. AME2020's keV-per-u is the CODATA 2018 conversion, and against CODATA 2022 it reads the alpha about 5 eV low, more than 3σ. A test records that edition gap. The AME2020 ⁴He atomic mass, minus the alpha and two electrons, leaves a 79 eV electron binding energy. That matches the ASD He I ionization energy plus 4 Ry within 3 AME uncertainties. Each moment equals its ratio times μ_N, and μ_n/μ_p computed both ways equals CODATA's ratio entry. The "nucleon magnetic moment" ask links exactly the five moment records. That is 13 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.64.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.65.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
