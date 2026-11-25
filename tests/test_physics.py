@@ -920,6 +920,59 @@ class CondensedMatterTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class ParticleBatchFiveTests(unittest.TestCase):
+    @staticmethod
+    def _combined(item):
+        # Use the source's own printed total where it prints one; otherwise the single printed error.
+        totals = {"cdf2022.m_w": Fraction("9.4"), "atlas2024.m_w": Fraction("15.9")}
+        return totals.get(item.id, item.uncertainty)
+
+    def test_w_mass_measurements_show_the_cdf_tension(self) -> None:
+        cdf, atlas, cms = (quantity(id) for id in ("cdf2022.m_w", "atlas2024.m_w", "cms2026.m_w"))
+        for item in (cdf, atlas, cms):
+            self.assertEqual(item.unit, "MeV")
+        for other in (atlas, cms):
+            gap = cdf.value - other.value
+            self.assertGreater(gap**2, 9 * (self._combined(cdf) ** 2 + self._combined(other) ** 2), other.id)
+        gap = atlas.value - cms.value
+        self.assertLess(gap**2, self._combined(atlas) ** 2 + self._combined(cms) ** 2)
+        pdg = quantity("pdg2026.m_w")
+        self.assertLess(abs(cms.value - pdg.value * 1000), cms.uncertainty)
+
+    def test_neutrino_parameters_as_printed(self) -> None:
+        for id in ("pdg2026.nu.sin2_theta12", "pdg2026.nu.sin2_theta23_no", "pdg2026.nu.sin2_theta23_io", "pdg2026.nu.sin2_theta13"):
+            item = quantity(id)
+            self.assertTrue(0 <= item.value - item.lower_uncertainty and item.value + item.uncertainty <= 1, id)
+        self.assertGreater(quantity("pdg2026.nu.dm2_32_no").value, 0)
+        self.assertLess(quantity("pdg2026.nu.dm2_32_io").value, 0)
+        self.assertEqual(quantity("pdg2026.nu.sin2_theta23_io").lower_uncertainty, Fraction("0.027"))
+
+    def test_higgs_width_value_sits_inside_the_listed_bound(self) -> None:
+        width = quantity("pdg2026.gamma_h")
+        bound = next(b for b in BOUNDS if b.id == "bound.atlas2025e.higgs_width")
+        self.assertLess(width.value + width.uncertainty, bound.upper)
+        self.assertEqual(width.uncertainty_kind, "asymmetric standard uncertainty")
+
+    def test_lifetimes_and_lattice_alpha_s(self) -> None:
+        tau = {id: quantity(f"pdg2026.{id}_lifetime").value for id in ("tau", "b_plus", "b0", "bs")}
+        self.assertEqual(min(tau, key=tau.get), "tau")
+        self.assertGreater(tau["b_plus"], tau["b0"])
+        flag, pdg = quantity("flag2024.alpha_s_mz"), quantity("pdg2026.alpha_s_mz")
+        self.assertEqual(flag.printed, "0.11833(67)")
+        self.assertLess((flag.value - pdg.value) ** 2, flag.uncertainty**2 + pdg.uncertainty**2)
+
+    def test_particle_asks_link(self) -> None:
+        session = unfold(Request(ask="compare the w mass measurements", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({"cdf2022.m_w", "atlas2024.m_w", "cms2026.m_w"} <= linked)
+        session = unfold(Request(ask="what are the neutrino oscillation parameters", seed=1))
+        linked = {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+        self.assertTrue({id for id in linked if id.startswith("pdg2026.nu.")} == {
+            "pdg2026.nu.sin2_theta12", "pdg2026.nu.dm2_21", "pdg2026.nu.sin2_theta23_no", "pdg2026.nu.sin2_theta23_io",
+            "pdg2026.nu.dm2_32_no", "pdg2026.nu.dm2_32_io", "pdg2026.nu.sin2_theta13"})
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

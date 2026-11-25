@@ -1997,8 +1997,91 @@ CONDENSED_MATTER: tuple[Quantity, ...] = (
        notes=("Printed in Section 3.1 with no uncertainty. IAPWS-95 (R6-95(2018)) separately reports that its equation of state yields p_t = 611.654 771 Pa; that calculated value is not stored.",)),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER
-BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS
+_NU_NOTE = "PDG 2026 summary-table value from the neutrino mixing listings."
+_NU_SCALE = "The PDG database stores a scale factor of {0} for this error."
+_ORDERING = "PDG gives this value only under the stated assumption: '{0}'."
+_HFLAV = "PDG summary-table value marked '(Produced by HFLAV)'. PDG's own average of the listed measurements, {0}, is in the database but not stored here."
+
+
+def _nu(id: str, name: str, symbol: str, value: str, unc: str, unit: str, node: str, *, lower: str = "", notes: tuple[str, ...] = ()) -> Quantity:
+    return _pdg(
+        id, name, symbol, value, unc, unit, node=node,
+        kind="asymmetric standard uncertainty" if lower else "standard uncertainty", lower_text=lower,
+        keys=("neutrino", "oscillation"), phrases=("neutrino oscillation", "neutrino mixing"),
+        notes=(_NU_NOTE, *notes, _API_NOTE),
+    )
+
+
+PARTICLE_B5: tuple[Quantity, ...] = (
+    _nu("pdg2026.nu.sin2_theta12", "solar mixing parameter", "sin^2(theta_12)", "0.307", "0.012", "", "S067P12", notes=("Printed as 0.307+-0.012.",)),
+    _nu("pdg2026.nu.dm2_21", "solar mass-squared splitting", "Delta m^2_21", "7.60 e-5", "0.17 e-5", "eV^2", "S067DM3", notes=("Printed as (7.60+-0.17)E-5 eV**2.", _NU_SCALE.format("1.000296"))),
+    _nu("pdg2026.nu.sin2_theta23_no", "atmospheric mixing parameter, normal ordering", "sin^2(theta_23)", "0.533", "0.018", "", "S067P23", notes=("Printed as 0.533+-0.018.", _ORDERING.format("Assuming normal mass ordering"))),
+    _nu("pdg2026.nu.sin2_theta23_io", "atmospheric mixing parameter, inverted ordering", "sin^2(theta_23)", "0.523", "0.031", "", "S067P23", lower="0.027", notes=("Printed as 0.523+0.031-0.027.", _ORDERING.format("Assuming inverted mass ordering"), _NU_SCALE.format("1.300628"))),
+    _nu("pdg2026.nu.dm2_32_no", "atmospheric mass-squared splitting, normal ordering", "Delta m^2_32", "0.002445", "0.000023", "eV^2", "S067DM1", notes=("Printed as 0.002445+-0.000023 eV**2.", _ORDERING.format("Assuming normal ordering"), _NU_SCALE.format("1.005552"))),
+    _nu("pdg2026.nu.dm2_32_io", "atmospheric mass-squared splitting, inverted ordering", "Delta m^2_32", "-0.00252", "0.00004", "eV^2", "S067DM1", notes=("Printed as -0.00252+-0.00004 eV**2.", _ORDERING.format("Assuming inverted ordering"), _NU_SCALE.format("1.259586"))),
+    _nu("pdg2026.nu.sin2_theta13", "reactor mixing parameter", "sin^2(theta_13)", "0.0217", "0.0007", "", "S067P13", notes=("Printed as 0.0217+-0.0007.", _NU_SCALE.format("1.430974"))),
+    _pdg("pdg2026.gamma_h", "Higgs boson total width", "Gamma_H", "3.0", "1.5", "MeV", node="S126W", kind="asymmetric standard uncertainty", lower_text="0.7",
+         keys=("higgs",), phrases=("higgs width", "width of the higgs"),
+         notes=("Printed as 3.0+1.5-0.7 MeV. PDG average of the three off-shell measurements it uses: ATLAS 2025AQ 4.3+2.7-1.9, ATLAS 2025AV 0.9+3.4-0.9, CMS 2025L 3.0+2.0-1.5 MeV.", _API_NOTE)),
+    _pdg("pdg2026.tau_lifetime", "tau lepton mean life", "tau_tau", "2.903 e-13", "0.005 e-13", "s", node="S035T", phrases=("tau lifetime", "tau mean life"), notes=("Printed as (2.903+-0.005)E-13 s.", _API_NOTE)),
+    _pdg("pdg2026.b_plus_lifetime", "B+ meson mean life", "tau_B+", "1637 e-15", "4 e-15", "s", node="S041T", keys=("b meson",), phrases=("b lifetime", "b meson lifetime", "b+ lifetime"), notes=("Printed as 1637+-4E-15 s.", _HFLAV.format("(1.638+-0.004)E-12 s"), _API_NOTE)),
+    _pdg("pdg2026.b0_lifetime", "B0 meson mean life", "tau_B0", "1511.3 e-15", "2.7 e-15", "s", node="S042T", keys=("b meson",), phrases=("b lifetime", "b meson lifetime", "b0 lifetime"), notes=("Printed as 1511.3+-2.7E-15 s.", _HFLAV.format("(1.5116+-0.0031)E-12 s, with a scale factor of 1.213616,"), _API_NOTE)),
+    _pdg("pdg2026.bs_lifetime", "B_s0 meson mean life", "tau_Bs", "1.515 e-12", "0.006 e-12", "s", node="S086T", keys=("b meson",), phrases=("b lifetime", "b meson lifetime", "bs lifetime"), notes=("Printed as 1.515+-0.006E-12 s.", "PDG summary-table value marked '(Produced by HFLAV)'.", _API_NOTE)),
+    _q(
+        "cdf2022.m_w", "W boson mass, CDF II", "m_W", "80433.5", "6.4", "MeV", kind=_SPLIT_KIND, systematic_text="6.9",
+        source="T. Aaltonen et al. (CDF Collaboration), High-precision measurement of the W boson mass with the CDF II detector, Science 376, 170 (2022), doi:10.1126/science.abk1781.",
+        edition="Science 376 (2022)", url="https://doi.org/10.1126/science.abk1781",
+        retrieved_from="https://api.crossref.org/works/10.1126/science.abk1781",
+        keys=("cdf", "w mass"), phrases=("w boson mass", "w mass measurements", "cdf w mass"),
+        notes=("Printed in the abstract as M W = 80,433.5 ± 6.4 stat ± 6.9 syst = 80,433.5 ± 9.4 MeV/c². The combined ± 9.4 is the paper's own and is kept here, not recomputed.", _SPLIT_NOTE),
+    ),
+    _q(
+        "atlas2024.m_w", "W boson mass, ATLAS 7 TeV reanalysis", "m_W", "80366.5", "9.8", "MeV", kind=_SPLIT_KIND, systematic_text="12.5",
+        source="ATLAS Collaboration, Measurement of the W-boson mass and width with the ATLAS detector using proton-proton collisions at sqrt(s) = 7 TeV, Eur. Phys. J. C 84, 1309 (2024), arXiv:2403.15085.",
+        edition="Eur. Phys. J. C 84 (2024)", url="https://arxiv.org/abs/2403.15085",
+        retrieved_from="https://export.arxiv.org/api/query?id_list=2403.15085",
+        keys=("atlas", "w mass"), phrases=("w boson mass", "w mass measurements", "atlas w mass"),
+        notes=("Printed in the abstract as m_W = 80366.5 ± 9.8 (stat.) ± 12.5 (syst.) MeV = 80366.5 ± 15.9 MeV. The combined ± 15.9 is the paper's own.", "It supersedes the earlier ATLAS result from the same 2011 data.", _SPLIT_NOTE),
+    ),
+    _q(
+        "cms2026.m_w", "W boson mass, CMS", "m_W", "80 360.2", "9.9", "MeV", kind="uncertainty as printed, level not stated",
+        source="CMS Collaboration, High-precision measurement of the W boson mass with the CMS experiment, Nature 652, 321 (2026), doi:10.1038/s41586-026-10168-5, arXiv:2412.13872.",
+        edition="Nature 652 (2026)", url="https://doi.org/10.1038/s41586-026-10168-5",
+        retrieved_from="https://export.arxiv.org/api/query?id_list=2412.13872",
+        keys=("cms", "w mass"), phrases=("w boson mass", "w mass measurements", "cms w mass"),
+        notes=("Printed in the abstract as 80 360.2 ± 9.9 MeV. W to mu nu events from 2016 at 13 TeV. The abstract gives one combined uncertainty and does not name its level.",),
+    ),
+    _q(
+        "flag2024.alpha_s_mz", "strong coupling at m_Z, FLAG lattice estimate", "alpha_s^(5)(M_Z)", "0.11833", "0.00067", "", kind="uncertainty as printed, level not stated",
+        printed="0.11833(67)",
+        source="FLAG Working Group, FLAG Review 2024, arXiv:2411.04268, doi:10.1103/nfzp-p5dn, Section 9.10, Eq. (399).",
+        edition="FLAG Review 2024", url="https://doi.org/10.1103/nfzp-p5dn",
+        retrieved_from="https://arxiv.org/abs/2411.04268",
+        keys=("flag", "lattice"), phrases=("strong coupling", "alpha_s from lattice"),
+        notes=("Printed as alpha_MSbar^(5)(M_Z) = 0.11833(67) = 0.1183(7). Both forms are the source's; the longer one is stored.", "FLAG calls the error 'our range': the statistics-dominated error of the combined decoupling and step-scaling results, used instead of the 25 percent smaller error from the weighted average."),
+    ),
+)
+
+HIGGS_WIDTH_BOUNDS: tuple[Bound, ...] = (
+    Bound(
+        id="bound.atlas2025e.higgs_width", name="Higgs boson total width, on-shell Higgs and four-top constraint", symbol="Gamma_H",
+        lower_text="0", upper_text="160", unit="MeV",
+        source="G. Aad et al. (ATLAS Collaboration), Constraint on the total width of the Higgs boson from Higgs boson and four-top-quark measurements in pp collisions at sqrt(s) = 13 TeV with the ATLAS detector, Phys. Lett. B 861, 139277 (2025), doi:10.1016/j.physletb.2025.139277, as listed by PDG 2026 (AAD 2025E).",
+        edition="PL B861 139277 (2025), PDG 2026 listing",
+        url="https://doi.org/10.1016/j.physletb.2025.139277", retrieved_from=PDG_2026_API, retrieved=RETRIEVED,
+        keys=("higgs",), phrases=("higgs width", "width of the higgs", "higgs width bound"),
+        conditions=(
+            "PDG lists it as <160 MeV at CL = 95%, from p p at 13 TeV, on-shell Higgs and t tbar t tbar.",
+            "PDG does not use this limit in its average.",
+            "Only the upper limit is printed. The lower end 0 is the edge of a width, not a measurement.",
+        ),
+        forbids=(),
+    ),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5
+BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS
 
 
 def quantity(id: str) -> Quantity:

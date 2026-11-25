@@ -886,3 +886,11 @@ Condensed matter is on the board. CODATA 2022 gives Si a, d220, and V_m, 1σ. R_
 The tests are data-only. They check CODATA's own Si table definitions against the printed values, that the 1990 conventional values sit outside the SI truncation intervals, and the printed orderings. Nothing is derived from theory. That is 20 new records. The next slice is particle physics.
 
 `python -m unittest discover -s tests -v` finished 256 tests, 0 failures, about 83.44 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — particle data: neutrino parameters, Higgs width, lifetimes, W masses, FLAG alpha_s pgi-0.72.0
+
+PDG 2026 neutrino parameters went on the board as printed, with the atmospheric pair stored once per mass ordering. Added the Higgs width average 3.0+1.5-0.7 MeV and the ATLAS bound < 160 MeV at 95% CL, the tau lifetime, and the HFLAV B+, B0, and Bs lifetimes. The W masses are stored individually: CDF 80433.5 ± 6.4 ± 6.9, ATLAS 80366.5 ± 9.8 ± 12.5, and CMS 80 360.2 ± 9.9 MeV. FLAG 2024 gives alpha_s 0.11833(67).
+
+The data tests show the CDF tension: more than 3σ from both LHC values on the papers' own totals, while ATLAS and CMS agree. That is 17 records. Batch 5 is done, and nothing is derived from theory.
+
+`python -m unittest discover -s tests -v` finished 261 tests, 0 failures, about 210.39 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

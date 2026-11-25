@@ -385,9 +385,23 @@ Iron's ferromagnetic Curie temperature is `1044 ± 2` K, from Arajs and Colvin, 
 
 The tests are data-only. The silicon entries satisfy CODATA's own table definitions, d220 = a/√8 and V_m = N_A a³/8, within the printed uncertainties. R_K-90 and K_J-90 fall outside the truncation intervals of R_K and K_J. The orderings are checked: Ge < Si < GaAs, Al < Pb < Nb, and YBCO more than ten times Nb. The triple point lies below the critical point. The superconductor and critical-point asks link exactly their records. That is 20 new records.
 
+### Particle data: neutrino oscillations, Higgs width, lifetimes, W masses, lattice alpha_s
+
+The neutrino oscillation parameters are on the board, as PDG 2026 prints them in its summary table: sin²θ12 `0.307±0.012`, Δm²21 `(7.60±0.17)E-5` eV², and sin²θ13 `0.0217±0.0007`. PDG gives the atmospheric pair only under an assumed mass ordering, so each ordering is its own record. Normal ordering: sin²θ23 `0.533±0.018` and Δm²32 `0.002445±0.000023` eV². Inverted ordering: sin²θ23 `0.523+0.031-0.027` and Δm²32 `-0.00252±0.00004` eV². Where the PDG database stores a scale factor, a note records it.
+
+The Higgs total width is a PDG average now, `3.0+1.5-0.7` MeV, built from three off-shell measurements. The direct ATLAS limit is stored as a bound: Γ_H < 160 MeV at 95% CL (PL B861 139277, 2025). PDG lists that limit but does not use it in the average. The bound's lower end of 0 is the edge of a width, not a measurement.
+
+Lifetimes: τ_τ `(2.903±0.005)E-13` s. The B lifetimes are PDG's HFLAV summary values: B+ `1637±4E-15` s, B0 `1511.3±2.7E-15` s, and Bs `1.515±0.006E-12` s. PDG's own averages are named in the notes but are not stored.
+
+The W mass measurements are kept apart so the tension stays visible. CDF II: `80,433.5 ± 6.4 stat ± 6.9 syst = 80,433.5 ± 9.4` MeV (Science 2022). ATLAS: `80366.5 ± 9.8 (stat.) ± 12.5 (syst.)` MeV = `80366.5 ± 15.9` MeV (EPJC 2024). CMS: `80 360.2 ± 9.9` MeV (Nature 2026), with a level that is not stated. The test uses each paper's own printed total. CDF sits more than 3σ from both ATLAS and CMS, while ATLAS and CMS agree within 1σ. The PDG average `80.3625±0.0077` GeV is already on the board.
+
+FLAG 2024 gives the lattice strong coupling as α_s^(5)(M_Z) = `0.11833(67)` = `0.1183(7)`, Eq. (399). FLAG calls the error 'our range', so the level is recorded as not stated. It agrees with PDG's `0.1180(9)` within the combined error.
+
+The tests are data-only: the comparisons above, sin² values inside [0, 1] with their errors, the sign of Δm²32 by ordering, the Higgs width inside the ATLAS bound, and the tau lifetime as the shortest. This adds 16 quantities and 1 bound, 17 records in all.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.71.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.72.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
