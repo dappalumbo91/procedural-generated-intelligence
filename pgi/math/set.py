@@ -559,7 +559,7 @@ def _real_gap(left: RealForm, right: RealForm) -> str:
 def _quantity(origin: Term, form: RealForm, lines: tuple[str, ...]) -> Rule:
     title_left = pretty(origin)
     shown = show_form(form)
-    if not form.terms and not form.towers and not form.nests and not form.pairs and not form.deeps and not form.highs and not form.peaks and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds:
+    if not form.terms and not form.towers and not form.nests and not form.pairs and not form.deeps and not form.highs and not form.peaks and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads:
         number = form.constant
         if number.den == 1:
             return Rule(
@@ -694,6 +694,23 @@ def _syn_key(form: RealForm) -> tuple:
             (rad, constant, sqrt_coeff, mult, extra, coeff.num, coeff.den)
             for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds
         ),
+        tuple(
+            (
+                first,
+                second,
+                constant.num,
+                constant.den,
+                first_coeff.num,
+                first_coeff.den,
+                second_coeff.num,
+                second_coeff.den,
+                product_coeff.num,
+                product_coeff.den,
+                coeff.num,
+                coeff.den,
+            )
+            for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads
+        ),
     )
 
 
@@ -764,6 +781,12 @@ def _form_token(form: RealForm) -> str:
         mults = ".".join(str(item) for item in extra)
         parts.append(
             f"{coeff.num}.{coeff.den}.{mults}.{mult}.{constant}.{sqrt_coeff}.{rad}".replace("-", "m")
+        )
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        parts.append(
+            f"{coeff.num}.{coeff.den}.{constant.num}.{constant.den}.{first_coeff.num}.{first_coeff.den}.{first}.{second_coeff.num}.{second_coeff.den}.{second}.{product_coeff.num}.{product_coeff.den}".replace(
+                "-", "m"
+            )
         )
     return "e" + "_".join(parts)
 

@@ -633,7 +633,7 @@ def _term_of_form(form: RealForm) -> Term:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
     ):
         node = _term_of_ratio(form.constant)
     for coeff, rad in form.terms:
@@ -678,6 +678,11 @@ def _term_of_form(form: RealForm) -> Term:
         )
     for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds:
         node = _add_piece(node, _term_of_fold(coeff, extra, mult, constant, sqrt_coeff, rad))
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        node = _add_piece(
+            node,
+            _term_of_quad(coeff, constant, first_coeff, first, second_coeff, second, product_coeff),
+        )
     return node if node is not None else IntLit(0)
 
 
@@ -723,6 +728,30 @@ def _term_of_fold(
             inside = App("mul", (IntLit(item), inside))
         inside = App("sqrt", (inside,))
     return _scale_term(inside, coeff)
+
+
+
+def _term_of_quad(
+    coeff: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> Term:
+    inside: Term | None = None
+    if constant.num != 0:
+        inside = _term_of_ratio(constant)
+    if first_coeff.num != 0:
+        inside = _add_piece(inside, _term_of_radical(first_coeff, first))
+    if second_coeff.num != 0:
+        inside = _add_piece(inside, _term_of_radical(second_coeff, second))
+    if product_coeff.num != 0:
+        inside = _add_piece(inside, _term_of_radical(product_coeff, first * second))
+    if inside is None:
+        raise KernelError("biquadratic term was empty")
+    return _scale_term(App("sqrt", (inside,)), coeff)
 
 
 def _term_of_shell(

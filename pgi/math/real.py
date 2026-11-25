@@ -61,6 +61,14 @@ A further finite square root of one positive binomial nest, a fold, has
 the inverse given by that fold times the inverse of its square.
 `1 / sqrt(sqrt(sqrt(2 + sqrt(2))))` is
 `sqrt(sqrt(2 * sqrt(676 + 478 * sqrt(2)))) - 1/2 * sqrt(2 * sqrt(2 * sqrt(676 + 478 * sqrt(2))))`.
+A two-prime biquadratic `a + b*sqrt(p) + c*sqrt(q) + d*sqrt(p*q)` that is
+not a square in `Q(sqrt(p), sqrt(q))` is itself under one square root, by
+`real_sqrt_unique`. The field norm not being a rational square is the
+obstruction. `sqrt(1 + sqrt(2) + sqrt(5))` is that root, and its square is
+`1 + sqrt(2) + sqrt(5)`. When the field norm is a rational square and the
+relative denesting succeeds, the root is written in the field. The inverse
+of such a root is the root times the inverse of its square, which already
+lies in that field.
 A radicand the kernel cannot see as nonnegative stays open.
 Division multiplies by the inverse.
 That inverse lies in the same span, and its product with the divisor is the
@@ -116,6 +124,7 @@ class RealForm:
     # coeff * sqrt(e1 * sqrt(e2 * ... * sqrt(ek * deep)...)).
     # extra is nonempty and outermost first. Each multiplier is positive and square-free.
     folds: tuple[tuple[Ratio, tuple[int, ...], int, int, int, int], ...] = ()
+    quads: tuple[tuple[Ratio, Ratio, Ratio, int, Ratio, int, Ratio], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -366,7 +375,7 @@ def show_form(form: RealForm) -> str:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
     ):
         pieces.append(_ratio_piece(form.constant))
     for coeff, rad in form.terms:
@@ -403,6 +412,10 @@ def show_form(form: RealForm) -> str:
         )
     for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds:
         pieces.append(_fold_piece(coeff, extra, mult, constant, sqrt_coeff, rad))
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        pieces.append(
+            _quad_piece(coeff, constant, first_coeff, first, second_coeff, second, product_coeff)
+        )
     parts: list[str] = []
     for index, (text, negative) in enumerate(pieces):
         if index == 0:
@@ -543,6 +556,37 @@ def _add_forms(left: RealForm, right: RealForm) -> RealForm:
         for key, coeff in sorted(folds.items())
         if coeff.num != 0
     )
+    quads: dict[tuple[int, int, int, int, int, int, int, int, int, int], Ratio] = {}
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in (
+        *left.quads,
+        *right.quads,
+    ):
+        key = (
+            first,
+            second,
+            constant.num,
+            constant.den,
+            first_coeff.num,
+            first_coeff.den,
+            second_coeff.num,
+            second_coeff.den,
+            product_coeff.num,
+            product_coeff.den,
+        )
+        quads[key] = _qadd(quads.get(key, _ratio(0, 1)), coeff)
+    quad_terms = tuple(
+        (
+            coeff,
+            _ratio(key[2], key[3]),
+            _ratio(key[4], key[5]),
+            key[0],
+            _ratio(key[6], key[7]),
+            key[1],
+            _ratio(key[8], key[9]),
+        )
+        for key, coeff in sorted(quads.items())
+        if coeff.num != 0
+    )
     return RealForm(
         _qadd(left.constant, right.constant),
         terms,
@@ -557,6 +601,7 @@ def _add_forms(left: RealForm, right: RealForm) -> RealForm:
         apex_terms,
         shell_terms,
         fold_terms,
+        quad_terms,
     )
 
 
@@ -637,6 +682,10 @@ def _neg_form(form: RealForm) -> RealForm:
         tuple(
             (_qneg(coeff), extra, mult, constant, sqrt_coeff, rad)
             for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds
+        ),
+        tuple(
+            (_qneg(coeff), constant, first_coeff, first, second_coeff, second, product_coeff)
+            for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads
         ),
     )
 
@@ -734,6 +783,13 @@ def _mul_forms(left: RealForm, right: RealForm) -> RealForm:
             product,
             _mul_one_fold(coeff, extra, mult, constant, sqrt_coeff, rad, right),
         )
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in left.quads:
+        product = _add_forms(
+            product,
+            _mul_one_quad(
+                coeff, constant, first_coeff, first, second_coeff, second, product_coeff, right
+            ),
+        )
     return product
 
 
@@ -790,9 +846,22 @@ def _mul_sqrt(coeff: Ratio, rad: int, other: RealForm) -> RealForm:
             extra, amult, smult, qmult, pmult, hmult, left_c, left_r, right_c, right_r, rad
         )
         product = _add_forms(product, _scale(piece, _qmul(coeff, shell_coeff)))
-    for fold_coeff, extra, mult, constant, sqrt_coeff, rad in other.folds:
-        piece = _fold_times_term(extra, mult, constant, sqrt_coeff, rad, rad)
+    for fold_coeff, extra, mult, constant, sqrt_coeff, fold_rad in other.folds:
+        piece = _fold_times_term(extra, mult, constant, sqrt_coeff, fold_rad, rad)
         product = _add_forms(product, _scale(piece, _qmul(coeff, fold_coeff)))
+    for (
+        quad_coeff,
+        constant,
+        first_coeff,
+        first,
+        second_coeff,
+        second,
+        product_coeff,
+    ) in other.quads:
+        piece = _quad_times_term(
+            constant, first_coeff, first, second_coeff, second, product_coeff, rad
+        )
+        product = _add_forms(product, _scale(piece, _qmul(coeff, quad_coeff)))
     return product
 
 
@@ -816,7 +885,7 @@ def _mul_tower(coeff: Ratio, base: int, numer: int, log_den: int, other: RealFor
                 coeff, base, numer, log_den, nest_coeff, constant, sqrt_coeff, nest_rad
             ),
         )
-    if other.pairs or other.deeps or other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds:
+    if other.pairs or other.deeps or other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -901,6 +970,10 @@ def _scale(form: RealForm, factor: Ratio) -> RealForm:
             (_qmul(coeff, factor), extra, mult, constant, sqrt_coeff, rad)
             for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds
         ),
+        tuple(
+            (_qmul(coeff, factor), constant, first_coeff, first, second_coeff, second, product_coeff)
+            for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads
+        ),
     )
 
 
@@ -932,7 +1005,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
         and len(form.terms) == 1
         and form.constant.num != 0
     ):
@@ -948,7 +1021,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.terms) == 2
     ):
@@ -961,7 +1034,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.nests) == 1
     ):
@@ -974,7 +1047,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.pairs) == 1
     ):
@@ -987,7 +1060,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.pairs
         and not form.deeps
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.highs) == 1
     ):
@@ -1000,7 +1073,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.pairs
         and not form.deeps
         and not form.highs
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.peaks) == 1
     ):
@@ -1014,7 +1087,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.crests) == 1
     ):
@@ -1029,7 +1102,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.highs
         and not form.peaks
         and not form.crests
-        and not form.apexes and not form.shells and not form.folds
+        and not form.apexes and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.summits) == 1
     ):
@@ -1045,7 +1118,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.peaks
         and not form.crests
         and not form.summits
-        and not form.shells and not form.folds
+        and not form.shells and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.apexes) == 1
     ):
@@ -1094,7 +1167,7 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
         and not form.summits
         and not form.apexes
         and not form.shells
-        and not form.folds
+        and not form.folds and not form.quads
         and form.constant.num == 0
         and len(form.deeps) == 1
     ):
@@ -1117,6 +1190,22 @@ def _sqrt_of_form(form: RealForm) -> RealForm:
     ):
         coeff, extra, mult, constant, sqrt_coeff, rad = form.folds[0]
         return _fold_from_fold(coeff, extra, mult, constant, sqrt_coeff, rad)
+    if (
+        not form.towers
+        and not form.nests
+        and not form.pairs
+        and not form.deeps
+        and not form.highs
+        and not form.peaks
+        and not form.crests
+        and not form.summits
+        and not form.apexes
+        and not form.shells
+        and not form.folds
+        and not form.quads
+        and _as_biquadratic(form) is not None
+    ):
+        return _quad_sqrt(form)
     raise NotExact("this nested radical stays outside")
 
 
@@ -1204,6 +1293,18 @@ def _sqrt_lines(operand: RealForm, result: RealForm) -> tuple[str, ...]:
         )
     for _coeff, extra, mult, constant, sqrt_coeff, rad in result.folds:
         lines.extend(_fold_certificate_lines(extra, mult, constant, sqrt_coeff, rad))
+    for (
+        _coeff,
+        constant,
+        first_coeff,
+        first,
+        second_coeff,
+        second,
+        product_coeff,
+    ) in result.quads:
+        lines.extend(
+            _quad_certificate_lines(constant, first_coeff, first, second_coeff, second, product_coeff)
+        )
     if _is_rational(result):
         lines.append("The power reduced to a constant sequence.")
         lines.append("Isabelle cauchy_const. Isabelle of_rat_Real embeds that rational.")
@@ -1211,7 +1312,7 @@ def _sqrt_lines(operand: RealForm, result: RealForm) -> tuple[str, ...]:
 
 
 def _as_monomial(form: RealForm) -> tuple[Ratio, int, int, int] | None:
-    if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.constant.num != 0 or (form.terms and form.towers):
+    if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or form.constant.num != 0 or (form.terms and form.towers):
         return None
     if len(form.terms) == 1 and not form.towers:
         coeff, rad = form.terms[0]
@@ -1237,7 +1338,7 @@ def _sqrt_monomial(coeff: Ratio, base: int, numer: int, log_den: int) -> RealFor
 
 
 def _denest(form: RealForm) -> RealForm | None:
-    if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or len(form.terms) != 1 or form.constant.num == 0:
+    if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or len(form.terms) != 1 or form.constant.num == 0:
         return None
     coeff, rad = form.terms[0]
     if coeff.num == 0:
@@ -1315,7 +1416,7 @@ def _mul_nest(coeff: Ratio, constant: Ratio, sqrt_coeff: Ratio, rad: int, other:
             rad,
         )
         product = _add_forms(product, _scale(piece, _qmul(coeff, deep_coeff)))
-    if other.pairs or other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds:
+    if other.pairs or other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -1414,7 +1515,7 @@ def _square_nest(form: RealForm) -> RealForm:
         or form.towers
         or form.pairs
         or form.deeps
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.nests) != 1
     ):
         raise KernelError("binomial square left the nest")
@@ -1437,7 +1538,7 @@ def _denest_two_radicals(form: RealForm) -> RealForm | None:
         or form.nests
         or form.pairs
         or form.deeps
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.terms) != 2
     ):
         return None
@@ -1582,7 +1683,7 @@ def _mul_pair(
             high_mult, high_left, left_r, high_right, right_r, left_c, right_c
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, high_coeff)))
-    if other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds:
+    if other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -1653,7 +1754,7 @@ def _square_deep(form: RealForm) -> RealForm:
         or form.towers
         or form.nests
         or form.pairs
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.deeps) != 1
     ):
         raise KernelError("deep square left the radical")
@@ -1751,7 +1852,7 @@ def _mul_one_deep(
             rad,
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, deep_coeff)))
-    if other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds:
+    if other.highs or other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -1824,7 +1925,7 @@ def _square_high(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.highs) != 1
     ):
         raise KernelError("high square left the radical")
@@ -1924,7 +2025,7 @@ def _mul_one_high(
             high_right,
         )
         product = _add_forms(product, _scale(scaled, _qmul(coeff, high_coeff)))
-    if other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds:
+    if other.peaks or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     return product
 
@@ -2003,7 +2104,7 @@ def _square_peak(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.highs
-        or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.peaks) != 1
     ):
         raise KernelError("peak square left the radical")
@@ -2064,7 +2165,7 @@ def _mul_one_peak(
     for other_coeff, other_rad in other.terms:
         scaled = _peak_times_term(pmult, hmult, left_c, left_r, right_c, right_r, other_rad)
         product = _add_forms(product, _scale(scaled, _qmul(coeff, other_coeff)))
-    if other.towers or other.nests or other.pairs or other.deeps or other.highs or other.crests or other.summits or other.apexes or other.shells or other.folds:
+    if other.towers or other.nests or other.pairs or other.deeps or other.highs or other.crests or other.summits or other.apexes or other.shells or other.folds or other.quads:
         raise NotExact("this nested radical stays outside")
     for (
         peak_coeff,
@@ -2178,7 +2279,7 @@ def _square_crest(form: RealForm) -> RealForm:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.summits or form.apexes or form.shells or form.folds
+        or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.crests) != 1
     ):
         raise KernelError("crest square left the radical")
@@ -2252,7 +2353,7 @@ def _mul_one_crest(
         or other.deeps
         or other.highs
         or other.peaks
-        or other.summits or other.apexes or other.shells or other.folds
+        or other.summits or other.apexes or other.shells or other.folds or other.quads
     ):
         raise NotExact("this nested radical stays outside")
     for (
@@ -2379,7 +2480,7 @@ def _square_summit(form: RealForm) -> RealForm:
         or form.highs
         or form.peaks
         or form.crests
-        or form.apexes or form.shells or form.folds
+        or form.apexes or form.shells or form.folds or form.quads
         or len(form.summits) != 1
     ):
         raise KernelError("summit square left the radical")
@@ -2462,7 +2563,7 @@ def _mul_one_summit(
         or other.highs
         or other.peaks
         or other.crests
-        or other.apexes or other.shells or other.folds
+        or other.apexes or other.shells or other.folds or other.quads
     ):
         raise NotExact("this nested radical stays outside")
     for (
@@ -2599,7 +2700,7 @@ def _square_apex(form: RealForm) -> RealForm:
         or form.peaks
         or form.crests
         or form.summits
-        or form.shells or form.folds
+        or form.shells or form.folds or form.quads
         or len(form.apexes) != 1
     ):
         raise KernelError("apex square left the radical")
@@ -2693,7 +2794,7 @@ def _mul_one_apex(
         or other.peaks
         or other.crests
         or other.summits
-        or other.shells or other.folds
+        or other.shells or other.folds or other.quads
     ):
         raise NotExact("this nested radical stays outside")
     for (
@@ -2802,7 +2903,7 @@ def _square_shell(form: RealForm) -> RealForm:
         or form.crests
         or form.summits
         or form.apexes
-        or form.folds
+        or form.folds or form.quads
         or len(form.shells) != 1
     ):
         raise KernelError("shell square left the radical")
@@ -3016,7 +3117,7 @@ def _mul_one_shell(
         or other.crests
         or other.summits
         or other.apexes
-        or other.folds
+        or other.folds or other.quads
     ):
         raise NotExact("this nested radical stays outside")
     for (
@@ -3071,7 +3172,7 @@ def _invert_shell(form: RealForm) -> RealForm:
         or form.crests
         or form.summits
         or form.apexes
-        or form.folds
+        or form.folds or form.quads
         or len(form.shells) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -3338,6 +3439,700 @@ def _invert_fold(form: RealForm) -> RealForm:
         raise NotExact("this quotient stays outside") from exc
 
 
+def _as_biquadratic(
+    form: RealForm,
+) -> tuple[Ratio, Ratio, int, Ratio, int, Ratio] | None:
+    if (
+        form.towers
+        or form.nests
+        or form.pairs
+        or form.deeps
+        or form.highs
+        or form.peaks
+        or form.crests
+        or form.summits
+        or form.apexes
+        or form.shells
+        or form.folds
+        or form.quads
+    ):
+        return None
+    primes: set[int] = set()
+    for _coeff, rad in form.terms:
+        if rad <= 1 or _square_part(rad) != (1, rad):
+            return None
+        for prime, exponent in _prime_exponents(rad):
+            if exponent != 1:
+                return None
+            primes.add(prime)
+    if len(primes) != 2:
+        return None
+    first, second = sorted(primes)
+    constant = form.constant
+    first_coeff = _ratio(0, 1)
+    second_coeff = _ratio(0, 1)
+    product_coeff = _ratio(0, 1)
+    for coeff, rad in form.terms:
+        if rad == first:
+            first_coeff = _qadd(first_coeff, coeff)
+        elif rad == second:
+            second_coeff = _qadd(second_coeff, coeff)
+        elif rad == first * second:
+            product_coeff = _qadd(product_coeff, coeff)
+        else:
+            return None
+    if first_coeff.num == 0 and second_coeff.num == 0 and product_coeff.num == 0:
+        return None
+    return constant, first_coeff, first, second_coeff, second, product_coeff
+
+
+def _quad_inside(constant: Ratio, first_coeff: Ratio, first: int, second_coeff: Ratio, second: int, product_coeff: Ratio) -> RealForm:
+    return RealForm(
+        constant,
+        tuple(
+            (coeff, rad)
+            for coeff, rad in (
+                (first_coeff, first),
+                (second_coeff, second),
+                (product_coeff, first * second),
+            )
+            if coeff.num != 0
+        ),
+    )
+
+
+def _biquadratic_norm(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> Ratio:
+    first_r = _ratio(first, 1)
+    second_r = _ratio(second, 1)
+    left = _qsub(
+        _qadd(_qmul(constant, constant), _qmul(first_r, _qmul(first_coeff, first_coeff))),
+        _qadd(
+            _qmul(second_r, _qmul(second_coeff, second_coeff)),
+            _qmul(_qmul(second_r, first_r), _qmul(product_coeff, product_coeff)),
+        ),
+    )
+    right = _qsub(
+        _qmul(_ratio(2, 1), _qmul(constant, first_coeff)),
+        _qmul(_ratio(2, 1), _qmul(second_r, _qmul(second_coeff, product_coeff))),
+    )
+    return _qsub(_qmul(left, left), _qmul(first_r, _qmul(right, right)))
+
+
+def _in_quadratic(form: RealForm, rad: int) -> bool:
+    if (
+        form.towers
+        or form.nests
+        or form.pairs
+        or form.deeps
+        or form.highs
+        or form.peaks
+        or form.crests
+        or form.summits
+        or form.apexes
+        or form.shells
+        or form.folds
+        or form.quads
+    ):
+        return False
+    return all(term_rad == rad for _coeff, term_rad in form.terms)
+
+
+def _sqrt_in_quadratic(form: RealForm, rad: int) -> RealForm | None:
+    if not _in_quadratic(form, rad):
+        return None
+    if _is_zero(form):
+        return RealForm(_ratio(0, 1), ())
+    direction = _classify(form)
+    if direction == "lt":
+        return None
+    if direction != "gt":
+        return None
+    if _is_rational(form):
+        root = _rational_square_root(form.constant)
+        if root is not None:
+            return RealForm(root, ())
+        try:
+            extracted = _sqrt_form(form.constant)
+        except NotExact:
+            return None
+        if _in_quadratic(extracted, rad):
+            return extracted
+        return None
+    denested = _denest(form)
+    if denested is None or not _in_quadratic(denested, rad):
+        return None
+    if _classify(denested) not in {"gt", "eq"}:
+        return None
+    return denested
+
+
+def _try_denest_over(
+    x: RealForm,
+    y: RealForm,
+    base: int,
+    other: int,
+    inside: RealForm,
+) -> RealForm | None:
+    delta = _sub_forms(_mul_forms(x, x), _scale(_mul_forms(y, y), _ratio(other, 1)))
+    root = _sqrt_in_quadratic(delta, base)
+    if root is None:
+        return None
+    half = _ratio(1, 2)
+    for signed in (root, _neg_form(root)):
+        half_sum = _scale(_add_forms(x, signed), half)
+        first = _sqrt_in_quadratic(half_sum, base)
+        if first is None or _is_zero(first):
+            continue
+        try:
+            second = _div_form(y, _scale(first, _ratio(2, 1)))
+        except NotExact:
+            continue
+        if not _in_quadratic(second, base):
+            continue
+        result = _add_forms(first, _mul_forms(second, _term_form(_ratio(1, 1), other)))
+        if _mul_forms(result, result) != inside:
+            continue
+        if _classify(result) not in {"gt", "eq"}:
+            result = _neg_form(result)
+            if _mul_forms(result, result) != inside or _classify(result) not in {"gt", "eq"}:
+                continue
+        return result
+    return None
+
+
+def _try_denest_biquadratic(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> RealForm | None:
+    inside = _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff)
+    left = _quad_inside(constant, first_coeff, first, _ratio(0, 1), second, _ratio(0, 1))
+    right = _quad_inside(second_coeff, product_coeff, first, _ratio(0, 1), second, _ratio(0, 1))
+    over_second = _try_denest_over(left, right, first, second, inside)
+    if over_second is not None:
+        return over_second
+    swapped_left = _quad_inside(constant, second_coeff, second, _ratio(0, 1), first, _ratio(0, 1))
+    swapped_right = _quad_inside(first_coeff, product_coeff, second, _ratio(0, 1), first, _ratio(0, 1))
+    return _try_denest_over(swapped_left, swapped_right, second, first, inside)
+
+
+def _lcm(left: int, right: int) -> int:
+    if left == 0 or right == 0:
+        return 0
+    return abs(left * right) // _gcd(left, right)
+
+
+def _reduce_quad_radicand(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> tuple[Ratio, Ratio, Ratio, int, Ratio, int, Ratio]:
+    common = 1
+    for value in (constant, first_coeff, second_coeff, product_coeff):
+        common = _lcm(common, value.den)
+    whole = (
+        constant.num * (common // constant.den),
+        first_coeff.num * (common // first_coeff.den),
+        second_coeff.num * (common // second_coeff.den),
+        product_coeff.num * (common // product_coeff.den),
+    )
+    content = 0
+    for value in whole:
+        content = _gcd(content, abs(value))
+    if content == 0:
+        return _ratio(0, 1), _ratio(0, 1), _ratio(0, 1), first, _ratio(0, 1), second, _ratio(0, 1)
+    root, free = _square_part(content)
+    reduced = (
+        _ratio(whole[0] // content, 1),
+        _ratio(whole[1] // content, 1),
+        _ratio(whole[2] // content, 1),
+        _ratio(whole[3] // content, 1),
+    )
+    numerator = root * root * free
+    shared = _gcd(numerator, common)
+    numerator //= shared
+    denominator = common // shared
+    num_root, num_free = _square_part(numerator)
+    den_root, den_free = _square_part(denominator)
+    coeff = _ratio(num_root, den_root * den_free)
+    scale = num_free * den_free
+    return (
+        coeff,
+        _ratio(reduced[0].num * scale, 1),
+        _ratio(reduced[1].num * scale, 1),
+        first,
+        _ratio(reduced[2].num * scale, 1),
+        second,
+        _ratio(reduced[3].num * scale, 1),
+    )
+
+
+def _quad_form(
+    coeff: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> RealForm:
+    if coeff.num == 0:
+        return RealForm(_ratio(0, 1), ())
+    if first >= second or first <= 1 or second <= 1:
+        raise KernelError("biquadratic primes were not ordered")
+    if _square_part(first) != (1, first) or _square_part(second) != (1, second):
+        raise KernelError("biquadratic radicand was not square-free")
+    if first_coeff.num == 0 and second_coeff.num == 0 and product_coeff.num == 0:
+        raise KernelError("biquadratic had no irrational terms")
+    return RealForm(
+        _ratio(0, 1),
+        (),
+        quads=((coeff, constant, first_coeff, first, second_coeff, second, product_coeff),),
+    )
+
+
+def _quad_sqrt(form: RealForm) -> RealForm:
+    span = _as_biquadratic(form)
+    if span is None:
+        raise NotExact("this nested radical stays outside")
+    constant, first_coeff, first, second_coeff, second, product_coeff = span
+    outer, reduced_const, reduced_first, first, reduced_second, second, reduced_product = (
+        _reduce_quad_radicand(constant, first_coeff, first, second_coeff, second, product_coeff)
+    )
+    if outer.num == 0:
+        return RealForm(_ratio(0, 1), ())
+    reduced = _quad_inside(
+        reduced_const, reduced_first, first, reduced_second, second, reduced_product
+    )
+    if _is_rational(reduced) or (not reduced.terms):
+        return _scale(_sqrt_form(reduced.constant) if _is_rational(reduced) else reduced, outer)
+    if _as_biquadratic(reduced) is None:
+        return _scale(_sqrt_of_form(reduced), outer)
+    norm = _biquadratic_norm(
+        reduced_const, reduced_first, first, reduced_second, second, reduced_product
+    )
+    if _rational_square_root(norm) is not None:
+        denested = _try_denest_biquadratic(
+            reduced_const, reduced_first, first, reduced_second, second, reduced_product
+        )
+        if denested is not None:
+            return _scale(denested, outer)
+        raise NotExact("this nested radical stays outside")
+    result = _quad_form(
+        outer, reduced_const, reduced_first, first, reduced_second, second, reduced_product
+    )
+    squared = _square_quad(result)
+    if squared != form:
+        raise KernelError("biquadratic square disagreed")
+    if _classify(result) not in {"gt", "eq"}:
+        raise KernelError("biquadratic root was not nonnegative")
+    return result
+
+
+def _square_quad(form: RealForm) -> RealForm:
+    if (
+        form.constant.num != 0
+        or form.terms
+        or form.towers
+        or form.nests
+        or form.pairs
+        or form.deeps
+        or form.highs
+        or form.peaks
+        or form.crests
+        or form.summits
+        or form.apexes
+        or form.shells
+        or form.folds
+        or len(form.quads) != 1
+    ):
+        raise KernelError("biquadratic square left the radical")
+    coeff, constant, first_coeff, first, second_coeff, second, product_coeff = form.quads[0]
+    return _scale(
+        _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff),
+        _qmul(coeff, coeff),
+    )
+
+
+def _quad_times_term(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+    other_rad: int,
+) -> RealForm:
+    return _sqrt_of_form(
+        _scale(
+            _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff),
+            _ratio(other_rad, 1),
+        )
+    )
+
+
+def _quad_times_quad(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+    other_const: Ratio,
+    other_first: Ratio,
+    other_p: int,
+    other_second: Ratio,
+    other_q: int,
+    other_product: Ratio,
+) -> RealForm:
+    left = _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff)
+    right = _quad_inside(other_const, other_first, other_p, other_second, other_q, other_product)
+    if left == right:
+        return left
+    return _sqrt_of_form(_mul_forms(left, right))
+
+
+def _mul_one_quad(
+    coeff: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+    other: RealForm,
+) -> RealForm:
+    product = RealForm(_ratio(0, 1), ())
+    piece = _quad_form(_ratio(1, 1), constant, first_coeff, first, second_coeff, second, product_coeff)
+    if other.constant.num != 0:
+        product = _add_forms(product, _scale(piece, _qmul(coeff, other.constant)))
+    for other_coeff, other_rad in other.terms:
+        product = _add_forms(
+            product,
+            _scale(
+                _quad_times_term(
+                    constant, first_coeff, first, second_coeff, second, product_coeff, other_rad
+                ),
+                _qmul(coeff, other_coeff),
+            ),
+        )
+    for (
+        other_coeff,
+        other_const,
+        other_first,
+        other_p,
+        other_second,
+        other_q,
+        other_product,
+    ) in other.quads:
+        product = _add_forms(
+            product,
+            _scale(
+                _quad_times_quad(
+                    constant,
+                    first_coeff,
+                    first,
+                    second_coeff,
+                    second,
+                    product_coeff,
+                    other_const,
+                    other_first,
+                    other_p,
+                    other_second,
+                    other_q,
+                    other_product,
+                ),
+                _qmul(coeff, other_coeff),
+            ),
+        )
+    if (
+        other.towers
+        or other.nests
+        or other.pairs
+        or other.deeps
+        or other.highs
+        or other.peaks
+        or other.crests
+        or other.summits
+        or other.apexes
+        or other.shells
+        or other.folds
+    ):
+        raise NotExact("this nested radical stays outside")
+    return product
+
+
+def _invert_quad(form: RealForm) -> RealForm:
+    if (
+        form.constant.num != 0
+        or form.terms
+        or form.towers
+        or form.nests
+        or form.pairs
+        or form.deeps
+        or form.highs
+        or form.peaks
+        or form.crests
+        or form.summits
+        or form.apexes
+        or form.shells
+        or form.folds
+        or len(form.quads) != 1
+    ):
+        raise NotExact("this quotient stays outside")
+    try:
+        return _mul_forms(form, _inverse_form(_square_quad(form)))
+    except NotExact as exc:
+        raise NotExact("this quotient stays outside") from exc
+
+
+def _quad_piece(
+    coeff: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> tuple[str, bool]:
+    return _scaled_piece(
+        f"sqrt({show_form(_quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff))})",
+        coeff,
+    )
+
+
+def _quad_cmp(
+    value: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> int:
+    inside = _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff)
+    direction = _classify(_sub_forms(RealForm(_qmul(value, value), ()), inside))
+    if direction == "eq":
+        return 0
+    if direction == "lt":
+        return -1
+    if direction == "gt":
+        return 1
+    raise KernelError("biquadratic comparison stayed open")
+
+
+def _quad_start(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> tuple[Ratio, Ratio]:
+    inside = _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff)
+    lower_inside = _ratio(0, 1)
+    upper_inside = _ratio(0, 1)
+    found = False
+    for depth in _DEPTHS:
+        lower_inside, upper_inside = _enclose(inside, depth)
+        if lower_inside.num > 0:
+            found = True
+            break
+    if not found:
+        raise KernelError("biquadratic lower bound was not positive")
+    lower = _qdiv(lower_inside, _qadd(lower_inside, _ratio(1, 1)))
+    ceiling = (abs(upper_inside.num) + upper_inside.den - 1) // upper_inside.den
+    if ceiling < 1:
+        ceiling = 1
+    upper = _ratio(_isqrt_ceil(ceiling), 1)
+    if lower.num <= 0 or _qcmp(lower, upper) >= 0:
+        raise KernelError("biquadratic bounds left the positive interval")
+    return lower, upper
+
+
+def _quad_bisect(
+    lower: Ratio,
+    upper: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> tuple[Ratio, Ratio]:
+    midpoint = _qdiv(_qadd(lower, upper), _ratio(2, 1))
+    compared = _quad_cmp(midpoint, constant, first_coeff, first, second_coeff, second, product_coeff)
+    if compared == 0:
+        raise KernelError("biquadratic bisection hit a rational root")
+    if compared < 0:
+        return midpoint, upper
+    return lower, midpoint
+
+
+def _quad_bracket(
+    lower: Ratio,
+    upper: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> None:
+    if lower.num <= 0 or _qcmp(lower, upper) >= 0:
+        raise KernelError("biquadratic bounds left the positive interval")
+    if (
+        _quad_cmp(lower, constant, first_coeff, first, second_coeff, second, product_coeff) > 0
+        or _quad_cmp(upper, constant, first_coeff, first, second_coeff, second, product_coeff) < 0
+    ):
+        raise KernelError("biquadratic bounds stopped bracketing the radicand")
+
+
+def _quad_gap_within(
+    lower: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+    width: Ratio,
+    upper: Ratio,
+) -> bool:
+    if _quad_cmp(lower, constant, first_coeff, first, second_coeff, second, product_coeff) >= 0:
+        return False
+    limit = _qmul(width, _qmul(_ratio(2, 1), upper))
+    ceiling = _qadd(_qmul(lower, lower), limit)
+    direction = _classify(
+        _sub_forms(
+            RealForm(ceiling, ()),
+            _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff),
+        )
+    )
+    return direction in {"gt", "eq"}
+
+
+def _quad_bounds(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+    depth: int,
+) -> tuple[Ratio, Ratio, Ratio]:
+    lower, upper = _quad_start(constant, first_coeff, first, second_coeff, second, product_coeff)
+    initial_width = _qsub(upper, lower)
+    _quad_bracket(lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff)
+    for _ in range(depth):
+        lower, upper = _quad_bisect(
+            lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff
+        )
+        _quad_bracket(lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff)
+    width = _qsub(upper, lower)
+    expected = _qdiv(initial_width, _ratio(2**depth, 1))
+    if width != expected:
+        raise KernelError("bisection width disagreed with the modulus")
+    return lower, upper, initial_width
+
+
+def _quad_bounds_from(
+    lower: Ratio,
+    upper: Ratio,
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+    depth: int,
+) -> tuple[Ratio, Ratio, Ratio]:
+    initial_width = _qsub(upper, lower)
+    for _ in range(depth):
+        lower, upper = _quad_bisect(
+            lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff
+        )
+        _quad_bracket(lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff)
+    width = _qsub(upper, lower)
+    expected = _qdiv(initial_width, _ratio(2**depth, 1))
+    if width != expected:
+        raise KernelError("bisection width disagreed with the modulus")
+    return lower, upper, width
+
+
+def _quad_certificate_lines(
+    constant: Ratio,
+    first_coeff: Ratio,
+    first: int,
+    second_coeff: Ratio,
+    second: int,
+    product_coeff: Ratio,
+) -> tuple[str, ...]:
+    lower, upper = _quad_start(constant, first_coeff, first, second_coeff, second, product_coeff)
+    _quad_bracket(lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff)
+    width = _qsub(upper, lower)
+    for _ in range(64):
+        end_lower, _end_upper, width = _quad_bounds_from(
+            lower,
+            upper,
+            constant,
+            first_coeff,
+            first,
+            second_coeff,
+            second,
+            product_coeff,
+            _CERT_DEPTH,
+        )
+        if _quad_gap_within(
+            end_lower,
+            constant,
+            first_coeff,
+            first,
+            second_coeff,
+            second,
+            product_coeff,
+            width,
+            upper,
+        ):
+            break
+        lower, upper = _quad_bisect(
+            lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff
+        )
+        _quad_bracket(lower, upper, constant, first_coeff, first, second_coeff, second, product_coeff)
+    else:
+        raise KernelError("biquadratic gap bound failed")
+    shown = show_form(_quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff))
+    return (
+        f"sqrt({shown}) is the positive bisection sequence. The depth 0 interval is [{show_ratio(lower)}, {show_ratio(upper)}].",
+        "Each step takes the midpoint and keeps the half whose square still brackets the radicand.",
+        "The comparison is exact: a rational square sits below the biquadratic when their difference has an order decided by enclosure.",
+        "The lower endpoint stays positive, so the class is the nonnegative root.",
+        "Isabelle real_sqrt_ge_zero.",
+        "Isabelle real_le_lsqrt: 0 <= y and x <= y^2 imply sqrt x <= y.",
+        "Isabelle real_sqrt_pow2: 0 <= x implies (sqrt x)^2 = x.",
+        "Isabelle real_sqrt_unique: a nonnegative y whose square is the radicand is the root.",
+        "Isabelle cauchy: for every positive rational r there is a k such that m, n >= k implies the absolute difference is below r.",
+        f"At depth {_CERT_DEPTH} the width is {show_ratio(width)}, the initial width {show_ratio(_qsub(upper, lower))} divided by {2 ** _CERT_DEPTH}.",
+        "Both later terms lie in that interval, so the sequence is Cauchy.",
+        f"The square gap at depth {_CERT_DEPTH} is bounded by the width times twice the upper endpoint.",
+        "The gap shrinks to zero, so the squared sequence differs from the radicand by a vanishing sequence.",
+        "Isabelle eq_Real: Cauchy sequences are the same real when their difference vanishes.",
+    )
+
+
 def _invert_two_nests(form: RealForm) -> RealForm:
     """Inverse of c1*N1 + c2*N2 when the squares differ by a nonzero rational.
 
@@ -3357,7 +4152,7 @@ def _invert_two_nests(form: RealForm) -> RealForm:
         or form.summits
         or form.apexes
         or form.shells
-        or form.folds
+        or form.folds or form.quads
         or len(form.nests) != 2
     ):
         raise NotExact("this quotient stays outside")
@@ -5783,6 +6578,11 @@ def _enclose(form: RealForm, depth: int) -> tuple[Ratio, Ratio]:
     for coeff, extra, mult, constant, sqrt_coeff, rad in form.folds:
         left, right, _width = _fold_bounds(extra, mult, constant, sqrt_coeff, rad, depth)
         lower, upper = _absorb(lower, upper, coeff, left, right)
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        left, right, _width = _quad_bounds(
+            constant, first_coeff, first, second_coeff, second, product_coeff, depth
+        )
+        lower, upper = _absorb(lower, upper, coeff, left, right)
     if _qcmp(lower, upper) > 0:
         raise KernelError("enclosure crossed itself")
     return lower, upper
@@ -5841,7 +6641,9 @@ def _separation_lines(form: RealForm, direction: str) -> tuple[str, ...]:
     packed = any(
         base > 1 and _square_part(base) != (1, base) for _coeff, base, _numer, _log_den in form.towers
     )
-    if form.folds:
+    if form.quads:
+        inside = "A square root of a two-prime biquadratic is not attained at a rational endpoint, so the value stays strictly inside the interval."
+    elif form.folds:
         inside = "A further square root of a nested binomial is not attained at a rational endpoint, so the value stays strictly inside the interval."
     elif form.shells:
         inside = "A further square root of an apex is not attained at a rational endpoint, so the value stays strictly inside the interval."
@@ -5911,7 +6713,7 @@ def _is_rational(form: RealForm) -> bool:
         and not form.deeps
         and not form.highs
         and not form.peaks
-        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds
+        and not form.crests and not form.summits and not form.apexes and not form.shells and not form.folds and not form.quads
     )
 
 
@@ -5960,6 +6762,15 @@ def _form_id(form: RealForm) -> str:
         mults = ".".join(f"m{item}" for item in extra)
         parts.append(
             f"f{coeff.num}.{coeff.den}.{mults}.d{mult}.c{constant}.b{sqrt_coeff}.r{rad}"
+        )
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        parts.append(
+            "u"
+            f"{coeff.num}.{coeff.den}."
+            f"c{constant.num}.{constant.den}."
+            f"a{first_coeff.num}.{first_coeff.den}.p{first}."
+            f"b{second_coeff.num}.{second_coeff.den}.q{second}."
+            f"d{product_coeff.num}.{product_coeff.den}"
         )
     return "math.cauchy." + ".".join(parts)
 
@@ -6217,6 +7028,18 @@ def _justified(theorem: RealTheorem) -> bool:
                 )
             for _coeff, extra, mult, constant, sqrt_coeff, rad in form.folds:
                 _fold_certificate_lines(extra, mult, constant, sqrt_coeff, rad)
+            for (
+                _coeff,
+                constant,
+                first_coeff,
+                first,
+                second_coeff,
+                second,
+                product_coeff,
+            ) in form.quads:
+                _quad_certificate_lines(
+                    constant, first_coeff, first, second_coeff, second, product_coeff
+                )
             return True
         if rule == "Real.neg":
             return len(premises) == 1 and form == _neg_form(premises[0].form)
@@ -6289,6 +7112,8 @@ def _div_form(left: RealForm, right: RealForm) -> RealForm:
 def _inverse_form(form: RealForm) -> RealForm:
     if _is_rational(form):
         return RealForm(_inverse(form.constant), ())
+    if form.quads:
+        return _invert_quad(form)
     if form.folds:
         return _invert_fold(form)
     if form.shells:
@@ -6335,7 +7160,7 @@ def _invert_high(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.peaks
-        or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.highs) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -6369,7 +7194,7 @@ def _invert_apex(form: RealForm) -> RealForm:
         or form.peaks
         or form.crests
         or form.summits
-        or form.shells or form.folds
+        or form.shells or form.folds or form.quads
         or len(form.apexes) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -6418,7 +7243,7 @@ def _invert_summit(form: RealForm) -> RealForm:
         or form.highs
         or form.peaks
         or form.crests
-        or form.apexes or form.shells or form.folds
+        or form.apexes or form.shells or form.folds or form.quads
         or len(form.summits) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -6464,7 +7289,7 @@ def _invert_crest(form: RealForm) -> RealForm:
         or form.deeps
         or form.highs
         or form.peaks
-        or form.summits or form.apexes or form.shells or form.folds
+        or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.crests) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -6507,7 +7332,7 @@ def _invert_peak(form: RealForm) -> RealForm:
         or form.pairs
         or form.deeps
         or form.highs
-        or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.peaks) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -6548,7 +7373,7 @@ def _invert_deep(form: RealForm) -> RealForm:
         or form.towers
         or form.nests
         or form.pairs
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or len(form.deeps) != 1
     ):
         raise NotExact("this quotient stays outside")
@@ -6559,7 +7384,7 @@ def _invert_deep(form: RealForm) -> RealForm:
 
 
 def _invert_pair(form: RealForm) -> RealForm:
-    if form.constant.num != 0 or form.terms or form.towers or form.nests or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or len(form.pairs) != 1:
+    if form.constant.num != 0 or form.terms or form.towers or form.nests or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads or len(form.pairs) != 1:
         raise NotExact("this quotient stays outside")
     outer, left_c, left_r, right_c, right_r = form.pairs[0]
     gap = left_c * left_c * left_r - right_c * right_c * right_r
@@ -6585,7 +7410,7 @@ def _monomial_power(form: RealForm) -> tuple[Ratio, int, int, int] | None:
         form.pairs
         or form.nests
         or form.deeps
-        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds
+        or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads
         or form.constant.num != 0
         or len(form.terms) + len(form.towers) != 1
     ):
@@ -6631,7 +7456,7 @@ def _dyadic_reader(base: int, level: int):
     half = 1 << (level - 1)
 
     def read(form: RealForm) -> list[Ratio]:
-        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds:
+        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads:
             raise KernelError("a power product left the one-base span")
         coords = [_ratio(0, 1) for _ in range(width)]
         coords[0] = form.constant
@@ -6726,7 +7551,7 @@ def _prime_reader(primes: tuple[int, ...], level: int):
         return found
 
     def read(form: RealForm) -> list[Ratio]:
-        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds:
+        if form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads:
             raise KernelError("a radical left the span")
         coords = [_ratio(0, 1) for _ in range(degree)]
         coords[0] = form.constant
@@ -6769,7 +7594,7 @@ def _quadratic_reader(primes: tuple[int, ...]):
     width = 1 << len(primes)
 
     def read(form: RealForm) -> list[Ratio]:
-        if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds:
+        if form.towers or form.nests or form.pairs or form.deeps or form.highs or form.peaks or form.crests or form.summits or form.apexes or form.shells or form.folds or form.quads:
             raise KernelError("a square-root product left the basis")
         coords = [_ratio(0, 1) for _ in range(width)]
         coords[0] = form.constant
@@ -7193,6 +8018,47 @@ def _canonical(form: RealForm) -> bool:
         if seen_fold is not None and key <= seen_fold:
             return False
         seen_fold = key
+    seen_quad: tuple[int, int, int, int, int, int, int, int, int, int] | None = None
+    for coeff, constant, first_coeff, first, second_coeff, second, product_coeff in form.quads:
+        if coeff.num == 0 or not _canonical_ratio(coeff):
+            return False
+        if first >= second or first <= 1 or second <= 1:
+            return False
+        if _square_part(first) != (1, first) or _square_part(second) != (1, second):
+            return False
+        if not (
+            _canonical_ratio(constant)
+            and _canonical_ratio(first_coeff)
+            and _canonical_ratio(second_coeff)
+            and _canonical_ratio(product_coeff)
+        ):
+            return False
+        if first_coeff.num == 0 and second_coeff.num == 0 and product_coeff.num == 0:
+            return False
+        inside = _quad_inside(constant, first_coeff, first, second_coeff, second, product_coeff)
+        if _classify(inside) not in {"gt", "eq"}:
+            return False
+        if _try_denest_biquadratic(constant, first_coeff, first, second_coeff, second, product_coeff) is not None:
+            return False
+        if _rational_square_root(
+            _biquadratic_norm(constant, first_coeff, first, second_coeff, second, product_coeff)
+        ) is not None:
+            return False
+        key = (
+            first,
+            second,
+            constant.num,
+            constant.den,
+            first_coeff.num,
+            first_coeff.den,
+            second_coeff.num,
+            second_coeff.den,
+            product_coeff.num,
+            product_coeff.den,
+        )
+        if seen_quad is not None and key <= seen_quad:
+            return False
+        seen_quad = key
     return True
 
 

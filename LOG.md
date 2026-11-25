@@ -402,3 +402,20 @@ The next gap is `sqrt(1+sqrt(2)+sqrt(5))`. A nest times the pair stays outside. 
 The Octave cross-check finds `octave-cli` from `PGI_OCTAVE`, then PATH, then the Windows 11.3.0 install path, and the test skips when none is found. The folder carries the Apache License, Version 2.0.
 
 `python -m unittest discover -s tests -v` finished 113 tests, 0 failures, about 5.60 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+
+## 2026-11-25 — sqrt(1 + sqrt(2) + sqrt(5)) as itself pgi-0.30.0
+
+A two-prime biquadratic `a + b*sqrt(p) + c*sqrt(q) + d*sqrt(p*q)` is a square in `Q(sqrt(p), sqrt(q))` only when its field norm is a rational square and the relative denesting succeeds. The field norm of `1 + sqrt(2) + sqrt(5)` is -4, which is not a rational square, so the number is not a square in that field. The nonnegative root is the nested radical itself, by `real_sqrt_unique`. The certificate is the positive bisection sequence whose squares bracket the biquadratic. The comparison is exact: a rational square sits below the biquadratic when their difference has an order decided by enclosure. The certificate cites `real_sqrt_unique`, `real_sqrt_pow2`, `real_sqrt_ge_zero`, `real_le_lsqrt`, `cauchy`, and `eq_Real`. A square root of a two-prime biquadratic is not attained at a rational endpoint, so the value stays strictly inside the interval.
+
+`sqrt(1 + sqrt(2) + sqrt(5))` is `cauchy(sqrt(1 + sqrt(2) + sqrt(5)))`, and its square is `1 + sqrt(2) + sqrt(5)`. A rational square factor moves into the coefficient: `sqrt(4 + 4 * sqrt(2) + 4 * sqrt(5))` is `2 * sqrt(1 + sqrt(2) + sqrt(5))`. `sqrt(2) * sqrt(1 + sqrt(2) + sqrt(5))` is `sqrt(2 + 2 * sqrt(2) + 2 * sqrt(5))`. When the field norm is a rational square and the relative denesting succeeds, the root is written in the field: `sqrt(8 + 2 * sqrt(2) + 2 * sqrt(5) + 2 * sqrt(10))` is `1 + sqrt(2) + sqrt(5)`. The same family closes `sqrt(1 + sqrt(2) + sqrt(3))`.
+
+The inverse is the root times the inverse of its square, which already lies in `Q(sqrt(2), sqrt(5))`. `1 / sqrt(1 + sqrt(2) + sqrt(5))` is `cauchy(3/2 * sqrt(1 + sqrt(2) + sqrt(5)) + sqrt(2 + 2 * sqrt(2) + 2 * sqrt(5)) - 1/2 * sqrt(5 + 5 * sqrt(2) + 5 * sqrt(5)) - 1/2 * sqrt(10 + 10 * sqrt(2) + 10 * sqrt(5)))`. It multiplies back to 1 by `inverse_unique`.
+
+A nest times the pair stays outside. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside. A sum of two nested binomials of the same square-free integer stays that sum: `sqrt(2 + sqrt(2)) + sqrt(2 - sqrt(2))` is not rewritten as `sqrt(4 + 2 * sqrt(2))`. A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` stays refused. Isabelle `inverse (0::real) = 0` stays refused.
+
+`primitive.continuum` still blocks `law(sqrt_two_is_rational)`. Core Lean 4.36.0, with no imports, does not resolve these names. Octave is not used for this root.
+
+The next gap is a nest times the pair, `sqrt(2 + sqrt(2)) * sqrt(sqrt(2) + sqrt(5))`. `1 / (1 + sqrt(sqrt(sqrt(2 + sqrt(2)))))` stays outside. A boolean connective the kernel cannot settle, a set whose upper-bound predicate the kernel cannot decide, a nonnegative radicand the kernel cannot see, and a divisor the kernel cannot see as nonzero stay outside. CODATA, the Particle Data Group, gravitational-wave catalogs, and the Mercury residual in arcseconds are still not ingested.
+
+`python -m unittest discover -s tests -v` finished 114 tests, 0 failures, about 6.97 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

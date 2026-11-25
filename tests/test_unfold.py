@@ -199,7 +199,8 @@ class UnfoldTests(unittest.TestCase):
     def test_addition_is_exact_and_procedural(self) -> None:
         session = run(Request(ask="What is 17 plus 13?", seed=4))
         self.assertEqual(session.claims[0].atom, "value(30)")
-        self.assertNotIn("30", session.text(lod=0))
+        outline_body = "\n".join(session.text(lod=0).splitlines()[1:])
+        self.assertNotIn("30", outline_body)
         places = session.text(lod=2)
         self.assertIn("value(30) is the exact result", places)
         for line in add_lines(17, 13):
