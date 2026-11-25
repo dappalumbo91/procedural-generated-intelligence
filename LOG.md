@@ -802,3 +802,13 @@ PDG 2026 light hadron masses are on the board from the pdg 2026.0 database: π±
 That closes the third physics batch: INPOP, ASD Na to Kr, AME2020, and the light hadrons.
 
 `python -m unittest discover -s tests -v` finished 208 tests, 0 failures, about 49.98 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — gravity tests: binary pulsars, Gravity Probe B, VLBI, and the 16 values of G pgi-0.63.0
+
+Gravity tests are on the board. Hulse–Taylor, Weisberg and Huang 2016, arXiv:1606.02744: `Ṗb,intr/Ṗb,GR = 0.9983 ± 0.0016`. Double Pulsar, Kramer et al. 2021, arXiv:2112.06795, Table V: `Ṗb`, `ω̇`, `s`, `r`, and `γ_E` as observed over GR, in concise form. Gravity Probe B final, arXiv:1105.3456: geodetic `−6601.8 ± 18.3` and frame-dragging `−37.2 ± 7.2` mas/yr, 1σ by the paper. VLBI, Lambert and Le Poncin-Lafitte 2011, from the HAL open copy: `γ = 0.99992 ± 0.00012`, a formal error. The pulsar ratios carry no level because neither paper's table names one. The 95% statement for the Double Pulsar `Ṗb` is written in the note. GR predictions appear only in the notes.
+
+The 16 measured values of G in CODATA 2022 Table XXX are stored one by one, each 1σ, with lab, method, and the three printed correlations. The stored values reproduce CODATA's own numbers exactly. BIPM-14's normalized residual against `6.674 30` is `7.75` and JILA-18's is `−6.80`, the two extremes CODATA names. With the 3.9 expansion factor every residual falls to 2 or less. The spread of the 16 is more than 20 recommended uncertainties. That is the disagreement in the G data.
+
+That is 25 new records. The next slice is atomic spectroscopy.
+
+`python -m unittest discover -s tests -v` finished 212 tests, 0 failures, about 50.65 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

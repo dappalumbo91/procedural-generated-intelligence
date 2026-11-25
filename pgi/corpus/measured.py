@@ -1284,9 +1284,113 @@ PDG_2026_HADRONS: tuple[Quantity, ...] = (
     _pdg("pdg2026.m_n_minus_m_p", "neutron-proton mass difference", "m_n - m_p", "1.2933325", "0.0000004", "MeV", node="S017D", phrases=("neutron-proton mass difference", "neutron proton mass difference", "m_n - m_p"), notes=("PDG 2026 OUR AVERAGE of the measured difference. It is not computed from the two masses.", _API_NOTE)),
 )
 
+WEISBERG_2016_SOURCE = (
+    "J. M. Weisberg and Y. Huang, Relativistic Measurements from Timing the Binary Pulsar PSR B1913+16, "
+    "Astrophys. J. 829, 55 (2016), doi:10.3847/0004-637X/829/1/55, arXiv:1606.02744, Eq. (23)."
+)
+KRAMER_2021_SOURCE = (
+    "M. Kramer et al., Strong-Field Gravity Tests with the Double Pulsar, Phys. Rev. X 11, 041050 (2021), "
+    "doi:10.1103/PhysRevX.11.041050, arXiv:2112.06795, Table V."
+)
+_KRAMER_LEVEL = (
+    "Table V prints the ratio with its uncertainty in parentheses and does not name the level. The paper states the Pb-dot test "
+    "as agreement at 1.3 x 10^-4 with 95% confidence. No level is assigned here."
+)
+_RATIO_NOTE = "The ratio is the paper's own comparison of an observed quantity with the general-relativity prediction the paper computes. No prediction is stored on the board."
+GPB_SOURCE = (
+    "C. W. F. Everitt et al., Gravity Probe B: Final Results of a Space Experiment to Test General Relativity, "
+    "Phys. Rev. Lett. 106, 221101 (2011), doi:10.1103/PhysRevLett.106.221101, arXiv:1105.3456, Table II."
+)
+_GPB_SIGMA = "The paper states that the 1 sigma uncertainties of the joint result in Table II are the square roots of the diagonal of the total covariance matrix: statistical, sensitivity, and unmodeled systematic."
+LAMBERT_2011_SOURCE = (
+    "S. B. Lambert and C. Le Poncin-Lafitte, Improved determination of gamma by VLBI, Astron. Astrophys. 529, A70 (2011), "
+    "doi:10.1051/0004-6361/201016370, open copy hal-03785812."
+)
+CODATA_2022_G_SOURCE = (
+    "P. J. Mohr, D. B. Newell, B. N. Taylor, and E. Tiesinga, CODATA recommended values of the fundamental physical constants: 2022, "
+    "Rev. Mod. Phys. 97, 025002 (2025), doi:10.1103/RevModPhys.97.025002, arXiv:2409.03787, Table XXX."
+)
+
+
+def _g_input(key: str, reference: str, label: str, method: str, value_text: str, uncertainty_text: str, printed: str) -> Quantity:
+    return _q(
+        f"g_input.{key}",
+        f"Newtonian constant of gravitation, {label}",
+        "G",
+        value_text,
+        uncertainty_text,
+        "m^3 kg^-1 s^-2",
+        kind="standard uncertainty",
+        printed=printed,
+        source=CODATA_2022_G_SOURCE + f" Original measurement: {reference}.",
+        edition="CODATA 2022 input datum " + label,
+        url="https://doi.org/10.1103/RevModPhys.97.025002",
+        retrieved_from="https://arxiv.org/abs/2409.03787",
+        keys=("big-g",),
+        phrases=("measurements of big g", "big g", "big-g", "gravitational constant measurements"),
+        notes=(
+            f"Method: {method}. CODATA 2022 Table XXX lists it as one of the 16 input data for G, unchanged since the 2018 adjustment.",
+            "CODATA's Fig. 4 caption: error bars correspond to one-standard-deviation uncertainties as reported in Table XXX.",
+            "Correlations in the table caption: r(NIST-82, LANL-97) = 0.351, r(HUST-05, HUST-09) = 0.134, r(HUST-09, HUST_T-18) = 0.068.",
+        ),
+    )
+
+
+GRAVITY_TESTS: tuple[Quantity, ...] = (
+    _q("psr_b1913.pbdot_ratio", "PSR B1913+16 intrinsic orbital decay over the GR prediction", "Pb_dot_intr / Pb_dot_GR", "0.9983", "0.0016", "",
+       kind="uncertainty as printed, level not stated", source=WEISBERG_2016_SOURCE, edition="ApJ 829:55 (2016)",
+       url="https://doi.org/10.3847/0004-637X/829/1/55", retrieved_from="https://arxiv.org/abs/1606.02744",
+       keys=("hulse-taylor", "b1913+16"), phrases=("hulse-taylor", "hulse taylor", "binary pulsar", "orbital decay"),
+       notes=("Printed as (-2.398 +- 0.004) x 10^-12 over (-2.40263 +- 0.00005) x 10^-12 = 0.9983 +- 0.0016, the observed decay corrected by a kinematic term. The paper calls this within about 1 sigma of the GR rate but does not name the level of the +- itself.", _RATIO_NOTE)),
+) + tuple(
+    _q(f"double_pulsar.{key}_ratio", f"Double Pulsar {name}, observed over GR prediction", f"{symbol} obs/GR", value, unc, "",
+       kind="uncertainty as printed, level not stated", printed=printed, source=KRAMER_2021_SOURCE, edition="Phys. Rev. X 11 (2021)",
+       url="https://doi.org/10.1103/PhysRevX.11.041050", retrieved_from="https://arxiv.org/abs/2112.06795",
+       keys=("j0737-3039",), phrases=("double pulsar",) + extra,
+       notes=(f"Table V prints {printed}.", _KRAMER_LEVEL, _RATIO_NOTE))
+    for key, name, symbol, value, unc, printed, extra in (
+        ("pbdot", "orbital period decay from GW emission", "Pb_dot", "0.999963", "0.000063", "0.999963(63)", ("orbital decay",)),
+        ("omdot", "periastron advance", "omega_dot", "1.000015", "0.000026", "1.000015(26)", ()),
+        ("shapiro_s", "Shapiro delay shape", "s", "1.00009", "0.00018", "1.00009(18)", ()),
+        ("shapiro_r", "Shapiro delay range", "r", "1.0016", "0.0034", "1.0016(34)", ()),
+        ("gamma_e", "time dilation parameter", "gamma_E", "1.00012", "0.00025", "1.00012(25)", ()),
+    )
+) + (
+    _q("gpb.geodetic", "Gravity Probe B geodetic drift rate, joint four-gyroscope result", "r_NS", "-6601.8", "18.3", "mas/yr",
+       kind="standard uncertainty", source=GPB_SOURCE, edition="Phys. Rev. Lett. 106 (2011)", url="https://doi.org/10.1103/PhysRevLett.106.221101",
+       retrieved_from="https://arxiv.org/abs/1105.3456", keys=("gravity-probe-b",), phrases=("gravity probe b", "geodetic effect", "geodetic drift"),
+       notes=("Printed as -6,601.8 +- 18.3 mas/yr. The paper sets it beside its GR prediction, -6,606.1 mas/yr, which is not stored.", _GPB_SIGMA)),
+    _q("gpb.frame_dragging", "Gravity Probe B frame-dragging drift rate, joint four-gyroscope result", "r_WE", "-37.2", "7.2", "mas/yr",
+       kind="standard uncertainty", source=GPB_SOURCE, edition="Phys. Rev. Lett. 106 (2011)", url="https://doi.org/10.1103/PhysRevLett.106.221101",
+       retrieved_from="https://arxiv.org/abs/1105.3456", keys=("gravity-probe-b",), phrases=("gravity probe b", "frame dragging", "frame-dragging", "lense-thirring"),
+       notes=("Printed as -37.2 +- 7.2 mas/yr. The paper sets it beside its GR prediction, -39.2 mas/yr, which is not stored.", _GPB_SIGMA)),
+    _q("vlbi.lambert2011.gamma", "PPN gamma from VLBI light deflection, solution S5", "gamma", "0.99992", "0.00012", "",
+       kind="uncertainty as printed, level not stated", source=LAMBERT_2011_SOURCE, edition="A&A 529, A70 (2011)",
+       url="https://doi.org/10.1051/0004-6361/201016370", retrieved_from="https://hal.science/hal-03785812",
+       keys=("vlbi", "ppn"), phrases=("ppn gamma", "post-newtonian gamma", "light deflection"),
+       notes=("Printed in the abstract as gamma = 0.99992 +- 0.00012, from more than seven million group delays, August 1979 to August 2010, least-squares fitted. The paper calls the uncertainty the formal error and names no level.", "The 2009 paper by the same authors gave 0.99984 +- 0.00015, not stored.")),
+) + (
+    _g_input("nist82", "Luther and Towler (1982)", "NIST-82", "Fiber torsion balance, dynamic mode", "6.672 48 e-11", "0.000 43 e-11", "6.672 48(43) e-11"),
+    _g_input("trd96", "Karagioz and Izmailov (1996)", "TR&D-96", "Fiber torsion balance, dynamic mode", "6.672 9 e-11", "0.000 5 e-11", "6.672 9(5) e-11"),
+    _g_input("lanl97", "Bagley and Luther (1997)", "LANL-97", "Fiber torsion balance, dynamic mode", "6.673 98 e-11", "0.000 70 e-11", "6.673 98(70) e-11"),
+    _g_input("uwash00", "Gundlach and Merkowitz (2000); Gundlach and Merkowitz (2002)", "UWash-00", "Fiber torsion balance, dynamic compensation", "6.674 255 e-11", "0.000 092 e-11", "6.674 255(92) e-11"),
+    _g_input("bipm01", "Quinn et al. (2001)", "BIPM-01", "Strip torsion balance, compensation mode, static deflection", "6.675 59 e-11", "0.000 27 e-11", "6.675 59(27) e-11"),
+    _g_input("uwup02", "Kleinevoss (2002); Kleinevoss et al. (2002)", "UWup-02", "Suspended body, displacement", "6.674 22 e-11", "0.000 98 e-11", "6.674 22(98) e-11"),
+    _g_input("msl03", "Armstrong and Fitzgerald (2003)", "MSL-03", "Strip torsion balance, compensation mode", "6.673 87 e-11", "0.000 27 e-11", "6.673 87(27) e-11"),
+    _g_input("hust05", "Hu et al. (2005)", "HUST-05", "Fiber torsion balance, dynamic mode", "6.672 22 e-11", "0.000 87 e-11", "6.672 22(87) e-11"),
+    _g_input("uzur06", "Schlamminger et al. (2006)", "UZur-06", "Stationary body, weight change", "6.674 25 e-11", "0.000 12 e-11", "6.674 25(12) e-11"),
+    _g_input("hust09", "Luo et al. (2009); Tu et al. (2010)", "HUST-09", "Fiber torsion balance, dynamic mode", "6.673 49 e-11", "0.000 18 e-11", "6.673 49(18) e-11"),
+    _g_input("bipm14", "Quinn et al. (2013, 2014)", "BIPM-14", "Strip torsion balance, compensation mode, static deflection", "6.675 54 e-11", "0.000 16 e-11", "6.675 54(16) e-11"),
+    _g_input("lens14", "Prevedelli et al. (2014); Rosi et al. (2014)", "LENS-14", "Double atom interferometer, gravity gradiometer", "6.671 91 e-11", "0.000 99 e-11", "6.671 91(99) e-11"),
+    _g_input("uci14", "Newman et al. (2014)", "UCI-14", "Cryogenic torsion balance, dynamic mode", "6.674 35 e-11", "0.000 13 e-11", "6.674 35(13) e-11"),
+    _g_input("hustt18", "Li et al. (2018)", "HUST_T-18", "Fiber torsion balance, dynamic mode", "6.674 184 e-11", "0.000 078 e-11", "6.674 184(78) e-11"),
+    _g_input("husta18", "Li et al. (2018)", "HUST_A-18", "Fiber torsion balance, dynamic compensation", "6.674 484 e-11", "0.000 077 e-11", "6.674 484(77) e-11"),
+    _g_input("jila18", "Parks and Faller (2019)", "JILA-18", "Suspended body, displacement", "6.672 60 e-11", "0.000 25 e-11", "6.672 60(25) e-11"),
+)
+
 QUANTITIES: tuple[Quantity, ...] = (
     CODATA_2022 + PDG_2026 + MERCURY + MERCURY_MODERN + GW150914 + PLANCK_2018 + SH0ES_2022 + DESI_DR2 + FIXSEN_2009
-    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS
+    + PARTICLE_PRECISION + ASD_IONIZATION + INPOP + AME2020 + PDG_2026_HADRONS + GRAVITY_TESTS
 )
 
 

@@ -574,6 +574,50 @@ class Pdg2026HadronTests(unittest.TestCase):
         self.assertEqual(session.retracted, ())
 
 
+class GravityTestsTests(unittest.TestCase):
+    def test_pulsar_ratios_sit_near_one_as_printed(self) -> None:
+        hulse = quantity("psr_b1913.pbdot_ratio")
+        double = quantity("double_pulsar.pbdot_ratio")
+        self.assertLessEqual(abs(hulse.value - 1), 2 * hulse.uncertainty)
+        self.assertLessEqual(abs(double.value - 1), 2 * double.uncertainty)
+        self.assertLess(double.uncertainty * 25, hulse.uncertainty * 1)
+        for key in ("pbdot", "omdot", "shapiro_s", "shapiro_r", "gamma_e"):
+            item = quantity(f"double_pulsar.{key}_ratio")
+            self.assertEqual(parse_concise(item.printed), (item.value, item.uncertainty))
+
+    def test_gravity_probe_b_and_vlbi(self) -> None:
+        geodetic, drag = quantity("gpb.geodetic"), quantity("gpb.frame_dragging")
+        self.assertEqual(geodetic.uncertainty_kind, "standard uncertainty")
+        self.assertLess(drag.value, 0)
+        self.assertGreater(abs(drag.value), 5 * drag.uncertainty)
+        gamma = quantity("vlbi.lambert2011.gamma")
+        self.assertLessEqual(abs(gamma.value - 1), gamma.uncertainty)
+        cassini = quantity("cassini.bertotti2003.gamma_minus_1")
+        self.assertLessEqual((gamma.value - 1 - cassini.value) ** 2, gamma.uncertainty**2 + cassini.uncertainty**2)
+
+    def test_big_g_spread_and_the_codata_expansion_factor(self) -> None:
+        inputs = [item for item in QUANTITIES if item.id.startswith("g_input.")]
+        self.assertEqual(len(inputs), 16)
+        g = quantity("codata2022.g")
+        residual = {item.id: (item.value - g.value) / item.uncertainty for item in inputs}
+        self.assertEqual(residual["g_input.bipm14"], Fraction(775, 100))
+        self.assertEqual(residual["g_input.jila18"], Fraction(-680, 100))
+        self.assertEqual(max(residual, key=residual.get), "g_input.bipm14")
+        self.assertEqual(min(residual, key=residual.get), "g_input.jila18")
+        self.assertTrue(all(abs(r) <= 2 * Fraction(39, 10) for r in residual.values()))
+        self.assertTrue(any(abs(r) > 2 for r in residual.values()))
+        spread = max(item.value for item in inputs) - min(item.value for item in inputs)
+        self.assertGreater(spread, 20 * g.uncertainty)
+        for item in inputs:
+            self.assertEqual(parse_concise(item.printed), (item.value, item.uncertainty))
+
+    def test_big_g_ask_links_every_input(self) -> None:
+        session = unfold(Request(ask="show the big g measurements", seed=1))
+        atoms = [claim.atom for claim in session.claims]
+        self.assertEqual(len([a for a in atoms if a.startswith("record(g_input.")]), 16)
+        self.assertEqual(session.retracted, ())
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

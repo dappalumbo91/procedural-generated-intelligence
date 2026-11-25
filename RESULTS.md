@@ -302,9 +302,21 @@ The light hadron masses are on the board from the PDG 2026 database (pdg package
 
 The tests check the following. `m_n − m_p` agrees with the difference of the two PDG masses, and with CODATA's to 10⁻⁶ MeV. PDG's proton mass is the CODATA 2022 value exactly. π± is above π⁰, K⁰ above K±, and n above p, and the eleven masses run in the expected order, as printed. Δ(1232) carries a range kind. A `pion mass` ask links both pions with nothing retracted. That is 12 new records.
 
+### Gravity tests: binary pulsars, Gravity Probe B, VLBI, and the spread in G
+
+The strong-field and solar-system gravity tests are on the board as measured anchors, along with the measured values of G that CODATA 2022 combines.
+
+Hulse–Taylor PSR B1913+16, Weisberg and Huang, ApJ 829, 55 (2016), Eq. (23): the intrinsic orbital decay over the GR prediction is `0.9983 ± 0.0016`. The paper calls this within about 1σ but does not name the level of the ±, so none is assigned. Double Pulsar PSR J0737−3039A/B, Kramer et al., Phys. Rev. X 11, 041050 (2021), Table V, observed over GR: `Ṗb 0.999963(63)`, `ω̇ 1.000015(26)`, `s 1.00009(18)`, `r 1.0016(34)`, `γ_E 1.00012(25)`. The paper states the `Ṗb` test as 1.3 × 10^−4 at 95% confidence. Table V names no level, so the records say so. Each ratio is the paper's own comparison. No GR prediction is stored on the board.
+
+Gravity Probe B, Everitt et al., Phys. Rev. Lett. 106, 221101 (2011), Table II, joint result: geodetic `−6601.8 ± 18.3` mas/yr and frame-dragging `−37.2 ± 7.2` mas/yr. These are 1σ by the paper's statement, the square roots of the total covariance diagonal. The paper's GR predictions, −6606.1 and −39.2, are written in the notes and not stored. VLBI light deflection, Lambert and Le Poncin-Lafitte, A&A 529, A70 (2011), solution S5 from more than seven million group delays: `γ = 0.99992 ± 0.00012`, a least-squares formal error with no level named. The A&A page is behind a bot check. The abstract and paper came from the HAL open copy, hal-03785812.
+
+Big G. CODATA 2022 Table XXX lists the 16 input values of G, all 1σ, unchanged since 2018. They run from LENS-14 `6.671 91(99)` and HUST-05 `6.672 22(87)` up to BIPM-01 `6.675 59(27)` and BIPM-14 `6.675 54(16)` × 10^−11 m³ kg⁻¹ s⁻². Each is stored with its laboratory, method, and the three correlations in the caption. CODATA's recommended `6.674 30(15)` uses an expansion factor of 3.9.
+
+The tests check the following. Both pulsar `Ṗb` ratios sit within twice their printed uncertainty of 1, and the Double Pulsar's is more than 25 times tighter. Every Table V ratio matches its concise form. Gravity Probe B's frame-dragging is more than 5σ from zero. VLBI `γ − 1` agrees with Cassini. For G, the normalized residuals computed from the stored values give exactly CODATA's printed 7.75 for BIPM-14 and −6.80 for JILA-18. Those are the extremes, and the 3.9 factor brings every residual to 2 or less. The spread of the 16 values is more than 20 times the recommended uncertainty. That is 25 new records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.62.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.63.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
