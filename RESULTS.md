@@ -499,9 +499,19 @@ Electromagnetism adds CODATA's Faraday constant and flux quantum (both exact, pr
 
 The conductance quantum was planned but left out because its NIST page code could not be found. This adds 21 records.
 
+### Earth rotation and figure: IERS Conventions, length of day, WGS 84, Love numbers
+
+Mechanics now has Earth's adopted figure and rotation. From IERS Conventions (2010) Table 1.1 come GM_E = `3.986004418 × 10¹⁴` m³ s⁻² (± `8 × 10⁵`), a_E = `6378136.6 ± 0.1` m, J₂ = `1.0826359 × 10⁻³`, 1/f = `298.25642`, mean equatorial gravity `9.7803278` m s⁻², the geoid potential W₀ = `62636853.4` m² s⁻² (the 2017 update), the dynamical flattening H = `3273795 × 10⁻⁹`, the J2000 obliquity `84381.406″`, and the Earth Rotation Angle at J2000 and its rate, which are defining. The table's uncertainties are stored as printed, at an unstated level. Chapter 5 adds the IAU 2006 precession of the equator in longitude, whose linear term is `5038.481507″` per century, and the IAU 2000 correction to the 1976 rate, `−0.29965 ± 0.00040″` per century. The chapter does not print the general precession p_A, so that is still a gap. Chapters 6 and 7 add the nominal Love numbers k₂₀, k₂₁, and k₂₂ (elastic and anelastic) and the displacement numbers h₂ = `0.6078` and l₂ = `0.0847`. They are model values, and the notes say so.
+
+Length of day comes from three rows of the EOP 20 C04 series: the shortest day since 1962 (2024-07-05, `−0.0016508 ± 0.0000246` s), the longest (1972-04-12, `0.0043550 ± 0.0007000` s), and the last row served (2026-10-26, `0.0014827 ± 0.0000095` s). C04's page gives a nominal angular velocity of `72921151.467064` picorad/s. Computing 2π times the ERA rate per 86 400 s with certified bounds on π gives `72921151.4670698…`, which agrees to about one part in 10¹³ but not in the last printed digit, and the test records that. WGS 84's four defining parameters come from NGA's page, read through a Wayback copy because the live page timed out. WGS 84 shares a and ω with GRS80 and GM with the IERS table, but its 1/f differs from GRS80's, and a test checks all three.
+
+The NIST-4 local-g record keeps its `leaman2015` id. Crossref confirms IEEE Trans. Instrum. Meas. 64, 1663-1669 (June 2015), and the source line now lists all eight authors.
+
+This adds 26 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.82.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.83.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

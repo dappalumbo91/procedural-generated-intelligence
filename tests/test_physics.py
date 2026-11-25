@@ -1385,6 +1385,51 @@ class MechanicsEmTests(unittest.TestCase):
         self.assertIn("codata2022.mu_b", self._linked("what is the bohr magneton"))
 
 
+class EarthRotationTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_wgs84_shares_grs80_axis_and_rate_but_not_flattening(self) -> None:
+        self.assertEqual(quantity("wgs84.a").value, quantity("grs80.a").value)
+        self.assertEqual(quantity("wgs84.omega").value, quantity("grs80.omega").value)
+        self.assertNotEqual(quantity("wgs84.inv_f").value, quantity("grs80.inv_f").value)
+        self.assertEqual(quantity("wgs84.gm").value, quantity("iers2010.gm_earth").value)
+        for id in ("wgs84.a", "wgs84.inv_f", "wgs84.omega", "wgs84.gm", "iers2010.era_rate", "iers2010.era_0"):
+            self.assertIsNone(quantity(id).uncertainty, id)
+
+    def test_c04_nominal_rate_is_close_to_the_era_rate(self) -> None:
+        from pgi.math.trans import enclose_fexpr, pi_fexpr
+        pi = enclose_fexpr(pi_fexpr())
+        rate = quantity("iers2010.era_rate").value
+        scale = rate * 2 * 10**12 / 86400
+        low = scale * Fraction(pi.low.num, pi.low.den)
+        high = scale * Fraction(pi.high.num, pi.high.den)
+        printed = quantity("iersc04.omega_nominal").value
+        # 2 pi times the ERA rate per 86 400 s gives 72921151.4670698 picorad/s; C04's footnote prints
+        # 72921151.467064, so the two agree to about 1e-13 but not in the last printed digit.
+        self.assertTrue(printed < low and high - printed < Fraction(1, 10**5))
+
+    def test_length_of_day_rows(self) -> None:
+        short, long_, last = (quantity(f"iersc04.lod_{d}") for d in ("2024_07_05", "1972_04_12", "2026_10_26"))
+        self.assertLess(short.value, 0)
+        self.assertLess(short.value + short.uncertainty, last.value - last.uncertainty)
+        self.assertLess(last.value + last.uncertainty, long_.value - long_.uncertainty)
+
+    def test_love_numbers(self) -> None:
+        k20, k21, k22 = (quantity(f"iers2010.k2{m}").value for m in range(3))
+        self.assertLess(quantity("iers2010.k20").value, quantity("iers2010.k20_anelastic").value)
+        self.assertTrue(all(Fraction(29, 100) < k < Fraction(3, 10) for k in (k20, k21, k22)))
+        self.assertGreater(quantity("iers2010.h2").value, k20)
+        self.assertLess(quantity("iers2010.l2").value, k20)
+
+    def test_earth_rotation_asks_link(self) -> None:
+        self.assertTrue({"wgs84.a", "wgs84.inv_f", "wgs84.omega", "wgs84.gm"} <= self._linked("what are the wgs84 constants"))
+        self.assertTrue({"iers2010.k20", "iers2010.h2", "iers2010.l2"} <= self._linked("what are the earth's tidal love numbers"))
+        self.assertIn("iersc04.lod_2024_07_05", self._linked("what is the length of day"))
+        self.assertIn("iers2010.psi_a_rate", self._linked("what is the precession constant"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

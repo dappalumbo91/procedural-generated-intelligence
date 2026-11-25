@@ -9,7 +9,7 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 <!-- counts:start -->
 | Domain | Records |
 |---|---:|
-| mechanics | 11 |
+| mechanics | 37 |
 | thermodynamics and statistical | 34 |
 | electromagnetism | 17 |
 | optics | 25 |
@@ -26,7 +26,7 @@ The counts are records, not importance. A domain with many AME mass rows is not 
 | null results and bounds | 16 |
 | SI defining constants | 7 |
 | foundations and status | 9 |
-| **total** | **563** |
+| **total** | **589** |
 <!-- counts:end -->
 
 ## Audit at pgi-0.79.0 (482 records)
@@ -60,7 +60,7 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 
 | Domain | Missing observables |
 |---|---|
-| mechanics | standard gravity, GRS80's defining and derived constants, and measured g at three Kibble-balance sites (batch 8); a wider set of absolute-gravity sites (the CCM key comparisons themselves); Earth's rotation rate and length of day (IERS); WGS84; the precession constant; the lunar and solar tidal parameters |
+| mechanics | standard gravity, GRS80, and measured g at three Kibble-balance sites (batch 8); IERS Conventions (2010) Earth constants, IAU 2006 precession rate, nominal Love and Shida numbers, EOP 20 C04 length-of-day rows, and WGS 84 (batch 9); a wider set of absolute-gravity sites (the CCM key comparisons themselves); measured (not nominal) Love numbers from tides and SLR; the general precession in longitude p_A (not printed in TN36); lunar laser ranging tidal acceleration |
 | thermodynamics and statistical | ITS-90 fixed points and the gas-constant family (batch 8); the pre-2019 Boltzmann-constant determinations (acoustic gas thermometry, DCGT, Johnson noise); heat-capacity ratios and second virial coefficients of common gases; latent heats; critical points beyond water |
 | electromagnetism | Faraday constant, vacuum impedance, flux quantum, Bohr magneton, and IGRF-14 degree-1 Gauss coefficients (batch 8); the conductance quantum (NIST page code not found); Coulomb's-law tests; resistivity of copper and other standard materials; static permittivity of water |
 | optics | reference lines, N-BK7 and water indices, and the I₂ 633 nm, ⁸⁷Sr, and ¹⁷¹Yb standard frequencies (batch 8); fused-silica (Malitson 1965) and air (Ciddor 1996) indices; Verdet and thermo-optic constants; the rest of the CIPM frequency list |
@@ -78,7 +78,7 @@ Mechanics, optics, and fluids were empty, so those three are batch 8's fills. El
 
 ## Top gaps across the board
 
-1. Mechanics had nothing: no g_n, no measured g, no Earth rotation or figure.
+1. Mechanics had nothing: no g_n, no measured g, no Earth rotation or figure. Batch 8 added g_n, GRS80, and site g; batch 9 added IERS rotation, LOD, WGS 84, precession, and Love numbers.
 2. Optics had nothing: no reference spectral lines and no refractive indices.
 3. Fluids had nothing: no transport properties and no sound speeds.
 4. Electromagnetism is thin and holds only unit constants. It has no geomagnetic field and no material constants.

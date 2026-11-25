@@ -48,7 +48,7 @@ for _domain, _names in {
     "nuclear": ("ame2020",),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987"),
-    "mechanics": ("grs80", "leaman2015", "liu2024"),
+    "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84"),
     "electromagnetism": ("igrf14",),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987"),

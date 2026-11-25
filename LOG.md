@@ -976,3 +976,11 @@ Added standard gravity, the GRS80 defining and derived constants, measured g at 
 That is 21 records.
 
 `python -m unittest discover -s tests -v` finished 311 tests, 0 failures, about 96.68 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Earth rotation pgi-0.83.0
+
+Added IERS Conventions (2010) Earth constants, the IAU 2006 precession rate, nominal Love and Shida numbers, three EOP 20 C04 length-of-day rows with the C04 nominal rotation rate, and the WGS 84 defining parameters. Confirmed the year of the NIST-4 g paper (2015), so `leaman2015` stays. COVERAGE.md's mechanics row is updated.
+
+That is 26 records.
+
+`python -m unittest discover -s tests -v` finished 316 tests, 0 failures, about 155.31 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

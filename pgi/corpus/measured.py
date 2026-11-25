@@ -2858,7 +2858,7 @@ def _igrf(key: str, coefficient: str, epoch: str, label: str, value: str, unit: 
                      "The degree-1 coefficients describe the dipole part of the main field. The board does not compute a dipole moment or tilt from them.") + ((extra,) if extra else ()))
 
 
-_LEAMAN_SOURCE = "E. J. Leaman, D. Haddad, F. Seifert, L. S. Chao, A. Cao, J. R. Pratt et al., A determination of the local acceleration of gravity for the NIST-4 watt balance, IEEE Trans. Instrum. Meas., doi:10.1109/TIM.2014.2383111, arXiv:1412.4143, Sect. VII."
+_LEAMAN_SOURCE = "E. J. Leaman, D. Haddad, F. Seifert, L. S. Chao, A. Cao, J. R. Pratt, S. Schlamminger, and D. B. Newell, A determination of the local acceleration of gravity for the NIST-4 watt balance, IEEE Trans. Instrum. Meas. 64, 1663-1669 (2015), doi:10.1109/TIM.2014.2383111, arXiv:1412.4143, Sect. VII."
 _LIU_SOURCE = "W. Liu, N. Li, Y. Ma, R. Hu, S. Wu, W. Zhao et al., A determination of the local gravitational acceleration for the Tsinghua tabletop Kibble balance, arXiv:2405.08541 (2024), Sect. III."
 
 MECHANICS_EM: tuple[Quantity, ...] = (
@@ -2873,7 +2873,7 @@ MECHANICS_EM: tuple[Quantity, ...] = (
     _grs80("gamma_e", "normal gravity at the equator", "gamma_e", "9.780 326 7715", "m s^-2", defining=False, phrases=("normal gravity", "gravity at the equator")),
     _grs80("gamma_p", "normal gravity at the pole", "gamma_p", "9.832 186 3685", "m s^-2", defining=False, phrases=("normal gravity", "gravity at the pole")),
     _q("leaman2015.nist4.g", "local acceleration of gravity at the NIST-4 watt balance test mass (Gaithersburg)", "g(NIST-4)", "980103140.2", "4.3", "uGal",
-       kind="uncertainty as printed, level not stated", printed="980103140.2(4.3)", source=_LEAMAN_SOURCE, edition="IEEE Trans. Instrum. Meas. (doi:10.1109/TIM.2014.2383111); arXiv:1412.4143",
+       kind="uncertainty as printed, level not stated", printed="980103140.2(4.3)", source=_LEAMAN_SOURCE, edition="IEEE Trans. Instrum. Meas. 64(6), June 2015 (year, volume, and pages confirmed from Crossref); arXiv:1412.4143",
        url="https://doi.org/10.1109/TIM.2014.2383111", retrieved_from="https://arxiv.org/pdf/1412.4143",
        keys=("local gravity", "absolute gravimetry"), phrases=("measured local g", "local acceleration of gravity", "measured gravity at sites"),
        notes=("Sect. VII prints the best estimate as 980103140.2(4.3) uGal (4.4 x 10^-9 relative uncertainty), tied from absolute gravimeter measurements to the test-mass position.",
@@ -2904,7 +2904,93 @@ MECHANICS_EM: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM
+_IERS_SOURCE = "G. Petit and B. Luzum (eds.), IERS Conventions (2010), IERS Technical Note No. 36, Verlag des Bundesamts fuer Kartographie und Geodaesie, Frankfurt am Main (2010), with updates to 2017/11/06"
+_IERS_SITE = "https://iers-conventions.obspm.fr/"
+
+
+def _iers(key: str, name: str, symbol: str, value: str, uncertainty: str, unit: str, *, chapter: int, where: str,
+          phrases: tuple[str, ...], kind: str = "uncertainty as printed, level not stated", notes: tuple[str, ...] = ()) -> Quantity:
+    url = f"https://iers-conventions.obspm.fr/content/chapter{chapter}/icc{chapter}.pdf"
+    if kind == "exact" or kind == "no uncertainty printed":
+        uncertainty = ""
+    return _q(f"iers2010.{key}", f"IERS Conventions (2010) {name}", symbol, value, uncertainty, unit, kind=kind,
+              source=f"{_IERS_SOURCE}, Chapter {chapter}, {where}.", edition="IERS Conventions (2010), TN36", url=url, retrieved_from=url,
+              keys=("iers conventions",), phrases=phrases + ("iers constants",), notes=notes)
+
+
+_C04_URL = "https://hpiers.obspm.fr/iers/eop/eopc04/eopc04.1962-now"
+_C04_SOURCE = "IERS Earth Orientation Centre (Paris Observatory), EOP 20 C04 combined series, consistent with ITRF 2020, sampled at 0h UTC; C. Bizouard et al., J. Geod. 93, 621-633 (2019), doi:10.1007/s00190-018-1186-3 (series description)"
+
+
+def _lod(date: str, value: str, error: str, why: str) -> Quantity:
+    return _q(f"iersc04.lod_{date.replace('-', '_')}", f"excess length of day on {date} (IERS EOP 20 C04)", f"LOD({date})", value, error, "s",
+              kind="uncertainty as printed, level not stated", source=_C04_SOURCE, edition="EOP 20 C04, file as served 2026-11-25 (last row 2026-10-26)",
+              url=_C04_URL, retrieved_from=_C04_URL, keys=("length of day", "lod"), phrases=("length of day", "excess length of day", "earth rotation rate"),
+              notes=(f"The C04 row for {date} prints LOD(s) {value} and LOD Er {error}. LOD is the excess of the day over 86 400 s TAI (C04 page footnote).", why))
+
+
+_WGS84_PAGE = "https://earth-info.nga.mil/index.php?action=wgs84&dir=wgs84"
+_WGS84_COPY = "https://web.archive.org/web/20260105104748/https://earth-info.nga.mil/index.php?dir=wgs84&action=wgs84"
+_WGS84_SOURCE = "National Geospatial-Intelligence Agency, World Geodetic System 1984 Reference System page, 'Defining Parameters' table (standard: NGA.STND.0036_1.0.0_WGS84, 8 July 2014)"
+
+
+def _wgs84(key: str, name: str, symbol: str, value: str, unit: str, phrases: tuple[str, ...], extra: tuple[str, ...] = ()) -> Quantity:
+    return _q(f"wgs84.{key}", f"WGS 84 {name}", symbol, value, "", unit, kind="exact", source=_WGS84_SOURCE, edition="NGA.STND.0036_1.0.0_WGS84 (2014)",
+              url=_WGS84_PAGE, retrieved_from=_WGS84_COPY, keys=("wgs84", "earth figure"), phrases=phrases + ("wgs84 constants", "world geodetic system"),
+              notes=("One of WGS 84's four defining parameters. It is an adopted value, not a measurement. The live NGA page timed out from the box, so the 2026-01-05 Wayback copy was read.",) + extra)
+
+
+EARTH_ROTATION: tuple[Quantity, ...] = (
+    _iers("gm_earth", "geocentric gravitational constant", "GM_E", "3.986004418 e14", "8 e5", "m^3 s^-2", chapter=1, where="Table 1.1", phrases=("geocentric gravitational constant",),
+          notes=("TCG-compatible value. Reference [7] notes that recent studies indicate an uncertainty of 4 x 10^5 m^3 s^-2.",)),
+    _iers("a_e", "equatorial radius of the Earth", "a_E", "6378136.6", "0.1", "m", chapter=1, where="Table 1.1", phrases=("earth equatorial radius",),
+          notes=("A 'zero tide' value (Sect. 1.1).",)),
+    _iers("j2", "dynamical form factor of the Earth", "J_2", "1.0826359 e-3", "1 e-10", "", chapter=1, where="Table 1.1", phrases=("earth j2", "dynamic form factor"), notes=("A 'zero tide' value.",)),
+    _iers("inv_f", "flattening factor of the Earth", "1/f", "298.25642", "0.00001", "", chapter=1, where="Table 1.1", phrases=("earth flattening", "reciprocal flattening"), notes=("A 'zero tide' value.",)),
+    _iers("g_e", "mean equatorial gravity", "g_E", "9.7803278", "1 e-6", "m s^-2", chapter=1, where="Table 1.1", phrases=("gravity at the equator", "mean equatorial gravity"), notes=("A 'zero tide' value.",)),
+    _iers("w0", "potential of the geoid", "W_0", "62636853.4", "0.02", "m^2 s^-2", chapter=1, where="Table 1.1 (2017/11/06 update, IAG 2015 Resolution 1)", phrases=("potential of the geoid",)),
+    _iers("h_dyn", "dynamical flattening", "H", "3273795 e-9", "1 e-9", "", chapter=1, where="Table 1.1", phrases=("dynamical flattening", "precession constant")),
+    _iers("eps0", "obliquity of the ecliptic at J2000.0", "epsilon_0", "84381.406", "0.001", "arcsec", chapter=1, where="Table 1.1", phrases=("obliquity of the ecliptic",),
+          notes=("Table 1.1 prints 84381.406 and 0.001 with the arcsecond sign (rendered by pdftotext as trailing 00).",)),
+    _iers("era_rate", "rate of advance of the Earth Rotation Angle", "dtheta/dt", "1.00273781191135448", "", "rev per UT1 day", chapter=1, where="Table 1.1", kind="exact",
+          phrases=("earth rotation angle", "earth rotation rate"), notes=("Listed as 'Defining', citing reference [3] (IAU XXIV General Assembly resolution).",)),
+    _iers("era_0", "Earth Rotation Angle at J2000.0", "theta_0", "0.7790572732640", "", "rev", chapter=1, where="Table 1.1", kind="exact",
+          phrases=("earth rotation angle",), notes=("Listed as 'Defining'.",)),
+    _iers("psi_a_rate", "IAU 2006 precession of the equator in longitude, linear coefficient", "psi_A/t", "5038.481507", "", "arcsec per Julian century", chapter=5, where="Eq. (5.39)",
+          kind="no uncertainty printed", phrases=("precession constant", "precession of the equinoxes", "precession rate"),
+          notes=("Eq. (5.39) prints psi_A = 5038.481507'' t - 1.0790069'' t^2 - ..., t in Julian centuries TT from J2000.0. Only the linear coefficient is stored.",
+                 "This is the precession of the equator in longitude, not the general precession in longitude p_A, which the chapter does not print.")),
+    _iers("delta_psi_a_2000", "IAU 2000 correction to the IAU 1976 precession rate in longitude", "delta psi_A", "-0.29965", "0.00040", "arcsec per century", chapter=5, where="Sect. 5.6.2",
+          phrases=("precession constant", "precession rate"), notes=("Sect. 5.6.2: the precession part of IAU 2000A consists only of corrections to the IAU 1976 precession rates; this is the longitude one, printed as (-0.29965 +- 0.00040)''/century.",)),
+    _iers("k20", "nominal Love number k20, elastic Earth", "k_20", "0.29525", "", "", chapter=6, where="Table 6.3", kind="no uncertainty printed",
+          phrases=("love numbers", "tidal love number", "tidal love numbers"), notes=("A nominal model value chosen for the Step 1 tidal computation, not a measurement.",)),
+    _iers("k21", "nominal Love number k21, elastic Earth", "k_21", "0.29470", "", "", chapter=6, where="Table 6.3", kind="no uncertainty printed",
+          phrases=("love numbers", "tidal love numbers"), notes=("A nominal model value.",)),
+    _iers("k22", "nominal Love number k22, elastic Earth", "k_22", "0.29801", "", "", chapter=6, where="Table 6.3", kind="no uncertainty printed",
+          phrases=("love numbers", "tidal love numbers"), notes=("A nominal model value.",)),
+    _iers("k20_anelastic", "nominal Love number Re k20, anelastic Earth", "Re k_20", "0.30190", "", "", chapter=6, where="Table 6.3", kind="no uncertainty printed",
+          phrases=("love numbers", "tidal love numbers"), notes=("A nominal model value.",)),
+    _iers("h2", "nominal degree-2 displacement Love number h2", "h_2", "0.6078", "", "", chapter=7, where="Table 7.3a heading", kind="no uncertainty printed",
+          phrases=("love numbers", "tidal love numbers", "shida number"), notes=("Printed as the nominal real part, h2 = 0.6078; imaginary part -0.0025.",)),
+    _iers("l2", "nominal degree-2 Shida number l2", "l_2", "0.0847", "", "", chapter=7, where="Table 7.3a heading", kind="no uncertainty printed",
+          phrases=("love numbers", "tidal love numbers", "shida number"), notes=("Printed as the nominal real part, l2 = 0.0847; imaginary part -0.0007.",)),
+    _q("iersc04.omega_nominal", "nominal Earth angular velocity used by EOP C04", "Omega_nominal", "72921151.467064", "", "picorad s^-1", kind="no uncertainty printed",
+       source="IERS Earth Orientation Centre, EOP C04 combined series page, footnote 3", edition="page as served 2026-11-25",
+       url="https://hpiers.obspm.fr/eop-pc/index.php?index=C04&lang=en", retrieved_from="https://hpiers.obspm.fr/eop-pc/index.php?index=C04&lang=en",
+       keys=("earth rotation",), phrases=("earth rotation rate", "angular velocity of the earth"),
+       notes=("Footnote 3: 'Earth angular velocity refered to the nominal value of 72921151.467064 picorad/s'.",)),
+    _lod("2024-07-05", "-0.0016508", "0.0000246", "This is the most negative LOD in the series as served (the shortest day since 1962)."),
+    _lod("1972-04-12", "0.0043550", "0.0007000", "This is the largest LOD in the series as served."),
+    _lod("2026-10-26", "0.0014827", "0.0000095", "This is the last row in the file as served on 2026-11-25."),
+    _wgs84("a", "semi-major axis", "a", "6378137.0", "m", ("earth equatorial radius", "semimajor axis of the earth")),
+    _wgs84("inv_f", "flattening factor", "1/f", "298.257223563", "", ("earth flattening", "reciprocal flattening")),
+    _wgs84("omega", "nominal mean angular velocity of the Earth", "omega", "7292115 e-11", "rad s^-1", ("earth rotation rate", "angular velocity of the earth")),
+    _wgs84("gm", "geocentric gravitational constant (atmosphere included)", "GM", "3.986004418 e14", "m^3 s^-2", ("geocentric gravitational constant",),
+           ("The page adds that the value of GM for GPS users is 3.9860050 x 10^14 m^3 s^-2.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS
 
 
