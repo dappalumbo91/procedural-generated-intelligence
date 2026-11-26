@@ -2134,6 +2134,21 @@ class NuclearB17Tests(unittest.TestCase):
         self.assertEqual((quantity("ame2020.q_d_alpha_h3").value_text, quantity("ame2020.q_d_alpha_h3").uncertainty_text), ("17589.2999", "0.0005"))
         self.assertEqual(quantity("ame2020.q_alpha_u238").uncertainty_kind, "standard uncertainty")
 
+class GapsB18Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("bothwell2022.aam_gradient").value_text, quantity("bothwell2022.redshift_gradient").value_text)
+        tt = quantity("atlas2023.ttbar_xsec_13tev")
+        self.assertEqual((tt.value_text, tt.uncertainty_text, tt.systematic_text), ("829", "1", "13"))
+        mu = quantity("atlas2022.higgs_mu_prod.th")
+        self.assertEqual((mu.value_text, mu.uncertainty_text, mu.lower_text, mu.uncertainty_kind), ("6.6137", "4.2384", "3.7563", "68% interval"))
+        self.assertEqual(quantity("cms2022.higgs_mu_decay.z_gamma").value_text, "2.59")
+        self.assertEqual(quantity("mueller2007.r_he8").value_text, "1.93")
+        self.assertEqual(quantity("am2013.r_he6").value_text, "2.0660")
+
+    def test_both_he6_radii_stay(self) -> None:
+        laser, table = quantity("mueller2007.r_he6"), quantity("am2013.r_he6")
+        self.assertNotEqual(laser.value, table.value)
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

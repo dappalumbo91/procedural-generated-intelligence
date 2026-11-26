@@ -1481,3 +1481,21 @@ L2 inner products of polynomial-Gaussian and polynomial-exponential waves are ex
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 442 tests, 0 failures, about 876.34 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Gap catalogue; Bothwell, top pair, per-channel Higgs, laser radii pgi-0.138.0
+
+Extended the gap catalogue with eleven areas not on the board, each checked first.
+
+Added these records:
+
+- Bothwell 2022 accepted-manuscript gradients (3);
+- top-pair cross sections, ATLAS and CMS, 13 and 13.6 TeV (4);
+- ATLAS (HEPData) and CMS per-channel Higgs signal strengths (26);
+- laser-spectroscopy charge radii of 6He, 8He, 9Li, 11Li (4);
+- Angeli-Marinova charge radii (16).
+
+The Bothwell, top-pair, per-channel, and laser-radius gaps close.
+
+That is 53 records.
+
+`python -m unittest discover -s tests -v` finished 444 tests, 0 failures, about 841.90 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

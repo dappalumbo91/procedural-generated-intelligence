@@ -46,8 +46,8 @@ _PREFIX: dict[str, str] = {}
 for _domain, _names in {
     "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015", "amini2003", "ekstrom1995", "cccbdb_pol", "parthey2010", "huber1998", "knollmann2019"),
     "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024", "shimanouchi1972", "cccbdb_dip", "kayelaby_e0", "kayelaby_ksp", "webbook_comb"),
-    "nuclear": ("ame2020", "ddep", "ensdf", "am2013", "sears1992", "livechart"),
-    "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
+    "nuclear": ("ame2020", "ddep", "ensdf", "am2013", "sears1992", "livechart", "mueller2007", "sanchez2006"),
+    "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022", "atlas2023", "atlas2020", "cms2019"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015", "martin1973", "hpl1972", "nbs1953", "kayelaby_ferro", "danan1968", "myers1951", "nigh1963"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84", "ccmgk2", "lemoine2013", "konopliv2013", "williams2014", "chen2015"),
     "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971", "matula1979", "desai1984", "nist_tn1512", "kayelaby_mag", "khatiwada2015", "havens1933"),
@@ -173,6 +173,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("water ionization constant", ("iapws2024.",)),
     ),
     "nuclear": (
+        ("laser-spectroscopy charge radii of He and Li halo isotopes (Mueller 2007, Sanchez 2006)", ("mueller2007.", "sanchez2006.",)),
         ("thermal neutron absorption cross sections (Sears 1992, NIST NCNR)", ("sears1992.",)),
         ("ground-state spins (ENSDF) and quadrupole moments (LiveChart)", ("ensdf.spin_", "livechart.q_",)),
         ("AME2020 printed Q-values (alpha decay, fusion, (n,a))", ("ame2020.q_",)),
@@ -182,6 +183,8 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("Angeli-Marinova charge radii", ("am2013.",)),
     ),
     "particle": (
+        ("measured top-pair cross sections at 13 and 13.6 TeV (ATLAS, CMS)", ("atlas2023.ttbar_", "atlas2020.ttbar_", "cms2019.ttbar_",)),
+        ("ATLAS and CMS per-channel Higgs signal strengths (Nature 2022)", ("atlas2022.higgs_mu_", "cms2022.higgs_mu_",)),
         ("CODATA particle masses and G_F", ("codata2022.",)),
         ("PDG boson, lepton, and quark masses, couplings, and CKM", ("pdg2026.",)),
         ("PDG light hadron masses", ("pdg2026.m_pi", "pdg2026.m_k", "pdg2026.m_eta", "pdg2026.m_rho", "pdg2026.m_omega", "pdg2026.m_p", "pdg2026.m_n", "pdg2026.m_lambda", "pdg2026.m_delta")),
@@ -295,6 +298,7 @@ GAPS: dict[str, tuple[Gap, ...]] = {
         Gap("more absolute-gravity sites (the CCM key comparisons)", ("key comparison",)),
         Gap("measured (not nominal) Love numbers from tides and SLR", ("measured love number",)),
         Gap("Earth's moments of inertia", ("moment of inertia",)),
+        Gap("Earth's interior density and seismic-velocity profile (PREM)", ("preliminary reference earth model",)),
     ),
     "thermodynamics and statistical": (
         Gap("pre-2019 Boltzmann-constant determinations (acoustic gas thermometry, DCGT, Johnson noise)", ("acoustic gas thermometry", "johnson noise")),
@@ -311,6 +315,7 @@ GAPS: dict[str, tuple[Gap, ...]] = {
         Gap("tungsten resistivity", ("resistivity of tungsten",)),
         Gap("relative permittivities of common solid dielectrics", ("permittivity of fused silica", "permittivity of ptfe", "permittivity of alumina", "permittivity of sapphire")),
         Gap("magnetic susceptibilities", ("magnetic susceptibility",)),
+        Gap("plasma physics reference values (NRL Plasma Formulary)", ("plasma parameter", "fusion reactivity")),
     ),
     "optics": (
         Gap("fused-silica refractive index (Malitson 1965)", ("fused silica",)),
@@ -349,12 +354,18 @@ GAPS: dict[str, tuple[Gap, ...]] = {
         Gap("the Z invisible width and branching ratio", ("z invisible",)),
         Gap("measured cross sections (e.g. top pair at 13 TeV)", ("top pair cross section",)),
         Gap("ATLAS and CMS per-channel signal strengths", ("atlas signal strength by channel",)),
+        Gap("NuFIT global-fit neutrino oscillation parameters", ("nufit",)),
+        Gap("PMNS matrix element magnitudes", ("pmns",)),
+        Gap("direct CKM determinations (|V_ud| from superallowed decays, inclusive and exclusive |V_cb|)", ("ckm direct determination",)),
+        Gap("proton spin and structure (quark spin fraction, polarizabilities)", ("proton spin", "proton polarizability")),
     ),
     "condensed matter": (
         Gap("calorimetric Debye temperatures (Cu and Si have no reachable primary source yet)", ("calorimetric debye",)),
         Gap("thermal conductivities of solids", ("thermal conductivity of copper", "thermal conductivity of silicon", "thermal conductivity of diamond")),
         Gap("lattice constants beyond silicon", ("lattice constant of copper", "lattice constant of germanium", "lattice constant of aluminium", "lattice constant of gaas")),
         Gap("magnetic moments of ferromagnets", ("saturation magnetization",)),
+        Gap("superconducting transition temperatures of more elements (Sn, Hg, In, ...)", ("transition temperature of tin", "transition temperature of mercury", "transition temperature of indium")),
+        Gap("sound speeds in solids", ("longitudinal sound speed",)),
     ),
     "fluids": (
         Gap("measured (not correlated) air transport data", ("measured air viscosity",)),
@@ -362,6 +373,7 @@ GAPS: dict[str, tuple[Gap, ...]] = {
         Gap("seawater (TEOS-10)", ("seawater", "teos-10")),
         Gap("diffusion coefficients", ("diffusion coefficient",)),
         Gap("helium-4 viscosity and mutual friction", ("mutual friction", "helium ii viscosity")),
+        Gap("sound speeds in liquids and gases beyond air and water", ("speed of sound in helium gas", "speed of sound in ethanol", "speed of sound in seawater", "speed of sound in mercury")),
     ),
     "gravitation": (
         Gap("Pound-Rebka 1960 itself", ("id:pound1960.", "pound-rebka 1960")),
@@ -375,6 +387,8 @@ GAPS: dict[str, tuple[Gap, ...]] = {
         Gap("M87* and Sgr A* shadow sizes", ("shadow",)),
         Gap("eclipsing-binary masses", ("eclipsing binary",)),
         Gap("the solar abundance scale", ("solar abundance",)),
+        Gap("solar fusion S-factors (pp chain and CNO)", ("astrophysical s-factor",)),
+        Gap("the 12C(alpha,gamma)16O rate", ("12c(alpha,gamma)",)),
     ),
     "cosmology": (
         Gap("DESI BAO distances", ("bao distance",)),

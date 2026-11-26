@@ -5018,7 +5018,141 @@ NUCLEAR_B17: tuple[Quantity, ...] = (
     _ameq("n_alpha_b10", "Q(n,a)", "10B", "10B(n,a)7Li", "2789.9082", "0.0155", "rct2", ("boron-10 neutron capture q-value", "q-value of 10b(n,a)")),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT + CHEM_B17 + ATOMIC_B17 + NUCLEAR_B17
+_BOTHWELL_AAM = "https://eprints.gla.ac.uk/264685/2/264685.pdf"
+_BOTHWELL_AAM_NOTE = ("Read from the Author Accepted Manuscript deposited at Enlighten (University of Glasgow) on 4 February 2022; its cover says there may be differences from the published version. "
+                      "The Nature typeset version is behind a paywall and was not read. The numbers match the arXiv v1 text already stored as bothwell2022.redshift_gradient.")
+
+
+def _bothwell_aam(key: str, name: str, value: str, unc: str, printed: str, extra: tuple[str, ...] = ()) -> Quantity:
+    return _q(f"bothwell2022.aam_{key}", name, "d(df/f)/dz", value, unc, "mm^-1", kind=_LEVEL, source=_BOTHWELL_SOURCE,
+              edition="Nature 602 (2022), Author Accepted Manuscript", url="https://doi.org/10.1038/s41586-021-04349-7", retrieved_from=_BOTHWELL_AAM,
+              keys=("gravitational redshift", "optical clock"), phrases=("bothwell published version (accepted manuscript)", "millimetre redshift", "redshift within a millimeter"),
+              notes=(f"The manuscript prints {printed}.",) + extra + (_BOTHWELL_AAM_NOTE,))
+
+
+_TT_KEYS = ("top pair cross section", "ttbar cross section")
+_TT_SPLIT = "The source prints further parts ({rest}) separately; they are kept in this note and are not combined with the stored parts."
+
+
+def _ttbar(id: str, name: str, value: str, stat: str, syst: str, rest: str, source: str, edition: str, doi: str, arxiv: str, printed: str) -> Quantity:
+    return _q(id, name, "sigma_tt", value, stat, "pb", kind=_SPLIT_KIND, systematic_text=syst, source=source, edition=edition,
+              url=doi, retrieved_from=f"https://arxiv.org/abs/{arxiv}", keys=_TT_KEYS,
+              phrases=("top pair cross section", "top quark pair production cross section", "ttbar cross section"),
+              notes=(f"The abstract prints '{printed}'.", _SPLIT_NOTE) + ((_TT_SPLIT.format(rest=rest),) if rest else ()))
+
+
+_ATLAS_HIGGS = "ATLAS Collaboration, A detailed map of Higgs boson interactions by the ATLAS experiment ten years after the discovery, Nature 607, 52-59 (2022), doi:10.1038/s41586-022-04893-w, HEPData record ins2104706 (doi:10.17182/hepdata.130266.v1)"
+_CMS_HIGGS = "CMS Collaboration, A portrait of the Higgs boson by the CMS experiment ten years after the discovery, Nature 607, 60-68 (2022), doi:10.1038/s41586-022-04892-x, Fig. 2"
+
+
+def _atlas_mu(kind_: str, key: str, label: str, value: str, up: str, down: str, table: str) -> Quantity:
+    what = "production process" if kind_ == "prod" else "decay mode"
+    assume = "decay branching fractions fixed to their SM values" if kind_ == "prod" else "production cross sections fixed to their SM values"
+    return _q(f"atlas2022.higgs_mu_{kind_}.{key}", f"ATLAS Higgs signal strength (ratio to SM) for the {label} {what}, {assume}", f"mu_{label}", value, up, "",
+              kind="68% interval", lower_text=down, source=_ATLAS_HIGGS, edition="Nature 607 (2022); HEPData v1", url="https://doi.org/10.1038/s41586-022-04893-w",
+              retrieved_from=f"https://www.hepdata.net/download/table/ins2104706/{table.replace(' ', '%20')}/csv",
+              keys=("higgs boson", "atlas", "atlas signal strength by channel"), phrases=(f"atlas {label} signal strength", "higgs signal strength by channel", "per-channel higgs signal strength"),
+              notes=(f"HEPData table '{table}', block 'Ratio to SM', prints the row '{label},{value},{up},-{down}'.",
+                     "The figure caption says the vertical bar on each point denotes the 68% confidence interval. The paper prints these only as plotted points; the numbers are from the collaboration's HEPData record."))
+
+
+def _cms_mu(kind_: str, key: str, label: str, value: str, up: str, down: str, stat: str, syst: str) -> Quantity:
+    what = "production mode" if kind_ == "prod" else "decay channel"
+    assume = "B_f = (B_f)_SM" if kind_ == "prod" else "sigma_i = (sigma_i)_SM"
+    return _q(f"cms2022.higgs_mu_{kind_}.{key}", f"CMS Higgs signal strength for the {label} {what}, assuming {assume}", f"mu_{label}", value, up, "",
+              kind="68% interval", lower_text=down, source=_CMS_HIGGS, edition="Nature 607 (2022); arXiv:2207.00043 Fig. 2", url="https://doi.org/10.1038/s41586-022-04892-x",
+              retrieved_from="https://arxiv.org/pdf/2207.00043",
+              keys=("higgs boson", "cms", "cms signal strength by channel"), phrases=(f"cms {label} signal strength", "higgs signal strength by channel", "per-channel higgs signal strength"),
+              notes=(f"Fig. 2 prints mu_{label} = {value} +{up} -{down} (total), with statistical part {stat} and systematic part {syst}; only the total 1 s.d. interval is stored.",
+                     "The caption says the thick black lines indicate the 1 s.d. confidence intervals, stored here under the 68% interval kind."))
+
+
+_LASER_RADIUS_NOTE = "Charge radii from laser spectroscopy are extracted from measured isotope shifts with calculated mass shifts; the paper's printed radius is stored as is."
+
+
+def _laser_radius(id: str, nuclide: str, value: str, unc: str, source: str, doi: str, printed: str) -> Quantity:
+    return _q(id, f"root-mean-square nuclear charge radius of {nuclide} from laser spectroscopy", f"R({nuclide})", value, unc, "fm",
+              kind="uncertainty as printed, level not stated", source=source, edition="abstract, via OpenAlex", url=f"https://doi.org/{doi}", retrieved_from=f"https://api.openalex.org/works/doi:{doi}",
+              keys=("charge radius", "laser spectroscopy radius", f"charge radius of {nuclide}"), phrases=("nuclear charge radii", "charge radius", "laser spectroscopy radius", "halo nucleus"),
+              notes=(f"The abstract prints '{printed}'.", _LASER_RADIUS_NOTE))
+
+
+_MUELLER2007 = "P. Mueller, I. A. Sulai, A. C. C. Villari, J. A. Alcantara-Nunez, R. Alves-Conde, K. Bailey, G. W. F. Drake, M. Dubois, et al., Nuclear charge radius of 8He, Phys. Rev. Lett. 99, 252501 (2007), doi:10.1103/PhysRevLett.99.252501"
+_SANCHEZ2006 = "R. Sanchez, W. Noertershaeuser, G. Ewald, D. Albers, J. Behr, P. Bricault, B. A. Bushaw, A. Dax, et al., Nuclear charge radii of 9,11Li: the influence of halo neutrons, Phys. Rev. Lett. 96, 033002 (2006), doi:10.1103/PhysRevLett.96.033002"
+
+GAPS_B18: tuple[Quantity, ...] = (
+    _bothwell_aam("gradient", "fractional frequency gradient across a millimetre-scale Sr lattice clock sample, after systematic corrections (accepted manuscript)", "-9.8 e-20", "2.3 e-20",
+                  "'a final frequency gradient of -9.8(2.3)x10-20/mm, consistent with the predicted redshift'"),
+    _bothwell_aam("weighted_mean", "weighted-mean fractional frequency gradient over 14 datasets, before the final systematic corrections (accepted manuscript)", "-1.00 e-19", "0.12 e-19",
+                  "a weighted-mean gradient of '-1.00(12)x10-19/mm' (standard error of the weighted mean)"),
+    _bothwell_aam("synchronous", "fractional frequency gradient from the synchronous two-region comparison, after systematic corrections (accepted manuscript)", "-1.28 e-19", "0.27 e-19",
+                  "'-1.30(18)x10-19/mm' before and 'a gradient of -1.28(27)x10-19/mm' after the additional systematic corrections"),
+    _ttbar("atlas2023.ttbar_xsec_13tev", "inclusive top-quark-pair production cross section in pp collisions at 13 TeV, ATLAS dilepton e-mu, 140 fb^-1", "829", "1", "13", "luminosity 8 pb, beam energy 2 pb",
+           "ATLAS Collaboration, Inclusive and differential cross-sections for dilepton ttbar production measured in sqrt(s) = 13 TeV pp collisions with the ATLAS detector, JHEP 07 (2023) 141, arXiv:2303.15340",
+           "JHEP 07 (2023) 141; arXiv abstract", "https://arxiv.org/abs/2303.15340", "2303.15340", "sigma_tt = 829 +- 1 (stat) +- 13 (syst) +- 8 (lumi) +- 2 (beam) pb"),
+    _ttbar("atlas2020.ttbar_xsec_13tev_ljets", "inclusive top-quark-pair production cross section in pp collisions at 13 TeV, ATLAS lepton+jets, 139 fb^-1", "830", "0.4", "36", "luminosity 14 pb",
+           "ATLAS Collaboration, Measurement of the ttbar production cross-section in the lepton+jets channel at sqrt(s) = 13 TeV with the ATLAS experiment, Phys. Lett. B 810 (2020) 135797, arXiv:2006.13076",
+           "Phys. Lett. B 810 (2020) 135797; arXiv abstract", "https://arxiv.org/abs/2006.13076", "2006.13076", "sigma_inc = 830 +- 0.4 (stat.) +- 36 (syst.) +- 14 (lumi.) pb, with a relative uncertainty of 4.6 %"),
+    _ttbar("cms2019.ttbar_xsec_13tev", "inclusive top-quark-pair production cross section in pp collisions at 13 TeV, CMS dilepton, 35.9 fb^-1", "803", "2", "25", "luminosity 20 pb",
+           "CMS Collaboration, Measurement of the ttbar production cross section, the top quark mass, and the strong coupling constant using dilepton events in pp collisions at sqrt(s) = 13 TeV, Eur. Phys. J. C 79 (2019) 368, arXiv:1812.10505",
+           "Eur. Phys. J. C 79 (2019) 368; arXiv abstract", "https://arxiv.org/abs/1812.10505", "1812.10505", "sigma_tt = 803 +- 2 (stat) +- 25 (syst) +- 20 (lumi) pb, for a top quark mass parameter in the simulation of 172.5 GeV"),
+    _ttbar("atlas2023.ttbar_xsec_13p6tev", "inclusive top-quark-pair production cross section in pp collisions at 13.6 TeV, ATLAS dilepton e-mu, 29 fb^-1 (2022 data)", "850", "3", "18", "luminosity 20 pb",
+           "ATLAS Collaboration, Measurement of the ttbar cross section and its ratio to the Z production cross section using pp collisions at sqrt(s) = 13.6 TeV with the ATLAS detector, arXiv:2308.09529",
+           "arXiv:2308.09529 abstract", "https://arxiv.org/abs/2308.09529", "2308.09529", "sigma_tt = 850 +- 3(stat.) +- 18(syst.) +- 20(lumi.) pb"),
+    _atlas_mu("prod", "ggf_bbh", "ggF+bbH", "1.026", "0.06976", "0.06676", "Figure 2a"),
+    _atlas_mu("prod", "vbf", "VBF", "1.1018", "0.13456", "0.12367", "Figure 2a"),
+    _atlas_mu("prod", "wh", "WH", "1.1583", "0.22772", "0.21686", "Figure 2a"),
+    _atlas_mu("prod", "zh", "ZH", "0.96205", "0.2213", "0.20568", "Figure 2a"),
+    _atlas_mu("prod", "tth", "ttH", "0.73963", "0.24434", "0.23811", "Figure 2a"),
+    _atlas_mu("prod", "th", "tH", "6.6137", "4.2384", "3.7563", "Figure 2a"),
+    _atlas_mu("decay", "bb", "bb", "0.90952", "0.1458", "0.13908", "Figure 2b"),
+    _atlas_mu("decay", "ww", "WW", "1.1951", "0.11902", "0.11211", "Figure 2b"),
+    _atlas_mu("decay", "tautau", "tautau", "0.9613", "0.12234", "0.11378", "Figure 2b"),
+    _atlas_mu("decay", "zz", "ZZ", "1.0415", "0.10774", "0.10007", "Figure 2b"),
+    _atlas_mu("decay", "gamma_gamma", "gammagamma", "1.0883", "0.095217", "0.089531", "Figure 2b"),
+    _atlas_mu("decay", "z_gamma", "Zgamma", "2.0991", "0.98358", "0.94682", "Figure 2b"),
+    _atlas_mu("decay", "mu_mu", "mumu", "1.2135", "0.6178", "0.60331", "Figure 2b"),
+    _cms_mu("prod", "ggh", "ggH", "0.97", "0.08", "0.07", "+-0.04", "+0.07 -0.06"),
+    _cms_mu("prod", "vbf", "VBF", "0.80", "0.12", "0.12", "+0.09 -0.10", "+0.08 -0.07"),
+    _cms_mu("prod", "wh", "WH", "1.44", "0.26", "0.25", "+-0.21", "+0.16 -0.15"),
+    _cms_mu("prod", "zh", "ZH", "1.29", "0.22", "0.25", "+-0.20", "+0.09 -0.14"),
+    _cms_mu("prod", "tth", "ttH", "0.94", "0.20", "0.19", "+-0.15", "+0.13 -0.12"),
+    _cms_mu("prod", "th", "tH", "6.05", "2.66", "2.42", "+2.06 -1.99", "+1.69 -1.38"),
+    _cms_mu("decay", "gamma_gamma", "gammagamma", "1.13", "0.09", "0.09", "+-0.06", "+0.07 -0.06"),
+    _cms_mu("decay", "zz", "ZZ", "0.97", "0.12", "0.11", "+0.08 -0.07", "+0.09 -0.08"),
+    _cms_mu("decay", "ww", "WW", "0.97", "0.09", "0.09", "+-0.05", "+-0.08"),
+    _cms_mu("decay", "tautau", "tautau", "0.85", "0.10", "0.10", "+-0.06", "+-0.08"),
+    _cms_mu("decay", "bb", "bb", "1.05", "0.22", "0.21", "+-0.15", "+0.16 -0.15"),
+    _cms_mu("decay", "mu_mu", "mumu", "1.21", "0.45", "0.42", "+0.42 -0.38", "+0.17 -0.16"),
+    _cms_mu("decay", "z_gamma", "Zgamma", "2.59", "1.07", "0.96", "+0.97 -0.93", "+0.45 -0.25"),
+    _laser_radius("mueller2007.r_he8", "8He", "1.93", "0.03", _MUELLER2007, "10.1103/PhysRevLett.99.252501",
+                  "The root-mean-square (rms) nuclear charge radius of 8He ... has been determined for the first time to be 1.93(3) fm"),
+    _laser_radius("mueller2007.r_he6", "6He", "2.068", "0.011", _MUELLER2007, "10.1103/PhysRevLett.99.252501",
+                  "the rms charge radius of 6He was measured to be 2.068(11) fm, in excellent agreement with a previous result"),
+    _laser_radius("sanchez2006.r_li9", "9Li", "2.217", "0.035", _SANCHEZ2006, "10.1103/PhysRevLett.96.033002",
+                  "The charge radius decreases monotonically from 6Li to 9Li, and then increases from 2.217(35) to 2.467(37) fm for 11Li"),
+    _laser_radius("sanchez2006.r_li11", "11Li", "2.467", "0.037", _SANCHEZ2006, "10.1103/PhysRevLett.96.033002",
+                  "The charge radius decreases monotonically from 6Li to 9Li, and then increases from 2.217(35) to 2.467(37) fm for 11Li"),
+    _am2013("he6", "6He", "2.0660", "0.0111"),
+    _am2013("he8", "8He", "1.9239", "0.0306"),
+    _am2013("li6", "6Li", "2.5890", "0.0390"),
+    _am2013("li7", "7Li", "2.4440", "0.0420"),
+    _am2013("li9", "9Li", "2.2450", "0.0460"),
+    _am2013("li11", "11Li", "2.4820", "0.0430"),
+    _am2013("be9", "9Be", "2.5190", "0.0120"),
+    _am2013("b11", "11B", "2.4060", "0.0294"),
+    _am2013("n14", "14N", "2.5582", "0.0070"),
+    _am2013("na23", "23Na", "2.9936", "0.0021"),
+    _am2013("ca44", "44Ca", "3.5179", "0.0021"),
+    _am2013("fe56", "56Fe", "3.7377", "0.0016"),
+    _am2013("ni58", "58Ni", "3.7757", "0.0020"),
+    _am2013("sn120", "120Sn", "4.6519", "0.0021"),
+    _am2013("au197", "197Au", "5.4371", "0.0038"),
+    _am2013("bi209", "209Bi", "5.5211", "0.0906"),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT + CHEM_B17 + ATOMIC_B17 + NUCLEAR_B17 + GAPS_B18
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

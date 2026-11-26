@@ -1192,9 +1192,22 @@ Ricci = 0 is checked identically in the rational chart x = cos(theta). The metri
 
 L2 inner products of polynomial-Gaussian and polynomial-exponential waves are exact integrals. Hermite-Gaussians are orthonormal, and their Fourier transforms are (-i)^n psi_n. Position and momentum act on that domain, and [X, P] = i with hbar = 1. Plane waves are generalized free-particle eigenfunctions, not L2 vectors. The free Gaussian packet satisfies the free Schrodinger equation identically. Finite-mode Fock operators obey the CCR, and the quadratures satisfy [phi, pi] = i.
 
+### Gap catalogue, Bothwell, top-pair cross sections, per-channel Higgs, laser radii
+
+The gap catalogue in `coverage.py` gains eleven entries for physics not yet on the board: the PREM Earth profile, NRL plasma reference values, NuFIT oscillation parameters, PMNS magnitudes, direct CKM determinations, proton spin and structure, Solar Fusion S-factors, ¹²C(α,γ)¹⁶O, superconducting elements, and sound speeds in solids and in other fluids. Each was checked against the board first; the muon g−2 final value, the PDG CKM fit, PDG neutrino mixing, and the Nb/Pb/Al/YBCO/MgB₂/H₃S transition temperatures were already held and got no entry.
+
+The three open gaps close:
+
+- Bothwell 2022: the author accepted manuscript prints `−9.8(2.3)×10⁻²⁰/mm`, `−1.00(12)×10⁻¹⁹/mm` (weighted mean) and `−1.28(27)×10⁻¹⁹/mm` (synchronous), the same as arXiv v1. The typeset Nature version is paywalled and was not read.
+- Top pair at 13 TeV: ATLAS `829 ± 1 (stat) ± 13 (syst) ± 8 (lumi) ± 2 (beam)` pb, ATLAS ℓ+jets `830 ± 0.4 ± 36 ± 14` pb, CMS `803 ± 2 ± 25 ± 20` pb, and ATLAS at 13.6 TeV `850 ± 3 ± 18 ± 20` pb. Statistical and systematic parts are stored; luminosity and beam parts stay in the notes, not combined.
+- Per-channel Higgs signal strengths: ATLAS from its HEPData record (ggF+bbH `1.026`, VBF `1.1018`, WH `1.1583`, ZH `0.96205`, ttH `0.73963`, tH `6.6137`; bb `0.90952`, WW `1.1951`, ττ `0.9613`, ZZ `1.0415`, γγ `1.0883`, Zγ `2.0991`, μμ `1.2135`) and CMS from Fig. 2 (ggH `0.97`, VBF `0.80`, WH `1.44`, ZH `1.29`, ttH `0.94`, tH `6.05`; γγ `1.13`, ZZ `0.97`, WW `0.97`, ττ `0.85`, bb `1.05`, μμ `1.21`, Zγ `2.59`), each with its 68% interval.
+- Charge radii: laser spectroscopy gives ⁸He `1.93(3)` and ⁶He `2.068(11)` fm (Mueller 2007), ⁹Li `2.217(35)` and ¹¹Li `2.467(37)` fm (Sanchez 2006). Sixteen more Angeli-Marinova rows are added, including ⁶He `2.0660(111)` and ¹¹Li `2.4820(430)`; both sides stay.
+
+That adds 53 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.137.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.138.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 - A general L2 function outside the polynomial-Gaussian and polynomial-exponential classes, completeness of L2 as a metric space, the spectral theorem for an unbounded operator, Coulomb continuum waves and the Rutherford amplitude, and a field theory with infinitely many modes stay outside.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
