@@ -1116,3 +1116,11 @@ An SU(3) gauge transformation by a constant special unitary matrix acts on a con
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 368 tests, 0 failures, about 274.36 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — exact ODE checks pgi-0.100.0
+
+A candidate solution is kept only when its residual in a linear ODE vanishes identically. The harmonic oscillator, with ħ = ω = m = 1, is checked for n = 0, 1, and 2: ψ'' − (x² − 2n − 1) ψ = 0, with E_n = n + 1/2. The hydrogen radial equation in atomic units is checked for (n, ℓ) = (1, 0), (2, 0), and (2, 1): u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0, with E = −1/(2n²). The admitted candidates are polynomials times an exponential. A level or angular momentum outside that list stays open.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 370 tests, 0 failures, about 435.49 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

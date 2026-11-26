@@ -645,9 +645,15 @@ A Hermitian spectral decomposition is now kept for size up to 8, not only 2×2, 
 
 An SU(3) gauge transformation by a constant special unitary matrix, such as the 3-4-5 rotation embedded in the first two coordinates, acts on a constant connection by `A ↦ U A U†`. For constant components the field strength is `F = [A_x, A_y]`, it transforms as `F ↦ U F U†`, and `tr(F²)` is invariant, checked exactly for `su3(1)` and `su3(2)`.
 
+### Exact ODE checks for the harmonic oscillator and hydrogen
+
+A candidate solution is kept only when its residual in a linear ODE vanishes identically, checked by exact elementary differentiation. The harmonic oscillator, with ħ = ω = m = 1, is admitted for n = 0, 1, and 2. The states are ψ_0 = exp(-x²/2), ψ_1 = x exp(-x²/2), and ψ_2 = (2x² − 1) exp(-x²/2). Each satisfies ψ'' − (x² − 2n − 1) ψ = 0, which is the Schrödinger equation at E_n = n + 1/2, and `ode(harmonic(n)) = 0`.
+
+The hydrogen radial function is the reduced wave u_{n,ℓ}(r) = r R_{nℓ}(r) in atomic units with Z = 1. The admitted states are u_10 = r exp(-r), u_20 = r (1 − r/2) exp(-r/2), and u_21 = r² exp(-r/2). Each satisfies u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0, which is the radial equation at E = −1/(2n²), and `ode(hydrogen(n, l)) = 0`. A level or angular momentum outside that list stays open.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.99.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.100.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -655,5 +661,5 @@ This list is the current state as of `pgi-0.99.0`. Earlier sections above are hi
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
-- An SU(3) gauge transformation that is not a constant special unitary matrix, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked, stay outside. A Hermitian matrix whose eigenvalues are not in Q or Q(√d), or whose eigenvector norm is not a positive rational, stays open. Mixing two different square-free radicands stays open. Exact ODE checks of candidate solutions stay outside.
+- An SU(3) gauge transformation that is not a constant special unitary matrix, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked, stay outside. A Hermitian matrix whose eigenvalues are not in Q or Q(√d), or whose eigenvector norm is not a positive rational, stays open. Mixing two different square-free radicands stays open.
 - CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The modern Mercury fits are on the board since `pgi-0.53.0`. The neutron lifetime, `g_A`, muon and electron `g − 2`, and the proton radius entered in `pgi-0.56.0`. NIST ASD first ionization energies H to Ne entered in `pgi-0.57.0`, and Na to Kr in `pgi-0.59.0`. INPOP perihelion and PPN results entered in `pgi-0.58.0`. AME2020 atomic masses entered in `pgi-0.61.0`. PDG 2026 light hadron masses entered in `pgi-0.62.0`. Binary pulsar, Gravity Probe B, VLBI, and the 16 values of G entered in `pgi-0.63.0`. Hydrogen spectroscopy (1S–2S, Lamb shift, 21 cm, H-alpha, muonic hydrogen) entered in `pgi-0.64.0`. Nuclear constants (deuteron binding, alpha mass, nucleon moments) entered in `pgi-0.65.0`. Stefan–Boltzmann and Wien constants entered in `pgi-0.67.0`. The rest of the gravitational-wave catalogs are not.
