@@ -1184,11 +1184,14 @@ AME2020's reaction-energy files print these Q-values in keV, each with a 1σ unc
 
 No fission Q-value is printed in the AME files, so none is stored. This closes the cross-section, spin and quadrupole, and Q-value gaps, and adds 33 records.
 
+### Ricci = 0 for the Kerr metric
+
+Ricci = 0 is checked identically in the rational chart x = cos(theta). The metric is a rational function of (r, x, m, a). The denominators Sigma = r^2 + a^2 x^2, Delta = r^2 - 2 m r + a^2, and Xi = 1 - x^2 are kept as named factors and reduced by exact polynomial division. The inverse in that chart multiplies back to the identity. The Einstein tensor vanishes as well.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.135.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.136.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
-- Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
 - A polynomial whose resultant would exceed the kernel's degree limit stays outside.

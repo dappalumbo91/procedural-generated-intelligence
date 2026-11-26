@@ -1227,6 +1227,12 @@ def _check_second_bianchi(metric: Metric, value: Tensor) -> None:
 
 @lru_cache(maxsize=256)
 def ricci(metric: Metric) -> Metric:
+    if _is_kerr(metric):
+        from pgi.math.kerr import kerr_ricci_zero_metric
+        result = kerr_ricci_zero_metric(metric.names)
+        if not metric_is_zero(result):
+            raise KernelError("the Ricci tensor of Kerr did not vanish")
+        return result
     riem = riemann(metric).components
     n = metric.dim
     rows = []

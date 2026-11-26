@@ -1465,3 +1465,11 @@ No fission Q-value is printed in the AME files, so none is stored. The thermal-c
 That is 33 records.
 
 `python -m unittest discover -s tests -v` finished 438 tests, 0 failures, about 795.66 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Ricci = 0 for the Kerr metric pgi-0.136.0
+
+Ricci = 0 is checked identically in the rational chart x = cos(theta), where the metric is a rational function of (r, x, m, a). The denominators Sigma = r^2 + a^2 x^2, Delta = r^2 - 2 m r + a^2, and Xi = 1 - x^2 are kept as named factors and reduced by exact polynomial division, without raising the polynomial degree or term limits. The inverse in that chart multiplies back to the identity. The Einstein tensor vanishes as well.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 439 tests, 0 failures, about 841.07 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
