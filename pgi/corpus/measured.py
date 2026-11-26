@@ -3786,7 +3786,61 @@ BOREXINO: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO
+_CODATA2017_SOURCE = ("D. B. Newell et al. (CODATA Task Group on Fundamental Constants), The CODATA 2017 values of h, e, k, and N_A for the revision of the SI, "
+                      "Metrologia 55, L13-L16 (2018), doi:10.1088/1681-7575/aa950a")
+_CODATA2017_URL = "https://doi.org/10.1088/1681-7575/aa950a"
+_CODATA2017_PDF = "https://iopscience.iop.org/article/10.1088/1681-7575/aa950a/pdf"
+_CODATA2017_NOTE = ("Table 1 lists it as a key input datum of the CODATA 2017 Special Adjustment, with the uncertainty in concise form and its relative standard uncertainty; "
+                    "the original publication is the one named in the Source column.")
+
+
+def _k_datum(key, ident, source_col, quantity_name, symbol, value, unc, unit, printed, rel, method, gas, phrases):
+    gas_text = f", {gas} gas" if gas else ""
+    return _q(f"codata2017.k_input.{key}", f"{quantity_name}, {ident} ({method}{gas_text})", symbol, value, unc, unit,
+              kind="standard uncertainty", printed=printed, source=f"{_CODATA2017_SOURCE}, Table 1, row {source_col} ({ident})", edition="Metrologia 55 (2018)",
+              url=_CODATA2017_URL, retrieved_from=_CODATA2017_PDF,
+              keys=("boltzmann constant", "gas constant", "primary thermometry"), phrases=phrases + ("boltzmann constant determination", "pre-2019 boltzmann constant", "si redefinition"),
+              notes=(f"Printed as {printed.replace(' e', ' x 10^')} {unit}, relative standard uncertainty {rel}.", _CODATA2017_NOTE,
+                     f"Figure 2 of the same paper marks {ident} as {method}" + (f" in {gas}" if gas else "") + "."))
+
+
+_AGT = ("acoustic gas thermometry", "molar gas constant measurement")
+_R_UNIT = "J mol^-1 K^-1"
+
+BOLTZMANN_PRE2019: tuple[Quantity, ...] = (
+    _k_datum("nist88", "NIST-88", "Moldover et al (1988)", "molar gas constant", "R", "8.314 470", "0.000 015", _R_UNIT, "8.314 470(15)", "1.8 x 10^-6", "acoustic gas thermometry", "Ar", _AGT),
+    _k_datum("lne09", "LNE-09", "Pitre et al (2009)", "molar gas constant", "R", "8.314 467", "0.000 023", _R_UNIT, "8.314 467(23)", "2.7 x 10^-6", "acoustic gas thermometry", "Ar", _AGT),
+    _k_datum("npl10", "NPL-10", "Sutton et al (2010)", "molar gas constant", "R", "8.314 468", "0.000 026", _R_UNIT, "8.314 468(26)", "3.2 x 10^-6", "acoustic gas thermometry", "Ar", _AGT),
+    _k_datum("lne11", "LNE-11", "Pitre et al (2011)", "molar gas constant", "R", "8.314 455", "0.000 012", _R_UNIT, "8.314 455(12)", "1.4 x 10^-6", "acoustic gas thermometry", "Ar", _AGT),
+    _k_datum("lne15", "LNE-15", "Pitre et al (2015)", "molar gas constant", "R", "8.314 4615", "0.000 0084", _R_UNIT, "8.314 4615(84)", "1.0 x 10^-6", "acoustic gas thermometry", "He", _AGT),
+    _k_datum("inrim15", "INRIM-15", "Gavioso et al (2015)", "molar gas constant", "R", "8.314 4743", "0.000 0088", _R_UNIT, "8.314 4743(88)", "1.1 x 10^-6", "acoustic gas thermometry", "He", _AGT),
+    _k_datum("lne17", "LNE-17", "Pitre et al (2017)", "molar gas constant", "R", "8.314 4614", "0.000 0050", _R_UNIT, "8.314 4614(50)", "6.0 x 10^-7", "acoustic gas thermometry", "He", _AGT),
+    _k_datum("npl17", "NPL-17", "Podesta et al (2017)", "molar gas constant", "R", "8.314 4603", "0.000 0058", _R_UNIT, "8.314 4603(58)", "7.0 x 10^-7", "acoustic gas thermometry", "Ar", _AGT),
+    _k_datum("nim17", "NIM-17", "Feng et al (2017)", "molar gas constant", "R", "8.314 459", "0.000 017", _R_UNIT, "8.314 459(17)", "2.0 x 10^-6", "acoustic gas thermometry", "", _AGT),
+    _k_datum("ptb17", "PTB-17", "Gaiser et al (2017)", "molar polarizability of 4He over the molar gas constant", "A_epsilon(4He)/R", "6.221 140 e-8", "0.000 012 e-8", "m^3 K J^-1",
+             "6.221 140(12) e-8", "1.9 x 10^-6", "dielectric constant gas thermometry", "He", ("dielectric constant gas thermometry", "dcgt")),
+    _k_datum("nim_nist17", "NIM/NIST-17", "Qu et al (2017)", "Boltzmann constant over the Planck constant", "k/h", "2.083 6630 e10", "0.000 0056 e10", "Hz K^-1",
+             "2.083 6630(56) e10", "2.7 x 10^-6", "Johnson noise thermometry", "", ("johnson noise thermometry", "johnson noise")),
+    _q("codata2017.k", "Boltzmann constant, CODATA 2017 Special Adjustment (before it was fixed)", "k", "1.380 649 03 e-23", "0.000 000 51 e-23", "J K^-1",
+       kind="standard uncertainty", printed="1.380 649 03(51) e-23", source=f"{_CODATA2017_SOURCE}, Table 2", edition="Metrologia 55 (2018)",
+       url=_CODATA2017_URL, retrieved_from=_CODATA2017_PDF, keys=("boltzmann constant",), phrases=("boltzmann constant determination", "pre-2019 boltzmann constant", "codata 2017 boltzmann constant"),
+       notes=("Printed in Table 2 (adjusted values) as 1.380 649 03(51) x 10^-23 J K^-1, relative standard uncertainty 3.7 x 10^-7.",
+              "Table 3 then gives the exact value 1.380 649 x 10^-23 J K^-1 recommended for the revised SI; that defining value is already on the board under the SI constants.")),
+)
+
+ELECTRON_MASS_PENNING: tuple[Quantity, ...] = (
+    _q("sturm2014.m_e", "atomic mass of the electron from the g-factor of 12C5+ in a Penning trap", "A_r(e)", "0.000 548 579 909 067", "0.000 000 000 000 014", "u",
+       kind=_SPLIT_KIND, systematic_text="0.000 000 000 000 009",
+       source="S. Sturm, F. Koehler, J. Zatorski, A. Wagner, Z. Harman, G. Werth, W. Quint, C. H. Keitel, and K. Blaum, High-precision measurement of the atomic mass of the electron, Nature 506, 467-470 (2014), doi:10.1038/nature13026, arXiv:1406.5590, Eq. (5)",
+       edition="Nature 506 (2014); arXiv v1", url="https://doi.org/10.1038/nature13026", retrieved_from="https://arxiv.org/pdf/1406.5590",
+       keys=("electron mass", "penning trap"), phrases=("electron mass in u", "atomic mass of the electron", "penning trap", "penning-trap electron mass", "electron relative atomic mass"),
+       notes=("Printed as m_e = 0.000 548 579 909 067(14)(9)(2) in atomic mass units. 'The first two errors are the statistical and systematic uncertainties of the measurement, while the third value represents the uncertainties of the theoretical prediction of the g-factor and the electron binding energies.'",
+              "The split kind holds two parts, so the third (theory) part, 2 in the last digits, is kept in this note rather than in a number field.",
+              "The paper quotes a relative precision of 3 x 10^-11 and notes the theory input assumes the correctness of bound-state QED.")),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 

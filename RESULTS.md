@@ -659,9 +659,17 @@ The ⁸B value needed a split statistical part that is itself asymmetric, so the
 
 This adds 7 records.
 
+### Thermodynamics and QED: Boltzmann-constant inputs and the Penning-trap electron mass
+
+The board had the exact SI value of k but none of the measurements that fixed it. It now holds the key k data from the CODATA 2017 Special Adjustment (Newell et al., Metrologia 55, L13, Table 1), which is open access. There are ten acoustic-gas-thermometry values of the molar gas constant, from NIST-88 (`8.314 470(15)`, argon) to LNE-17 (`8.314 4614(50)`, helium) and NPL-17 (`8.314 4603(58)`, argon). There is also PTB-17's dielectric-constant gas thermometry ratio A_ε(⁴He)/R `6.221 140(12)×10⁻⁸` m³ K J⁻¹, NIM/NIST-17's Johnson-noise k/h `2.083 6630(56)×10¹⁰` Hz K⁻¹, and the adjusted k `1.380 649 03(51)×10⁻²³` J K⁻¹ before it was fixed. The method and gas for each datum come from the paper's Figure 2 legend and labels. Each record keeps the uncertainty in concise form, as printed, and a test checks it against the printed relative uncertainty. The one other check is definitional: the adjusted k truncates to the fixed SI value.
+
+The electron's atomic mass comes from Sturm et al. 2014 (12C5+ g-factor in a Penning trap): `0.000 548 579 909 067(14)(9)(2)` u. The statistical and systematic parts are stored separately. The third part, the theory uncertainty, is quoted in the note, because the split kind holds only two parts.
+
+This adds 13 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.101.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.102.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

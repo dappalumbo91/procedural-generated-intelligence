@@ -1132,3 +1132,11 @@ Added Borexino's pp, 7Be, pep (HZ and LZ), 8B no-conversion equivalent, and CNO 
 That is 7 records.
 
 `python -m unittest discover -s tests -v` finished 373 tests, 0 failures, about 317.48 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Boltzmann-constant inputs and the Penning-trap electron mass pgi-0.102.0
+
+Added CODATA 2017 Table 1's k inputs: ten AGT values of R, PTB-17 DCGT, and NIM/NIST-17 JNT, plus the adjusted 2017 k, and Sturm 2014's electron mass in u. The Boltzmann and Penning gaps in COVERAGE.md closed themselves.
+
+That is 13 records.
+
+`python -m unittest discover -s tests -v` finished 377 tests, 0 failures, about 425.62 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

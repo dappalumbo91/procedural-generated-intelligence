@@ -1834,6 +1834,35 @@ class BorexinoTests(unittest.TestCase):
         self.assertTrue({"borexino.phase2.phi_pp", "borexino.cno2022.phi_cno"} & linked)
 
 
+class BoltzmannPenningTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_printed_relative_uncertainties_match_the_concise_form(self) -> None:
+        # Table 1 prints both the concise uncertainty and u_r; the two agree to the two printed figures.
+        for record in QUANTITIES:
+            if not record.id.startswith("codata2017.k_input."):
+                continue
+            rel = float(record.uncertainty / abs(record.value))
+            printed = record.notes[0].split("relative standard uncertainty ")[1].rstrip(".")
+            mantissa, _, exponent = printed.partition(" x 10^")
+            self.assertAlmostEqual(rel / (float(mantissa) * 10 ** int(exponent)), 1, delta=0.06, msg=record.id)
+
+    def test_codata_2017_k_rounds_to_the_defining_value(self) -> None:
+        # Definitional: Table 3 fixes k by truncating the Table 2 adjusted value to 1.380 649 x 10^-23 J/K.
+        adjusted, fixed = quantity("codata2017.k"), quantity("codata2022.k")
+        self.assertEqual(round(adjusted.value * 10**29), fixed.value * 10**29)
+
+    def test_penning_parts_as_printed(self) -> None:
+        me = quantity("sturm2014.m_e")
+        self.assertEqual((me.value_text, me.uncertainty_text, me.systematic_text), ("0.000 548 579 909 067", "0.000 000 000 000 014", "0.000 000 000 000 009"))
+
+    def test_asks_link(self) -> None:
+        self.assertIn("codata2017.k_input.nim_nist17", self._linked("johnson noise thermometry boltzmann constant"))
+        self.assertIn("sturm2014.m_e", self._linked("what is the electron mass in u from a penning trap"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
