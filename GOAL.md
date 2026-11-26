@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.118.0`.
+Rule version `pgi-0.119.0`.
 
 In the kernel now:
 
@@ -110,6 +110,7 @@ In the kernel now:
 - Canonical commutators, angular momentum, and oscillator ladder operators. With ħ = 1, position is multiplication by the coordinate and P = −i ∂. The identities [X_i, P_j] = i δ_ij and [L_i, L_j] = i ε_ijk L_k are checked as operator equalities in normal form. The oscillator ladders a = (X + iP)/√2 and a† = (X − iP)/√2 satisfy [a, a†] = 1, checked identically.
 - A position-dependent SU(2) gauge transformation by the rational rotation already checked. It acts by A_μ ↦ U A_μ U† + U ∂_μ U†, and the field strength F = ∂A + [A, A] transforms as F ↦ U F U†, checked identically as matrix-valued rational functions.
 - Complex scalars in Q(√d, √e, i) when d and e are coprime square-free integers. √d, √e, and √(de) are the same field. An inverse is kept only when both products are 1. Three or more independent square-free radicands, or two that do not lie in one such field, stay open.
+- Variational principles. A mechanical Lagrangian L(q, v, t) has Euler–Lagrange expression d/dt(∂L/∂v) − ∂L/∂q, with the total time derivative taken by the chain rule. The energy is E = v ∂L/∂v − L, and the canonical momentum is ∂L/∂v. The off-shell identity dE/dt − v EL + ∂L/∂t = 0 is checked identically. For the harmonic oscillator L = v²/2 − q²/2, EL = a + q and E = v²/2 + q²/2. For a free particle L = v²/2, EL is the acceleration and the momentum is v. For the pendulum L = v²/2 + cos(q), EL = a + sin(q). The action is the integral of L; stationarity is the Euler–Lagrange identity.
 
 Still outside the kernel, and required before a physical law can be written:
 
@@ -128,7 +129,6 @@ What a derivation round would still need:
 
 - The Dirac operator on curved spacetime, with a tetrad and a spin connection.
 - A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
-- Variational principles: an action, the Euler–Lagrange equation, and a Noether current, checked identically for a Lagrangian the kernel already admits.
 - Integration of forms, including Stokes' theorem on the charts already admitted.
 - The Kerr metric, and FLRW with spatial curvature k ≠ 0.
 - Spherical harmonics, and hydrogen states beyond (n, ℓ) = (1, 0), (2, 0), and (2, 1).

@@ -36,6 +36,7 @@ from pgi.math.ode import eval_ode_result, has_ode, ode_equality_rules, ode_value
 from pgi.math.forms import eval_forms_result, has_forms, forms_equality_rules, forms_value_rule, side_as_forms
 from pgi.math.killing import eval_killing_result, has_killing, killing_equality_rules, killing_value_rule, side_as_killing
 from pgi.math.operators import eval_operators_result, has_operators, operators_equality_rules, operators_value_rule, side_as_operators
+from pgi.math.vary import eval_vary_result, has_vary, vary_equality_rules, vary_value_rule, side_as_vary, context_lag
 from pgi.math.poly import eval_sym_result, has_symbolic, sym_equality_rules, sym_value_rule
 from pgi.math.trans import (
     enclose_term,
@@ -120,6 +121,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return _gauge_equation(equation, anchors)
         if has_hilbert(equation.left) or has_hilbert(equation.right):
             return _hilbert_equation(equation, anchors)
+        if has_vary(equation.left) or has_vary(equation.right):
+            return _vary_equation(equation, anchors)
         if has_trans(equation.left) or has_trans(equation.right):
             return _trans_equation(equation, anchors)
         if has_manifold(equation.left) or has_manifold(equation.right):
@@ -157,6 +160,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return _gauge_value(term, anchors)
     if has_hilbert(term):
         return _hilbert_value(term, anchors)
+    if has_vary(term):
+        return _vary_value(term, anchors)
     if has_trans(term):
         return _trans_value(term, anchors)
     if has_manifold(term):
@@ -543,6 +548,36 @@ def _forms_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ..
     except NotExact as exc:
         return (_note(str(exc)),)
     return forms_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
+
+
+
+def _vary_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    try:
+        result = eval_vary_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (vary_value_rule(term, result, prelude),)
+
+
+def _vary_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left_sub = _substitute(equation.left, anchors)
+    right_sub = _substitute(equation.right, anchors)
+    left_body = left_sub.formula.right
+    right_body = right_sub.formula.right
+    prelude = (
+        *(trace(left_sub) if left_sub.rule != "Eq.refl" else ()),
+        *(trace(right_sub) if right_sub.rule != "Eq.refl" else ()),
+    )
+    try:
+        lag = context_lag(left_body) or context_lag(right_body)
+        left_value = side_as_vary(left_body, lag)
+        right_value = side_as_vary(right_body, lag)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return vary_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
 
 
 def _ode_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:

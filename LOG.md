@@ -1271,3 +1271,11 @@ Added seven Ho-Powell-Liley 1972 thermal conductivities (Cu, Al, Si, diamond), t
 That is 17 records.
 
 `python -m unittest discover -s tests -v` finished 413 tests, 0 failures, about 552.54 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Variational principles and Noether identities pgi-0.119.0
+
+A mechanical Lagrangian L(q, v, t) has Euler–Lagrange expression d/dt(∂L/∂v) − ∂L/∂q, with the total time derivative taken by the chain rule. The energy E = v ∂L/∂v − L satisfies the off-shell identity dE/dt − v EL + ∂L/∂t = 0, checked identically. The harmonic oscillator, a free particle, and the pendulum are checked that way. The action is the integral of L; stationarity is the Euler–Lagrange identity.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 414 tests, 0 failures, about 586.83 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

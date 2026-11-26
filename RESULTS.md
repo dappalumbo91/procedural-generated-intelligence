@@ -873,9 +873,13 @@ Donnelly and Barenghi 1998 add recommended values for liquid helium-4:
 
 The Pound-Rebka 1960 gap now closes against the `pound1960.*` records by id. This adds 17 records.
 
+### Variational principles and Noether identities
+
+A mechanical Lagrangian L(q, v, t) has Euler–Lagrange expression d/dt(∂L/∂v) − ∂L/∂q, with the total time derivative taken by the chain rule. The energy E = v ∂L/∂v − L satisfies dE/dt − v EL + ∂L/∂t = 0 identically. The harmonic oscillator L = v²/2 − q²/2 has EL = a + q and E = v²/2 + q²/2. A free particle L = v²/2 has EL equal to the acceleration and canonical momentum v. The pendulum L = v²/2 + cos(q) has EL = a + sin(q). The action is the integral of L; stationarity is the Euler–Lagrange identity.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.118.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.119.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
