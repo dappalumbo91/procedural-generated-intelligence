@@ -1164,3 +1164,11 @@ Added KamLAND-Zen, LZ, CAST, Eöt-Wash 2020, Filzinger 2023 alpha drift and sola
 That is 10 records.
 
 `python -m unittest discover -s tests -v` finished 386 tests, 0 failures, about 490.29 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — cosmology: age, z_re, Omega_K, eta, weak-lensing S8 pgi-0.107.0
+
+Added Planck 2018's age, reionization redshift, and Omega_K (+BAO), eta_10 from Cooke 2018 and Fields 2020, and S8 from KiDS-1000 and DES Y3 (shear and 3x2pt), kept beside Planck's S8. Every cosmology gap in COVERAGE.md is now closed.
+
+That is 9 records.
+
+`python -m unittest discover -s tests -v` finished 393 tests, 0 failures, about 609.38 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

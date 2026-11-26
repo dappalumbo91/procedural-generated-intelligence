@@ -699,6 +699,22 @@ All of the null-result gaps are now closed. Every bound keeps the confidence lev
 
 This adds 10 records.
 
+### Cosmology: age, reionization, curvature, baryon-to-photon ratio, and weak-lensing S8
+
+Planck 2018 VI adds three values in the baseline column TT,TE,EE+lowE+lensing (68%): age `13.797 ± 0.023 Gyr` and reionization redshift `7.67 ± 0.73`. The third is curvature, `Ω_K = 0.0007 ± 0.0019`, from Sect. 7.3 with BAO, since Planck alone prefers a closed model.
+
+The baryon-to-photon ratio comes from deuterium: Cooke et al. 2018 give η₁₀ = `5.931 ± 0.051` from their D/H, and Fields et al. 2020 give BBN+D `6.148 ± 0.191`. Fields' CMB-only `6.104 ± 0.058` is kept beside them.
+
+Weak-lensing S8 is now on the board next to Planck's `0.832 ± 0.013`:
+
+- **KiDS-1000 cosmic shear:** `0.759 +0.024 −0.021`. This is best fit plus PJ-HPD, and the paper doesn't state the level for that pair.
+- **DES Y3 cosmic shear:** `0.759 +0.025 −0.023` (68%).
+- **DES Y3 3×2pt:** `0.776 ± 0.017` (68%).
+
+The tension stays visible: both sides are stored as printed, and nothing is reconciled or retracted. The only test is that the printed lensing values sit below Planck's printed value.
+
+This adds 9 records.
+
 ### Current open math gaps
 
 This list is the current state as of `pgi-0.105.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.

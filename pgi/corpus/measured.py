@@ -3964,7 +3964,53 @@ NULL_B13: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13
+_FIELDS2020_SOURCE = "B. D. Fields, K. A. Olive, T.-H. Yeh, and C. Young, Big-bang nucleosynthesis after Planck, JCAP 03 (2020) 010, doi:10.1088/1475-7516/2020/03/010, arXiv:1912.01132, table 'Constraints on the baryon-to-photon ratio'"
+_KIDS_SOURCE = "KiDS Collaboration, M. Asgari et al., KiDS-1000 cosmology: cosmic shear constraints and comparison between two point statistics, Astron. Astrophys. 645, A104 (2021), doi:10.1051/0004-6361/202039070, arXiv:2007.15633"
+_DESY3_SHEAR = "DES Collaboration, A. Amon et al., Dark Energy Survey Year 3 results: cosmology from cosmic shear and robustness to data calibration, Phys. Rev. D 105, 023514 (2022), doi:10.1103/PhysRevD.105.023514, arXiv:2105.13543, Conclusions"
+_DESY3_3X2 = "DES Collaboration, T. M. C. Abbott et al., Dark Energy Survey Year 3 results: cosmological constraints from galaxy clustering and weak lensing, Phys. Rev. D 105, 023520 (2022), doi:10.1103/PhysRevD.105.023520, arXiv:2105.13549, abstract"
+_S8_NOTE = "S8 = sigma_8 (Omega_m/0.3)^0.5 inside flat LCDM. Planck 2018's S8 (planck2018.s_8 = 0.832 +- 0.013) is on the board too; the two sides are kept as printed and not reconciled."
+
+COSMO_B13: tuple[Quantity, ...] = (
+    _planck("planck2018.age", "age of the universe", "t_0", "13.797", "0.023", "Gyr", phrases=("age of the universe", "cosmic age"),
+            notes=("Table 2 prints Age [Gyr] = 13.797 +- 0.023 in this column, and 13.787 +- 0.020 with BAO added.",)),
+    _planck("planck2018.z_re", "redshift of reionization (midpoint)", "z_re", "7.67", "0.73", phrases=("reionization redshift", "reionization")),
+    _q("planck2018.omega_k", "spatial curvature density parameter, Planck TT,TE,EE+lowE+lensing+BAO", "Omega_K", "0.0007", "0.0019", "",
+       kind="68% interval", source=PLANCK_2018_SOURCE.replace(", Table 2.", ", Sect. 7.3 (curvature)."), edition="Planck 2018 VI, base-LCDM+Omega_K, TT,TE,EE+lowE+lensing+BAO",
+       url=PLANCK_2018_URL, retrieved_from=PLANCK_2018_PDF, keys=_PLANCK_KEYS + ("curvature",), phrases=("omega_k", "curvature density", "spatial curvature", "flatness"),
+       notes=("Printed as Omega_K = 0.0007 +- 0.0019 (68%, TT,TE,EE+lowE+lensing+BAO).",
+              "The same section prints Omega_K = -0.0106 +- 0.0065 without BAO and a Planck-alone preference for closed models; those are not stored.")),
+    _q("cooke2018.eta10", "baryon-to-photon ratio from primordial D/H and standard BBN", "eta_10", "5.931", "0.051", "",
+       kind="uncertainty as printed, level not stated",
+       source="R. J. Cooke, M. Pettini, and C. C. Steidel, One percent determination of the primordial deuterium abundance, Astrophys. J. 855, 102 (2018), doi:10.3847/1538-4357/aaab53, arXiv:1710.11129, Sect. 'Testing the Standard Model'",
+       edition="ApJ 855 (2018)", url="https://doi.org/10.3847/1538-4357/aaab53", retrieved_from="https://arxiv.org/e-print/1710.11129",
+       keys=_BBN_KEYS, phrases=("baryon-to-photon", "baryon to photon ratio", "eta10", "bbn baryon density"),
+       notes=("Printed as 10^10 eta = eta_10 = 5.931 +- 0.051, 'which includes the uncertainty of the nuclear data', converted from (D/H)_P with the Marcucci 2016 d(p,gamma)3He rate.",)),
+    _q("fields2020.eta10_bbn_d", "baryon-to-photon ratio from BBN + D/H (mean)", "eta_10", "6.148", "0.191", "",
+       kind="uncertainty as printed, level not stated", source=_FIELDS2020_SOURCE, edition="JCAP 03 (2020)", url="https://doi.org/10.1088/1475-7516/2020/03/010",
+       retrieved_from="https://arxiv.org/e-print/1912.01132", keys=_BBN_KEYS, phrases=("baryon-to-photon", "baryon to photon ratio", "eta10"),
+       notes=("Printed in the row 'BBN+D' as mean eta_10 = 6.148 +- 0.191 (peak 6.145), marginalized over Y_p.",)),
+    _q("fields2020.eta10_cmb", "baryon-to-photon ratio from the CMB alone (mean)", "eta_10", "6.104", "0.058", "",
+       kind="uncertainty as printed, level not stated", source=_FIELDS2020_SOURCE, edition="JCAP 03 (2020)", url="https://doi.org/10.1088/1475-7516/2020/03/010",
+       retrieved_from="https://arxiv.org/e-print/1912.01132", keys=_BBN_KEYS, phrases=("baryon-to-photon", "baryon to photon ratio", "eta10"),
+       notes=("Printed in the row 'CMB-only' as mean eta_10 = 6.104 +- 0.058 (peak 6.104), from Planck 2018 chains.",)),
+    _q("kids2021.s8", "S8 from KiDS-1000 cosmic shear (COSEBIs, fiducial)", "S_8", "0.759", "0.024", "", lower_text="0.021",
+       kind="asymmetric, level not stated", source=_KIDS_SOURCE + ", abstract and Table 'Goodness of fit and S8 constraints'", edition="A&A 645 (2021)",
+       url="https://doi.org/10.1051/0004-6361/202039070", retrieved_from="https://arxiv.org/e-print/2007.15633",
+       keys=("weak lensing", "kids", "cosmology"), phrases=("weak lensing", "kids", "s8", "cosmic shear", "s8 tension"),
+       notes=("Printed as S_8 = 0.759 +0.024 -0.021 'for our fiducial analysis'; the table column is 'S_8, best fit + PJ-HPD'. The abstract calls it in 3 sigma tension with Planck.",
+              "The same table gives 0.758 +0.017 -0.026 as 'max + Marginal', called a 68% CI in the conclusions; it is not stored.", _S8_NOTE)),
+    _q("desy3.s8_shear", "S8 from DES Y3 cosmic shear (fiducial, LCDM with free neutrino mass)", "S_8", "0.759", "0.025", "", lower_text="0.023",
+       kind="68% interval", source=_DESY3_SHEAR, edition="Phys. Rev. D 105, 023514 (2022)", url="https://doi.org/10.1103/PhysRevD.105.023514",
+       retrieved_from="https://arxiv.org/e-print/2105.13543", keys=("weak lensing", "des", "cosmology"), phrases=("weak lensing", "s8", "cosmic shear", "des y3", "s8 tension"),
+       notes=("Printed as S_8 = 0.759 +0.025 -0.023 (0.755 best-fit) at 68% confidence limits.", _S8_NOTE)),
+    _q("desy3.s8_3x2pt", "S8 from DES Y3 3x2pt (cosmic shear, galaxy-galaxy lensing, clustering)", "S_8", "0.776", "0.017", "", lower_text="0.017",
+       kind="68% interval", source=_DESY3_3X2, edition="Phys. Rev. D 105, 023520 (2022)", url="https://doi.org/10.1103/PhysRevD.105.023520",
+       retrieved_from="https://arxiv.org/e-print/2105.13549", keys=("weak lensing", "des", "cosmology"), phrases=("weak lensing", "s8", "3x2pt", "des y3", "s8 tension"),
+       notes=("Printed as S_8 = 0.776 +0.017 -0.017 in LCDM, 'mean with 68% confidence limits'.", _S8_NOTE)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

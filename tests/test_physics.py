@@ -1914,6 +1914,33 @@ class NullB13Tests(unittest.TestCase):
         self.assertIn("bound.cast2017.g_agamma", self._linked("what is the axion-photon coupling limit"))
 
 
+class CosmoB13Tests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_s8_both_sides_kept_as_printed(self) -> None:
+        planck = quantity("planck2018.s_8")
+        lensing = [quantity(i) for i in ("kids2021.s8", "desy3.s8_shear", "desy3.s8_3x2pt")]
+        # The printed values sit on opposite sides; both are kept and nothing is retracted.
+        self.assertTrue(all(l.value < planck.value for l in lensing))
+        self.assertEqual([(l.value_text, l.uncertainty_text, l.lower_text) for l in lensing],
+                         [("0.759", "0.024", "0.021"), ("0.759", "0.025", "0.023"), ("0.776", "0.017", "0.017")])
+
+    def test_eta10_rows_as_printed(self) -> None:
+        self.assertEqual(quantity("cooke2018.eta10").value_text, "5.931")
+        self.assertEqual(quantity("fields2020.eta10_bbn_d").uncertainty_text, "0.191")
+
+    def test_planck_extras(self) -> None:
+        self.assertEqual(quantity("planck2018.age").value_text, "13.797")
+        self.assertEqual(quantity("planck2018.z_re").value_text, "7.67")
+        self.assertEqual(quantity("planck2018.omega_k").value_text, "0.0007")
+
+    def test_asks_link(self) -> None:
+        self.assertIn("planck2018.age", self._linked("what is the age of the universe"))
+        self.assertIn("kids2021.s8", self._linked("what is S8 from kids weak lensing"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
