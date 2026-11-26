@@ -1156,3 +1156,11 @@ A k-form on a coordinate chart has exact components, either multivariate rationa
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 383 tests, 0 failures, about 446.59 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — null results: 0vbb, WIMPs, axions, Yukawa range, alpha drift, charge equality pgi-0.105.0
+
+Added KamLAND-Zen, LZ, CAST, Eöt-Wash 2020, Filzinger 2023 alpha drift and solar-potential coupling, and PDG charge-equality, neutron-charge, and n-nbar limits. Every null-results gap in COVERAGE.md is now closed.
+
+That is 10 records.
+
+`python -m unittest discover -s tests -v` finished 386 tests, 0 failures, about 490.29 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

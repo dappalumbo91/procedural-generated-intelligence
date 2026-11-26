@@ -1888,6 +1888,32 @@ class SmePoundRebkaTests(unittest.TestCase):
         self.assertIn("pound1960.redshift_ratio", self._linked("what did pound-rebka 1960 measure"))
 
 
+class NullB13Tests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_bounds_as_printed(self) -> None:
+        from pgi.corpus.measured import BOUNDS
+        by_id = {b.id: b for b in BOUNDS}
+        klz = by_id["bound.kamlandzen2023.xe136_0vbb"]
+        self.assertEqual((klz.lower_text, klz.upper_text), ("2.3 e26", ""))
+        self.assertTrue(any("lower limit only" in c for c in klz.conditions))
+        self.assertEqual(by_id["bound.lz2025.wimp_si_40gev"].upper_text, "2.2 e-48")
+        self.assertEqual(by_id["bound.cast2017.g_agamma"].upper_text, "0.66 e-10")
+        self.assertEqual(by_id["bound.eotwash2020.yukawa_range"].upper_text, "38.6")
+        self.assertEqual(by_id["bound.pdg2026.n_nbar_free"].lower_text, "8.6 e7")
+
+    def test_measured_nulls_as_printed(self) -> None:
+        a = quantity("filzinger2023.alpha_dot")
+        self.assertEqual((a.value_text, a.uncertainty_text, a.uncertainty_kind), ("1.8 e-19", "2.5 e-19", "uncertainty as printed, level not stated"))
+        self.assertEqual(quantity("pdg2026.null.n_charge").value_text, "-0.2 e-21")
+
+    def test_asks_link(self) -> None:
+        self.assertIn("bound.kamlandzen2023.xe136_0vbb", self._linked("what is the neutrinoless double beta decay half-life limit"))
+        self.assertIn("bound.cast2017.g_agamma", self._linked("what is the axion-photon coupling limit"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

@@ -61,7 +61,7 @@ for _domain, _names in {
     "QED and precision": ("sturm2014", "antognini2013", "crema2013", "bezginov2019", "lundeen1981", "matveev2013", "parthey2011", "hellwig1970", "ishida2014",
                           "ritter1984", "kataoka2009", "alramadhan1994", "liu1999", "fan2023", "fnal2025", "zelevinsky2004", "george2001", "kato2018",
                           "heydarizadmotlagh2024"),
-    "null results and bounds": ("bound", "sme2026", "jila2023", "abel2020", "microscope2022"),
+    "null results and bounds": ("bound", "sme2026", "filzinger2023", "jila2023", "abel2020", "microscope2022"),
     "SI defining constants": ("anchor",),
     "foundations and status": ("primitive", "obstruction", "open"),
 }.items():
@@ -78,6 +78,8 @@ def domain(record_id: str) -> str:
             if rest in members:
                 return name
     elif head == "pdg2026":
+        if rest.startswith("null."):
+            return "null results and bounds"
         if rest.startswith("bbn."):
             return "cosmology"
         return "QED and precision" if rest in {"a_mu", "a_e", "proton_radius"} else "particle"
@@ -234,6 +236,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
     "null results and bounds": (
         ("null results and upper bounds", ("bound.", "jila2023.", "abel2020.", "microscope2022.")),
         ("SME Lorentz-violation maximal sensitivities (Kostelecky-Russell)", ("sme2026.",)),
+        ("clock limits on alpha drift and the neutron charge", ("filzinger2023.", "pdg2026.null.")),
     ),
     "SI defining constants": (("SI defining constants", ("codata2022.", "anchor.")),),
     "foundations and status": (("primitives, obstructions, and open problems", ("primitive.", "obstruction.", "open.")),),

@@ -3896,8 +3896,76 @@ POUND_REBKA_1960: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS
-BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
+_KLZ_SOURCE = "KamLAND-Zen Collaboration, S. Abe et al., Search for the Majorana nature of neutrinos in the inverted mass ordering region with KamLAND-Zen, Phys. Rev. Lett. 130, 051801 (2023), doi:10.1103/PhysRevLett.130.051801, arXiv:2203.02139, abstract"
+_LZ_SOURCE = "LZ Collaboration, J. Aalbers et al., Dark matter search results from 4.2 tonne-years of exposure of the LUX-ZEPLIN (LZ) experiment, Phys. Rev. Lett. 135, 011802 (2025), doi:10.1103/4dyc-z8zf, arXiv:2410.17036, abstract"
+_CAST_SOURCE = "CAST Collaboration, V. Anastassopoulos et al., New CAST limit on the axion-photon interaction, Nature Phys. 13, 584-590 (2017), doi:10.1038/nphys4109, arXiv:1705.02290, abstract"
+_EOTWASH_SOURCE = "J. G. Lee, E. G. Adelberger, T. S. Cook, S. M. Fleischer, and B. R. Heckel, New test of the gravitational 1/r^2 law at separations down to 52 um, Phys. Rev. Lett. 124, 101101 (2020), doi:10.1103/PhysRevLett.124.101101, arXiv:2002.11761, abstract"
+_FILZINGER_SOURCE = "M. Filzinger, S. Dorscher, R. Lange, J. Klose, M. Steinel, E. Benkler, E. Peik, C. Lisdat, and N. Huntemann, Improved limits on the coupling of ultralight bosonic dark matter to photons from optical atomic clock comparisons, Phys. Rev. Lett. 130, 253001 (2023), doi:10.1103/PhysRevLett.130.253001, arXiv:2301.03433"
+
+NULL_B13_BOUNDS: tuple[Bound, ...] = (
+    Bound(id="bound.kamlandzen2023.xe136_0vbb", name="half-life of neutrinoless double-beta decay of 136Xe", symbol="T_1/2^0nu(136Xe)",
+          lower_text="2.3 e26", upper_text="", unit="yr", source=_KLZ_SOURCE, edition="Phys. Rev. Lett. 130 (2023)",
+          url="https://doi.org/10.1103/PhysRevLett.130.051801", retrieved_from="https://arxiv.org/e-print/2203.02139", retrieved=RETRIEVED,
+          keys=("double beta decay", "majorana neutrino", "kamland-zen", "null result"),
+          phrases=("double-beta", "double beta", "neutrinoless double beta decay", "0vbb half-life", "kamland-zen", "null results", "experimental bounds"),
+          conditions=("Printed as T_1/2^0nu > 2.3 x 10^26 yr at 90% C.L., from 970 kg yr of 136Xe exposure (KamLAND-Zen 400 and 800 combined).",
+                      "This is a lower limit only. No upper end exists, and a longer half-life is allowed.",
+                      "The abstract's conversion to effective Majorana mass limits (36-156 meV) depends on nuclear matrix elements and is not stored."), forbids=()),
+    _null_bound("bound.lz2025.wimp_si_40gev", "spin-independent WIMP-nucleon cross section at a WIMP mass of 40 GeV/c^2", "sigma_SI(40 GeV)", "2.2 e-48", "cm^2",
+                source=_LZ_SOURCE, edition="Phys. Rev. Lett. 135 (2025)", url="https://doi.org/10.1103/4dyc-z8zf", retrieved_from="https://arxiv.org/e-print/2410.17036",
+                keys=("dark matter", "wimp", "lz"), phrases=("wimp", "dark matter cross section", "wimp-nucleon cross section", "lux-zeplin"),
+                conditions=("Printed as 'the strongest SI exclusion set is 2.2 x 10^-48 cm^2 at the 90% confidence level ... for a mass of 40 GeV/c^2', from 4.2 tonne-years of exposure.",
+                            "The limit is a curve in WIMP mass; only its strongest point is stored. The median sensitivity 5.1 x 10^-48 cm^2 is not stored.")),
+    _null_bound("bound.cast2017.g_agamma", "axion-photon coupling", "g_a gamma", "0.66 e-10", "GeV^-1",
+                source=_CAST_SOURCE, edition="Nature Phys. 13 (2017)", url="https://doi.org/10.1038/nphys4109", retrieved_from="https://arxiv.org/e-print/1705.02290",
+                keys=("axion", "cast"), phrases=("axion", "axion-photon coupling", "cast helioscope"),
+                conditions=("Printed as g_a gamma < 0.66 x 10^-10 GeV^-1 (95% C.L.), from the 2013-2015 solar data; 'this bound applies for m_a <~ 0.02 eV'.",)),
+    _null_bound("bound.eotwash2020.yukawa_range", "range of a gravitational-strength (|alpha| = 1) Yukawa interaction", "lambda(|alpha|=1)", "38.6", "um",
+                source=_EOTWASH_SOURCE, edition="Phys. Rev. Lett. 124 (2020)", url="https://doi.org/10.1103/PhysRevLett.124.101101", retrieved_from="https://arxiv.org/e-print/2002.11761",
+                keys=("inverse-square law", "fifth force", "eot-wash", "short-range gravity"), phrases=("fifth force", "eot-wash", "inverse-square law test", "yukawa range"),
+                conditions=("Printed as 'limiting with 95% confidence any gravitational-strength Yukawa interactions to ranges < 38.6 um', torsion balance at 52 um to 3.0 mm separations.",
+                            "The full 2 sigma exclusion is a curve in (lambda, |alpha|); only the |alpha| = 1 crossing is stored.")),
+    _null_bound("bound.pdg2026.q_p_plus_q_e", "sum of proton and electron charges (charge equality)", "|q_p + q_e|/e", "1 e-21", "",
+                source="Particle Data Group, Review of Particle Physics, 2026 edition, p summary |q_p+q_e|/e (PDG id S016DQ), from G. Bressi et al., Phys. Rev. A 83, 052101 (2011), doi:10.1103/PhysRevA.83.052101 (neutrality of SF6).",
+                edition="PDG 2026, S016DQ", url="https://pdg.lbl.gov/2026/listings/contents_listings.html", retrieved_from=PDG_2026_API,
+                keys=("charge equality", "charge conservation"), phrases=("charge equality", "proton electron charge equality", "neutrality of matter"),
+                conditions=("PDG prints the summary as < 1E-21 with the label BEST LIMIT. The PDG record gives no confidence level for it.",)),
+    _null_bound("bound.pdg2026.q_eplus_plus_q_eminus", "sum of positron and electron charges", "|q(e+) + q(e-)|/e", "4 e-8", "",
+                source="Particle Data Group, Review of Particle Physics, 2026 edition, e summary |q(e+)+q(e-)|/e (PDG id S003DQ).",
+                edition="PDG 2026, S003DQ", url="https://pdg.lbl.gov/2026/listings/contents_listings.html", retrieved_from=PDG_2026_API,
+                keys=("charge equality", "cpt"), phrases=("charge equality", "positron electron charge equality"),
+                conditions=("PDG prints the summary as < 4E-8 with the label BEST LIMIT. The PDG record gives no confidence level for it.",)),
+    Bound(id="bound.pdg2026.n_nbar_free", name="mean time for free neutron-antineutron transition", symbol="tau(n -> nbar)",
+          lower_text="8.6 e7", upper_text="", unit="s",
+          source="Particle Data Group, Review of Particle Physics, 2026 edition, n summary 'Mean Time for n nbar Transition' (PDG id S017NAN), from M. Baldo-Ceolin et al., Z. Phys. C 63, 409 (1994), doi:10.1007/BF01580321 (reactor free neutrons).",
+          edition="PDG 2026, S017NAN", url="https://pdg.lbl.gov/2026/listings/contents_listings.html", retrieved_from=PDG_2026_API, retrieved=RETRIEVED,
+          keys=("neutron-antineutron", "baryon number violation", "null result"),
+          phrases=("neutron-antineutron", "neutron antineutron oscillation", "n-nbar oscillation time", "null results", "experimental bounds"),
+          conditions=("PDG prints the summary as > 8.6E7 s, BEST LIMIT, at 90% CL, from free reactor neutrons.",
+                      "This is a lower limit only. No upper end exists, and a longer transition time is allowed.",
+                      "PDG also lists bound-neutron limits that depend on nuclear-suppression factors, such as Super-Kamiokande 2021 > 4.7E8 s for neutrons bound in oxygen; those are not stored."), forbids=()),
+)
+
+NULL_B13: tuple[Quantity, ...] = (
+    _q("filzinger2023.alpha_dot", "linear drift of the fine-structure constant from Yb+ E3/E2 optical clock comparisons", "(1/alpha) d alpha/dt", "1.8 e-19", "2.5 e-19", "yr^-1",
+       kind="uncertainty as printed, level not stated", source=_FILZINGER_SOURCE, edition="Phys. Rev. Lett. 130 (2023)", url="https://doi.org/10.1103/PhysRevLett.130.253001",
+       retrieved_from="https://arxiv.org/e-print/2301.03433",
+       keys=("fine-structure constant", "optical clocks", "null result"), phrases=("alpha drift", "variation of the fine-structure constant", "alpha dot", "drift of alpha"),
+       notes=("Printed as (1/alpha) d alpha/dt = 1.8(2.5) x 10^-19 /yr, from about 235 days of nu_E3/nu_E2 data (2020-2022) combined with the 2016-2020 data; the paper calls it compatible with zero.",
+              "The same paper prints (c^2/alpha) d alpha/d Phi = -2.4(3.0) x 10^-9 for coupling to the solar gravitational potential; that is stored as filzinger2023.alpha_phi.")),
+    _q("filzinger2023.alpha_phi", "coupling of the fine-structure constant to the solar gravitational potential, Yb+ clocks", "(c^2/alpha) d alpha/d Phi", "-2.4 e-9", "3.0 e-9", "",
+       kind="uncertainty as printed, level not stated", source=_FILZINGER_SOURCE, edition="Phys. Rev. Lett. 130 (2023)", url="https://doi.org/10.1103/PhysRevLett.130.253001",
+       retrieved_from="https://arxiv.org/e-print/2301.03433",
+       keys=("fine-structure constant", "optical clocks", "null result"), phrases=("variation of the fine-structure constant", "alpha gravitational potential coupling"),
+       notes=("Printed as (c^2/alpha) d alpha/d Phi = -2.4(3.0) x 10^-9; 'both values are compatible with zero'.",)),
+    _pdg("pdg2026.null.n_charge", "electric charge of the neutron", "q_n", "-0.2 e-21", "0.8 e-21", "e", node="S017Q",
+         keys=("neutron", "charge equality", "null result"), phrases=("neutron charge", "charge equality", "neutrality of the neutron"),
+         notes=("PDG 2026 prints the summary as -0.2 +- 0.8 (x 10^-21 e), OUR AVERAGE of Bressi 2011 (SF6 neutrality, -0.1 +- 1.1) and Baumann 1988 (cold-neutron deflection, -0.4 +- 1.1).",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13
+BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 
 def quantity(id: str) -> Quantity:

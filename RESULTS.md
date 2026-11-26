@@ -686,9 +686,22 @@ This adds 20 records.
 
 A k-form on a coordinate chart has exact components, either multivariate rationals or elementary expressions. The wedge product of 1-forms is alternating, checked identically. The exterior derivative satisfies d² = 0, checked identically on polynomial 0-forms and 1-forms and on elementary 1-forms. On flat Minkowski spacetime with coordinates (t, x, y, z), a 4-potential A is a 1-form, the Faraday 2-form is F = dA, and dF = 0 is the identity d²A = 0. That is the homogeneous Maxwell system in the language of forms. The inhomogeneous equation d⋆F = J stays outside until the Hodge star is admitted.
 
+### Null results: double-beta decay, WIMPs, axions, short-range gravity, alpha drift, charge equality
+
+All of the null-result gaps are now closed. Every bound keeps the confidence level the paper or PDG prints:
+
+- **KamLAND-Zen 2023:** 0νββ half-life of ¹³⁶Xe `> 2.3×10²⁶ yr` at 90% C.L. This is a lower limit only. The effective-Majorana-mass range depends on nuclear matrix elements, so it is left out.
+- **LZ 4.2 t·yr (PRL 135, 2025):** strongest spin-independent exclusion `2.2×10⁻⁴⁸ cm²` at 40 GeV/c², 90% C.L.
+- **CAST 2017:** `g_aγ < 0.66×10⁻¹⁰ GeV⁻¹` (95% C.L.), valid for m_a ≲ 0.02 eV.
+- **Eöt-Wash 2020:** gravitational-strength Yukawa interactions limited to ranges `< 38.6 µm` (95%).
+- **PTB Yb⁺ clocks (Filzinger 2023):** `α̇/α = 1.8(2.5)×10⁻¹⁹ /yr` and `(c²/α)dα/dΦ = −2.4(3.0)×10⁻⁹`. Both are stored as measured values with the uncertainty as printed, because the paper names no level.
+- **PDG 2026:** `|q_p+q_e|/e < 1×10⁻²¹`, `|q(e⁺)+q(e⁻)|/e < 4×10⁻⁸`, the neutron charge average `(−0.2 ± 0.8)×10⁻²¹ e`, and the free-neutron n→n̄ transition time `> 8.6×10⁷ s` (90%). The bound-neutron limits depend on nuclear suppression factors, so they are named in the notes but not stored.
+
+This adds 10 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.104.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.105.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
