@@ -1147,9 +1147,46 @@ Knollmann, Patel and Doret (2019) measured the Ca⁺ 4s ²S₁/₂ → 3d ²D₅
 
 The atomic gaps both close, and atomic now lists no gaps. This adds 24 records.
 
+### Nuclear: thermal neutron cross sections, spins, quadrupole moments, Q-values
+
+Sears (1992), as tabulated by NIST NCNR, gives these 2200 m/s absorption cross sections in barns:
+
+- ¹H `0.3326`;
+- ³He `5333.(7.)`;
+- ⁶Li `940.(4.)`;
+- ¹⁰B `3835.(9.)`;
+- ¹¹³Cd `20600.(400.)`;
+- ¹⁵⁷Gd `259000.(700.)`;
+- ²³⁵U `680.9(1.1)`.
+
+ENSDF ground-state spins, read via LiveChart, are stored with parity in the notes: ²H 1⁺, ⁷Li 3/2⁻, ¹⁰B 3⁺, ¹⁴N 1⁺, ¹⁷O 5/2⁺, ²⁷Al 5/2⁺, ¹³³Cs 7/2⁺ and ²³⁵U 7/2⁻.
+
+LiveChart gives these quadrupole moments in barns:
+
+- ²H `0.0028578(3)`;
+- ⁷Li `−0.04(3)`;
+- ¹⁰B `0.0846(2)`;
+- ¹⁴N `0.02044(3)`;
+- ¹⁷O `−0.0256(2)`;
+- ²⁷Al `0.1466(10)`;
+- ¹³³Cs `−0.00343(10)`;
+- ²³⁵U `4.936(6)`.
+
+AME2020's reaction-energy files print these Q-values in keV, each with a 1σ uncertainty:
+
+- Q_α: ²¹⁰Po `5407.5307`, ²²⁶Ra `4870.7028`, ²³⁸U `4269.8581`, ²⁴¹Am `5637.8203`;
+- Q(d,α) on ³H, which is D–T fusion: `17589.2999 ± 0.0005`;
+- Q(d,α) on ³He: `18353.0548 ± 0.0002`;
+- Q(d,α) on ⁶Li: `22372.7716`;
+- Q(p,α) on ⁷Li: `17346.2440`;
+- Q(n,α) on ⁶Li: `4783.4717`;
+- Q(n,α) on ¹⁰B: `2789.9082`.
+
+No fission Q-value is printed in the AME files, so none is stored. This closes the cross-section, spin and quadrupole, and Q-value gaps, and adds 33 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.134.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.135.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

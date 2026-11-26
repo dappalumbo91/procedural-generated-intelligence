@@ -1450,3 +1450,18 @@ The ionization-energy and isotope-shift gaps close.
 That is 24 records.
 
 `python -m unittest discover -s tests -v` finished 437 tests, 0 failures, about 771.31 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Nuclear: cross sections, spins, quadrupole moments, Q-values pgi-0.135.0
+
+Added these records:
+
+- Sears 1992 2200 m/s absorption cross sections (7);
+- ENSDF ground-state spins (8);
+- LiveChart quadrupole moments (8);
+- AME2020 printed Q-values: 4 alpha decays, 4 fusion reactions, 2 (n,a).
+
+No fission Q-value is printed in the AME files, so none is stored. The thermal-cross-section, spin/quadrupole, and Q-value gaps close.
+
+That is 33 records.
+
+`python -m unittest discover -s tests -v` finished 438 tests, 0 failures, about 795.66 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -46,7 +46,7 @@ _PREFIX: dict[str, str] = {}
 for _domain, _names in {
     "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015", "amini2003", "ekstrom1995", "cccbdb_pol", "parthey2010", "huber1998", "knollmann2019"),
     "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024", "shimanouchi1972", "cccbdb_dip", "kayelaby_e0", "kayelaby_ksp", "webbook_comb"),
-    "nuclear": ("ame2020", "ddep", "ensdf", "am2013"),
+    "nuclear": ("ame2020", "ddep", "ensdf", "am2013", "sears1992", "livechart"),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015", "martin1973", "hpl1972", "nbs1953", "kayelaby_ferro", "danan1968", "myers1951", "nigh1963"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84", "ccmgk2", "lemoine2013", "konopliv2013", "williams2014", "chen2015"),
@@ -173,6 +173,9 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("water ionization constant", ("iapws2024.",)),
     ),
     "nuclear": (
+        ("thermal neutron absorption cross sections (Sears 1992, NIST NCNR)", ("sears1992.",)),
+        ("ground-state spins (ENSDF) and quadrupole moments (LiveChart)", ("ensdf.spin_", "livechart.q_",)),
+        ("AME2020 printed Q-values (alpha decay, fusion, (n,a))", ("ame2020.q_",)),
         ("AME2020 masses and binding energies", ("ame2020.",)),
         ("CODATA deuteron, alpha, and nucleon moments", ("codata2022.",)),
         ("DDEP and ENSDF half-lives, including medical isotopes", ("ddep.", "ensdf.")),

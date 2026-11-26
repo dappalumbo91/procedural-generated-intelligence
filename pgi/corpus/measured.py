@@ -4936,7 +4936,89 @@ ATOMIC_B17: tuple[Quantity, ...] = (
     _ca_is("48", "9 990 381 870.0", "6.3", "48Ca+"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT + CHEM_B17 + ATOMIC_B17
+_NLEN_URL = "https://www.ncnr.nist.gov/resources/n-lengths/list.html"
+_NLEN_SOURCE = ("V. F. Sears, Neutron scattering lengths and cross sections, Neutron News 3 (3), 29-37 (1992), as tabulated by the NIST Center for Neutron Research, "
+                "column 8: absorption cross section for 2200 m/s neutrons")
+
+
+def _sigma_a(key: str, nuclide: str, label: str, value: str, unc: str, row: str) -> Quantity:
+    return _q(f"sears1992.{key}_sigma_abs", f"thermal (2200 m/s) neutron absorption cross section of {nuclide}", f"sigma_a({label})", value, unc, "b",
+              kind="uncertainty as printed, level not stated" if unc else "no uncertainty printed", source=_NLEN_SOURCE, edition="Neutron News 3 (1992), via NIST NCNR",
+              url=_NLEN_URL, retrieved_from=_NLEN_URL,
+              keys=("thermal neutron cross section", f"neutron absorption cross section of {nuclide}"),
+              phrases=(f"thermal neutron cross section of {nuclide}", f"neutron absorption cross section of {nuclide}", f"{label} cross section", "thermal neutron cross sections"),
+              notes=(f"The NCNR row reads '{row}'; the last column is the 2200 m/s absorption cross section in barn, uncertainty in parentheses.",))
+
+
+_LC_NOTE = "Read from the IAEA LiveChart of Nuclides API, ground_states set (rows extracted 2023-10-18)."
+
+
+def _spin(key: str, nuclide: str, jp: str, value: str, cutoff: str) -> Quantity:
+    return _q(f"ensdf.spin_{key}", f"ground-state nuclear spin of {nuclide} (ENSDF)", f"J({nuclide})", value, "", "hbar",
+              kind="no uncertainty printed", source="Evaluated Nuclear Structure Data File (ENSDF), as served by the IAEA LiveChart of Nuclides API", edition=f"ENSDF, publication cut-off {cutoff}",
+              url="https://www.nndc.bnl.gov/ensdf/", retrieved_from=_LIVECHART_URL,
+              keys=("nuclear spin", f"nuclear spin of {nuclide}"), phrases=(f"nuclear spin of {nuclide}", f"spin of {nuclide}", "nuclear spins"),
+              notes=(f"The API row prints jp = {jp}; the spin {value} is stored and the parity is in this note.", _LC_NOTE))
+
+
+def _qmom(key: str, nuclide: str, value: str, unc: str, cutoff: str) -> Quantity:
+    return _q(f"livechart.q_{key}", f"ground-state electric quadrupole moment of {nuclide}", f"Q({nuclide})", value, unc, "b",
+              kind="uncertainty as printed, level not stated", source="IAEA LiveChart of Nuclides API, ground_states set, electric_quadrupole column", edition=f"LiveChart ground states (ENSDF cut-off {cutoff})",
+              url=_LIVECHART_URL, retrieved_from=_LIVECHART_URL,
+              keys=("nuclear quadrupole moment", f"quadrupole moment of {nuclide}"), phrases=(f"quadrupole moment of {nuclide}", f"nuclear quadrupole moment of {nuclide}", "nuclear quadrupole moments"),
+              notes=(f"The API row prints electric_quadrupole {value} and unc_eq {unc} (barn).", _LC_NOTE))
+
+
+_RCT1 = "https://www-nds.iaea.org/amdc/ame2020/rct1.mas20.txt"
+_RCT2 = "https://www-nds.iaea.org/amdc/ame2020/rct2_1.mas20.txt"
+
+
+def _ameq(key: str, column: str, row: str, reaction: str, value: str, unc: str, file: str, phrases: tuple[str, ...]) -> Quantity:
+    url = _RCT1 if file == "rct1" else _RCT2
+    return _q(f"ame2020.q_{key}", f"AME2020 reaction energy {column} on the {row} row ({reaction})", f"{column}({row})", value, unc, "keV",
+              kind="standard uncertainty", source=AME2020_SOURCE.replace("file mass.mas20", f"file {file}.mas20"), edition=AME2020_EDITION, url=url, retrieved_from=url,
+              keys=("q-value", f"q-value of {reaction}"), phrases=phrases + ("q-value", "reaction q-values"),
+              notes=(f"File {file}.mas20 prints, on the {row} row, {column} = {value} +- {unc} keV.", _AME_SIGMA,
+                     "AME prints the Q-value directly; no fission Q-value is printed in these files, so none is stored."))
+
+
+NUCLEAR_B17: tuple[Quantity, ...] = (
+    _sigma_a("h1", "hydrogen-1", "1H", "0.3326", "", "1H 99.985 -3.7406 25.274 1.7583 80.27 82.03 0.3326"),
+    _sigma_a("he3", "helium-3", "3He", "5333.", "7.", "3He 0.00014 5.74-1.483 i -2.5+2.568 i 4.42 1.6 6 5333.(7.)"),
+    _sigma_a("li6", "lithium-6", "6Li", "940.", "4.", "6Li 7.5 2.00-0.261 i -1.89+0.26 i 0.51 0.46 0.97 940.(4.)"),
+    _sigma_a("b10", "boron-10", "10B", "3835.", "9.", "10B 20 -0.1-1.066 i -4.7+1.231 i 0.144 3 3.1 3835.(9.)"),
+    _sigma_a("cd113", "cadmium-113", "113Cd", "20600.", "400.", "113Cd 12.22 -8.0-5.73 i --- 12.1 0.3 12.4 20600.(400.)"),
+    _sigma_a("gd157", "gadolinium-157", "157Gd", "259000.", "700.", "157Gd 15.7 -1.14-71.9 i (+/-)5.(5.)-55.8 i 650.(4.) 394.(7.) 1044.(8.) 259000.(700.)"),
+    _sigma_a("u235", "uranium-235", "235U", "680.9", "1.1", "235U 0.72 10.47 (+/-)1.3 13.78 0.2 14 680.9(1.1)"),
+    _spin("h2", "deuterium (2H)", "1+", "1", "1-May-2003"),
+    _spin("li7", "lithium-7", "3/2-", "3/2", "23-Aug-2001"),
+    _spin("b10", "boron-10", "3+", "3", "31-Mar-2004"),
+    _spin("n14", "nitrogen-14", "1+", "1", "1-JUL-1990"),
+    _spin("o17", "oxygen-17", "5/2+", "5/2", "5-Aug-2021"),
+    _spin("al27", "aluminium-27", "5/2+", "5/2", "30-Nov-2010"),
+    _spin("cs133", "cesium-133", "7/2+", "7/2", "31-Oct-2010"),
+    _spin("u235", "uranium-235", "7/2-", "7/2", "1-Feb-2014"),
+    _qmom("h2", "deuterium (2H)", "0.0028578", "0.0000003", "1-May-2003"),
+    _qmom("li7", "lithium-7", "-0.04", "0.0003", "23-Aug-2001"),
+    _qmom("b10", "boron-10", "0.0846", "0.0002", "31-Mar-2004"),
+    _qmom("n14", "nitrogen-14", "0.02044", "0.00003", "1-JUL-1990"),
+    _qmom("o17", "oxygen-17", "-0.0256", "0.0002", "5-Aug-2021"),
+    _qmom("al27", "aluminium-27", "0.1466", "0.001", "30-Nov-2010"),
+    _qmom("cs133", "cesium-133", "-0.00343", "0.0001", "31-Oct-2010"),
+    _qmom("u235", "uranium-235", "4.936", "0.006", "1-Feb-2014"),
+    _ameq("alpha_po210", "Q(a)", "210Po", "alpha decay of 210Po", "5407.5307", "0.0713", "rct1", ("alpha decay q-value of polonium-210", "q-value of 210po")),
+    _ameq("alpha_ra226", "Q(a)", "226Ra", "alpha decay of 226Ra", "4870.7028", "0.2545", "rct1", ("alpha decay q-value of radium-226", "q-value of 226ra")),
+    _ameq("alpha_u238", "Q(a)", "238U", "alpha decay of 238U", "4269.8581", "2.1157", "rct1", ("alpha decay q-value of uranium-238", "q-value of 238u")),
+    _ameq("alpha_am241", "Q(a)", "241Am", "alpha decay of 241Am", "5637.8203", "0.1199", "rct1", ("alpha decay q-value of americium-241", "q-value of 241am")),
+    _ameq("d_alpha_h3", "Q(d,a)", "3H", "3H(d,a)n, D-T fusion", "17589.2999", "0.0005", "rct2", ("d-t fusion energy release", "fusion energy release", "q-value of d-t fusion")),
+    _ameq("d_alpha_he3", "Q(d,a)", "3He", "3He(d,a)p, D-3He fusion", "18353.0548", "0.0002", "rct2", ("d-he3 fusion energy release", "fusion energy release", "q-value of d-3he fusion")),
+    _ameq("d_alpha_li6", "Q(d,a)", "6Li", "6Li(d,a)4He", "22372.7716", "0.0015", "rct2", ("lithium-6 deuteron fusion energy release", "fusion energy release")),
+    _ameq("p_alpha_li7", "Q(p,a)", "7Li", "7Li(p,a)4He", "17346.2440", "0.0042", "rct2", ("lithium-7 proton fusion energy release", "fusion energy release")),
+    _ameq("n_alpha_li6", "Q(n,a)", "6Li", "6Li(n,a)3H, tritium breeding", "4783.4717", "0.0015", "rct2", ("tritium breeding q-value", "q-value of 6li(n,a)")),
+    _ameq("n_alpha_b10", "Q(n,a)", "10B", "10B(n,a)7Li", "2789.9082", "0.0155", "rct2", ("boron-10 neutron capture q-value", "q-value of 10b(n,a)")),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT + CHEM_B17 + ATOMIC_B17 + NUCLEAR_B17
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

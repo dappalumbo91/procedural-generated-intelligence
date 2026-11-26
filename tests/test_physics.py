@@ -2125,6 +2125,15 @@ class AtomicB17Tests(unittest.TestCase):
     def test_h_d_isotope_shift_both_kept(self) -> None:
         self.assertEqual(quantity("huber1998.h_d_1s2s_isotope_shift").unit, "kHz")
 
+class NuclearB17Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual((quantity("sears1992.b10_sigma_abs").value_text, quantity("sears1992.b10_sigma_abs").uncertainty_text), ("3835.", "9."))
+        self.assertEqual(quantity("sears1992.u235_sigma_abs").value_text, "680.9")
+        self.assertEqual(quantity("ensdf.spin_li7").value_text, "3/2")
+        self.assertEqual(quantity("livechart.q_h2").value_text, "0.0028578")
+        self.assertEqual((quantity("ame2020.q_d_alpha_h3").value_text, quantity("ame2020.q_d_alpha_h3").uncertainty_text), ("17589.2999", "0.0005"))
+        self.assertEqual(quantity("ame2020.q_alpha_u238").uncertainty_kind, "standard uncertainty")
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
