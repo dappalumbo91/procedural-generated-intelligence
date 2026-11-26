@@ -715,6 +715,20 @@ The tension stays visible: both sides are stored as printed, and nothing is reco
 
 This adds 9 records.
 
+### QED: positronium, muonium, HD+, and helium-3
+
+This adds five values as printed:
+
+- **Positronium 1³S₁–2³S₁ (Fee et al. 1993):** `1 233 607 216.4 ± 3.2 MHz`.
+- **Muonium 1s-2s (Meyer et al. 2000):** `2 455 528 941.0(9.8) MHz`. The paper's theory value is not stored.
+- **HD⁺ v=0→9 two-photon overtone, spin-averaged (Patra et al. 2020):** `415 264 925 500.5(1.2) kHz`. This is the total of the printed (0.4)exp(1.1)theo parts. The paper's derived m_p/m_e is not stored.
+- **³He 2³S→2¹S line (van der Werf et al., Science 2025, read from arXiv v1):** `192 504 914 418.96(17) kHz`.
+- **Helion-alpha radius difference (same paper):** `r_h² − r_α² = 1.0757(15) fm²`. This is the paper's own isotope-shift result, using QED theory, and it is not recomputed here.
+
+None of the papers states a confidence level, so all five carry "level not stated". These close the Ps/Mu 1S-2S, HD⁺, and helium isotope-shift gaps. The antiproton gap is still open.
+
+This adds 5 records.
+
 ### Current open math gaps
 
 This list is the current state as of `pgi-0.105.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.

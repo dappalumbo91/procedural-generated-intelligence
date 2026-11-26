@@ -1172,3 +1172,11 @@ Added Planck 2018's age, reionization redshift, and Omega_K (+BAO), eta_10 from 
 That is 9 records.
 
 `python -m unittest discover -s tests -v` finished 393 tests, 0 failures, about 609.38 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — QED: Ps and Mu 1S-2S, HD+, helium-3 pgi-0.108.0
+
+Added Fee 1993 (Ps 1S-2S), Meyer 2000 (Mu 1s-2s), Patra 2020 (HD+ v=0-9), and van der Werf 2025 (the 3He 2 3S-2 1S line and delta r^2), all kept as printed. QED now lists only the antiproton gap.
+
+That is 5 records.
+
+`python -m unittest discover -s tests -v` finished 395 tests, 0 failures, about 603.39 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

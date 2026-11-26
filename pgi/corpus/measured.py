@@ -4010,7 +4010,42 @@ COSMO_B13: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13
+QED_B13: tuple[Quantity, ...] = (
+    _q("fee1993.ps_1s2s", "positronium 1 3S1 - 2 3S1 interval", "nu_1S-2S(Ps)", "1 233 607 216.4", "3.2", "MHz",
+       kind="uncertainty as printed, level not stated", printed="1 233 607 216.4(3.2)",
+       source="M. S. Fee, A. P. Mills Jr., S. Chu, E. D. Shaw, K. Danzmann, R. J. Chichester, and D. M. Zuckerman, Measurement of the positronium 1 3S1-2 3S1 interval by continuous-wave two-photon excitation, Phys. Rev. A 48, 192 (1993), doi:10.1103/PhysRevA.48.192, abstract",
+       edition="Phys. Rev. A 48 (1993)", url="https://doi.org/10.1103/PhysRevA.48.192", retrieved_from="https://inspirehep.net/api/literature?q=doi%2010.1103/PhysRevA.48.192",
+       keys=("positronium", "qed"), phrases=("positronium 1s-2s", "positronium spectroscopy", "ps 1s-2s"),
+       notes=("Printed in the abstract as 1 233 607 216.4 +- 3.2 MHz, a 2.6 ppb uncertainty dominated by the Ps line center relative to the Te2 reference line.",)),
+    _q("meyer2000.mu_1s2s", "muonium 1s-2s energy interval", "nu_1s-2s(Mu)", "2 455 528 941.0", "9.8", "MHz",
+       kind="uncertainty as printed, level not stated", printed="2 455 528 941.0(9.8)",
+       source="V. Meyer et al., Measurement of the 1s-2s energy interval in muonium, Phys. Rev. Lett. 84, 1136 (2000), doi:10.1103/PhysRevLett.84.1136, arXiv:hep-ex/9907013",
+       edition="Phys. Rev. Lett. 84 (2000)", url="https://doi.org/10.1103/PhysRevLett.84.1136", retrieved_from="https://arxiv.org/e-print/hep-ex/9907013",
+       keys=("muonium", "qed"), phrases=("muonium 1s-2s", "muonium spectroscopy", "mu 1s-2s"),
+       notes=("Printed as 'The frequency separation of the states was determined to be 2 455 528 941.0(9.8) MHz'. The paper's theory value 2 455 528 935.4(1.4) MHz is not stored.",)),
+    _q("patra2020.hd_plus_v0_9", "HD+ v=0 -> 9 overtone, spin-averaged frequency (experimental)", "nu_SA,exp(HD+)", "415 264 925 500.5", "1.2", "kHz",
+       kind="uncertainty as printed, level not stated", printed="415 264 925 500.5(1.2)",
+       source="S. Patra et al., Proton-electron mass ratio from laser spectroscopy of HD+ at the part-per-trillion level, Science 369, 1238 (2020), doi:10.1126/science.aba0453, arXiv:2204.10674",
+       edition="Science 369 (2020)", url="https://doi.org/10.1126/science.aba0453", retrieved_from="https://arxiv.org/e-print/2204.10674",
+       keys=("molecular hydrogen ion", "qed"), phrases=("hd+", "hd+ spectroscopy", "molecular ion spectroscopy"),
+       notes=("Printed as nu_SA,exp = 415,264,925,500.5(0.4)exp(1.1)theo(1.2)total kHz; the total is stored. The theo part comes from theoretical hyperfine intervals used to remove the hyperfine shifts.",
+              "The paper's derived proton-electron mass ratio is not stored.")),
+    _q("vanderwerf2025.he3_2s_transition", "helium-3 2 3S -> 2 1S transition frequency", "nu(3He, 2 3S - 2 1S)", "192 504 914 418.96", "0.17", "kHz",
+       kind="uncertainty as printed, level not stated", printed="192 504 914 418.96(17)",
+       source="Y. van der Werf et al., Alpha and helion particle charge radius difference determined from quantum-degenerate helium, Science 388, 850 (2025), doi:10.1126/science.adj2462, arXiv:2306.02333",
+       edition="arXiv:2306.02333v1 (published as Science 388, 850, 2025)", url="https://doi.org/10.1126/science.adj2462", retrieved_from="https://arxiv.org/e-print/2306.02333",
+       keys=("helium", "qed"), phrases=("helium-3 spectroscopy", "helium isotope shift", "3he transition"),
+       notes=("Printed in arXiv v1 as 192 504 914 418.96(17) kHz, measured in a quantum-degenerate 3He Fermi gas.",)),
+    _q("vanderwerf2025.delta_r2", "helion-alpha squared charge radius difference", "r_h^2 - r_alpha^2", "1.0757", "0.0015", "fm^2",
+       kind="uncertainty as printed, level not stated", printed="1.0757(15)",
+       source="Y. van der Werf et al., Alpha and helion particle charge radius difference determined from quantum-degenerate helium, Science 388, 850 (2025), doi:10.1126/science.adj2462, arXiv:2306.02333",
+       edition="arXiv:2306.02333v1 (published as Science 388, 850, 2025)", url="https://doi.org/10.1126/science.adj2462", retrieved_from="https://arxiv.org/e-print/2306.02333",
+       keys=("helium", "nuclear charge radius", "qed"), phrases=("helium isotope shift", "3he-4he isotope shift", "charge radius difference"),
+       notes=("Printed in arXiv v1 as delta r^2 = r^2(3He) - r^2(4He) = 1.0757(15) fm^2. That is the paper's own value from the 3He-4He isotope shift of this 3He line and the Rengelink 2018 4He line, with Pachucki 2017 QED theory; it is not recomputed here.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

@@ -1941,6 +1941,25 @@ class CosmoB13Tests(unittest.TestCase):
         self.assertIn("kids2021.s8", self._linked("what is S8 from kids weak lensing"))
 
 
+class QedB13Tests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_values_as_printed(self) -> None:
+        rows = {i: (quantity(i).value_text, quantity(i).uncertainty_text, quantity(i).unit) for i in (
+            "fee1993.ps_1s2s", "meyer2000.mu_1s2s", "patra2020.hd_plus_v0_9", "vanderwerf2025.he3_2s_transition", "vanderwerf2025.delta_r2")}
+        self.assertEqual(rows["fee1993.ps_1s2s"], ("1 233 607 216.4", "3.2", "MHz"))
+        self.assertEqual(rows["meyer2000.mu_1s2s"], ("2 455 528 941.0", "9.8", "MHz"))
+        self.assertEqual(rows["patra2020.hd_plus_v0_9"], ("415 264 925 500.5", "1.2", "kHz"))
+        self.assertEqual(rows["vanderwerf2025.he3_2s_transition"], ("192 504 914 418.96", "0.17", "kHz"))
+        self.assertEqual(rows["vanderwerf2025.delta_r2"], ("1.0757", "0.0015", "fm^2"))
+
+    def test_asks_link(self) -> None:
+        self.assertIn("fee1993.ps_1s2s", self._linked("what is the positronium 1S-2S interval"))
+        self.assertIn("meyer2000.mu_1s2s", self._linked("what is the muonium 1S-2S interval"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
