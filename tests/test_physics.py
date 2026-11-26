@@ -1863,6 +1863,31 @@ class BoltzmannPenningTests(unittest.TestCase):
         self.assertIn("sturm2014.m_e", self._linked("what is the electron mass in u from a penning trap"))
 
 
+class SmePoundRebkaTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_sme_entries_are_printed_powers_of_ten(self) -> None:
+        rows = [r for r in QUANTITIES if r.id.startswith("sme2026.")]
+        self.assertEqual(len(rows), 18)
+        for r in rows:
+            self.assertTrue(r.value_text.startswith("1 e-"), r.id)
+            self.assertEqual(r.uncertainty_kind, "no uncertainty printed")
+        # Table S2 as printed: the neutron b~_X scale is the deepest of the three species.
+        b_x = {sp: quantity(f"sme2026.matter.{sp}.b_x").value for sp in ("electron", "proton", "neutron")}
+        self.assertEqual(sorted(b_x, key=b_x.get), ["neutron", "proton", "electron"])
+
+    def test_pound_rebka_1960_as_printed(self) -> None:
+        self.assertEqual(quantity("pound1960.net_shift").value_text, "-5.13 e-15")
+        ratio = quantity("pound1960.redshift_ratio")
+        self.assertEqual((ratio.value_text, ratio.uncertainty_text), ("1.05", "0.10"))
+
+    def test_asks_link(self) -> None:
+        self.assertTrue(any(i.startswith("sme2026.") for i in self._linked("what are the lorentz invariance limits on sme coefficients")))
+        self.assertIn("pound1960.redshift_ratio", self._linked("what did pound-rebka 1960 measure"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

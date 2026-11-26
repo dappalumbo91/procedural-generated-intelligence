@@ -667,9 +667,24 @@ The electron's atomic mass comes from Sturm et al. 2014 (12C5+ g-factor in a Pen
 
 This adds 13 records.
 
+### Null results and gravitation: SME limits and Pound-Rebka 1960
+
+The board now holds Lorentz-invariance limits from the Kostelecky-Russell Data Tables (arXiv:0801.0287v19, January 2026 edition, read from the LaTeX source). There are 18 entries from the summary Tables S2-S5:
+
+- b̃_X, b̃_Y, b̃_Z, and b̃_T for the electron, proton, and neutron;
+- three photon coefficients: the isotropic d = 3 k_(V)00, κ̃_tr, and the birefringence coefficient k_(E)20 at d = 4;
+- one neutrino coefficient, Re(a_L)^T in the μτ sector;
+- two gravity coefficients, α ā_T for the electron and s̄^TT.
+
+The authors describe each entry as a conservative 2σ limit on the modulus, rounded logarithmically to the nearest power of ten, with only one coefficient nonzero at a time. Because of that rounding, each value is stored as the printed order of magnitude, without an uncertainty, and not as a hard bound edge. A sharp bound would wrongly block anything between 10ⁿ and about 3×10ⁿ. Each record quotes the convention.
+
+Pound and Rebka's 1960 letter was reachable after all, as a scan of the printed page on the University of Pavia physics site. The records cite the APS DOI and were checked against the page image. It gives a net fractional shift of `-(5.13 ± 0.51)×10⁻¹⁵` over the two-way 148 ft tower, described as 'the rms statistical deviation', and the paper's own ratio `(Δν)exp/(Δν)theor = +1.05 ± 0.10`. The prediction it compares against is not stored. The Pound-Snider 1965 note now points to these records instead of saying the paper was unreachable.
+
+This adds 20 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.102.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.103.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

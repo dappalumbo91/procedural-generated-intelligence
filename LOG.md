@@ -1140,3 +1140,11 @@ Added CODATA 2017 Table 1's k inputs: ten AGT values of R, PTB-17 DCGT, and NIM/
 That is 13 records.
 
 `python -m unittest discover -s tests -v` finished 377 tests, 0 failures, about 425.62 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — SME Lorentz-violation limits and Pound-Rebka 1960 pgi-0.103.0
+
+Added 18 SME summary-table sensitivities (matter b̃, photon, neutrino, gravity), stored as the printed order of magnitude of each 2σ limit, plus Pound-Rebka 1960's net shift and ratio from a reachable scan. The Lorentz-invariance and Pound-Rebka 1960 gaps in COVERAGE.md closed themselves.
+
+That is 20 records.
+
+`python -m unittest discover -s tests -v` finished 380 tests, 0 failures, about 436.10 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

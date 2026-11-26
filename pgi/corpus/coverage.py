@@ -54,14 +54,14 @@ for _domain, _names in {
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998"),
     "thermodynamics and statistical": ("codata2017", "iapws1992", "iapws2011", "its90", "formula"),
-    "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1965", "chou2010", "bothwell2022", "ciufolini2016", "williams2004", "hofmann2018", "takamoto2020", "gw170817", "gw190521", "gw190814", "gw190425", "gw200115", "gw230529", "gw231123", "gw250114"),
+    "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1960", "pound1965", "chou2010", "bothwell2022", "ciufolini2016", "williams2004", "hofmann2018", "takamoto2020", "gw170817", "gw190521", "gw190814", "gw190425", "gw200115", "gw230529", "gw231123", "gw250114"),
     "astrophysics": ("borexino", "bond2017", "joyce2018", "fonseca2021", "riley2021", "miller2021", "salmi2024", "dittmann2024", "haberreiter2008",
                      "iau2015", "iau2012", "iau2026", "nssdc", "williams2016"),
     "cosmology": ("aver2021", "cooke2018", "fields2020", "planck2018", "sh0es2022", "desi_dr2", "fixsen2009"),
     "QED and precision": ("sturm2014", "antognini2013", "crema2013", "bezginov2019", "lundeen1981", "matveev2013", "parthey2011", "hellwig1970", "ishida2014",
                           "ritter1984", "kataoka2009", "alramadhan1994", "liu1999", "fan2023", "fnal2025", "zelevinsky2004", "george2001", "kato2018",
                           "heydarizadmotlagh2024"),
-    "null results and bounds": ("bound", "jila2023", "abel2020", "microscope2022"),
+    "null results and bounds": ("bound", "sme2026", "jila2023", "abel2020", "microscope2022"),
     "SI defining constants": ("anchor",),
     "foundations and status": ("primitive", "obstruction", "open"),
 }.items():
@@ -201,7 +201,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("Gravity Probe B and LAGEOS/LARES frame dragging", ("gpb.", "ciufolini2016.")),
         ("GW150914", ("gw150914.",)),
         ("later GWTC events: masses and distances", ("gw170817.", "gw190521.", "gw190814.", "gw190425.", "gw200115.", "gw230529.", "gw231123.", "gw250114.")),
-        ("gravitational redshift (Galileo, Pound-Snider, optical clocks, Tokyo Skytree)", ("delva2018.", "herrmann2018.", "pound1965.", "chou2010.", "bothwell2022.", "takamoto2020.")),
+        ("gravitational redshift (Galileo, Pound-Snider, optical clocks, Tokyo Skytree)", ("delva2018.", "herrmann2018.", "pound1960.", "pound1965.", "chou2010.", "bothwell2022.", "takamoto2020.")),
         ("LLR Nordtvedt eta and Gdot/G", ("williams2004.", "hofmann2018.")),
     ),
     "astrophysics": (
@@ -231,7 +231,10 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("helium fine structure", ("zelevinsky2004.", "george2001.", "kato2018.", "heydarizadmotlagh2024.")),
         ("Penning-trap electron mass", ("sturm2014.",)),
     ),
-    "null results and bounds": (("null results and upper bounds", ("bound.", "jila2023.", "abel2020.", "microscope2022.")),),
+    "null results and bounds": (
+        ("null results and upper bounds", ("bound.", "jila2023.", "abel2020.", "microscope2022.")),
+        ("SME Lorentz-violation maximal sensitivities (Kostelecky-Russell)", ("sme2026.",)),
+    ),
     "SI defining constants": (("SI defining constants", ("codata2022.", "anchor.")),),
     "foundations and status": (("primitives, obstructions, and open problems", ("primitive.", "obstruction.", "open.")),),
 }

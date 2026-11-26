@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.102.0`.
+Rule version `pgi-0.103.0`.
 
 In the kernel now:
 
@@ -168,6 +168,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `desi_dr2.bao.*` | DESI DR2 BAO distances (Table IV) | Seven baseline bins from BGS (z_eff `0.295`, D_V/r_d `7.942 ± 0.075`) to Lyα (z_eff `2.330`: D_M/r_d `38.988 ± 0.531`, D_H/r_d `8.632 ± 0.101`), as posterior mean and standard deviation. The printed correlation coefficients are not stored. |
 | `borexino.*` | Borexino solar neutrino fluxes | pp `(6.1 ± 0.5 +0.3 −0.5)×10¹⁰`, ⁷Be `(4.99 ± 0.11 +0.06 −0.08)×10⁹`, pep `(1.27 ± 0.19 +0.08 −0.12)×10⁸` (HZ) and `1.39` (LZ), ⁸B no-conversion equivalent `2.57 +0.17 −0.18 ± 0.07 ×10⁶`, CNO `7.0 +3.0 −2.0 ×10⁸` (2020) and `6.6 +2.0 −0.9 ×10⁸` (2022), all in cm⁻² s⁻¹. |
 | `codata2017.*`, `sturm2014.*` | Boltzmann-constant inputs and the electron mass | CODATA 2017 Table 1: ten acoustic-gas-thermometry R values from NIST-88 `8.314 470(15)` to NPL-17 `8.314 4603(58)` J mol⁻¹ K⁻¹, PTB-17 DCGT A_ε(⁴He)/R `6.221 140(12)×10⁻⁸` m³ K J⁻¹, NIM/NIST-17 JNT k/h `2.083 6630(56)×10¹⁰` Hz K⁻¹, adjusted k `1.380 649 03(51)×10⁻²³` J K⁻¹. Electron: A_r(e) `0.000 548 579 909 067(14)(9)(2)` (Sturm 2014, ¹²C⁵⁺ Penning trap). |
+| `sme2026.*`, `pound1960.*` | Lorentz-invariance limits and the first lab redshift | Kostelecky-Russell Data Tables (arXiv:0801.0287v19, January 2026), summary Tables S2-S5: the 2σ limit scale on b̃_X, b̃_Y, b̃_Z, b̃_T for e, p, n (e.g. `10⁻³¹`, `10⁻³²`, `10⁻³³` GeV for b̃_X); photon k_(V)00^(3) `10⁻⁴⁴` GeV, κ̃_tr `10⁻²⁰`, k_(E)20^(4) `10⁻³⁵`; neutrino Re(a_L)^T μτ `10⁻²⁴` GeV; gravity α ā_T(e) `10⁻¹³` GeV, s̄^TT `10⁻⁵`. Pound-Rebka 1960: net shift `-(5.13 ± 0.51)×10⁻¹⁵`, ratio `+1.05 ± 0.10`. |
 | `gw150914.*` | Measured anchors | GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, via the GWOSC event API: source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, final mass `63.1 +3.4 −3.0` solar masses, final spin, radiated energy `3.1 ± 0.4` solar-mass c², `χ_eff`, `d_L = 440 +150 −170` Mpc, and `z`. Medians with 90% credible intervals. |
 | `bound.gw170817_speed_of_gravity` | Experimental bound | Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, from the 1.74 s delay of GRB 170817A, D = 26 Mpc, and an emission lag between 0 and 10 s. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |

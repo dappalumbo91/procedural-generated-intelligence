@@ -3033,7 +3033,7 @@ REDSHIFT_ZPOLE: tuple[Quantity, ...] = (
        retrieved_from="https://inspirehep.net/api/literature?q=doi:10.1103/PhysRev.140.B788",
        keys=("gravitational redshift", "pound-rebka"), phrases=("gravitational redshift", "pound rebka", "pound-rebka", "redshift test"),
        notes=("The abstract prints '(0.9990+-0.0076) times the value 4.905x10^-15 of 2gh/c^2 predicted from the principle of equivalence', where 0.0076 is the statistical standard deviation; 'an estimated limit of systematic error is 0.010', stored as the systematic term.",
-              "The original Pound-Rebka 1960 result (Phys. Rev. Lett. 4, 337) is not stored: its abstract was not reachable (INSPIRE has none and APS blocks the box).", _SPLIT_NOTE)),
+              "The original Pound-Rebka 1960 result (Phys. Rev. Lett. 4, 337) is stored separately as pound1960.redshift_ratio and pound1960.net_shift.", _SPLIT_NOTE)),
     _lep("m_z", "Z boson mass", "m_Z", "91.1875", "0.0021", "GeV", _TABLE_213, ("z boson mass", "mass of the z"), (_TABLE_213_NOTE,)),
     _lep("gamma_z", "Z boson total width", "Gamma_Z", "2.4952", "0.0023", "GeV", _TABLE_213, ("z width", "z boson width"), (_TABLE_213_NOTE,)),
     _lep("sigma_had0", "hadronic pole cross section", "sigma_had^0", "41.540", "0.037", "nb", _TABLE_213, ("hadronic pole cross section",), (_TABLE_213_NOTE,)),
@@ -3840,7 +3840,63 @@ ELECTRON_MASS_PENNING: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING
+_SME_SOURCE = ("V. A. Kostelecky and N. Russell, Data tables for Lorentz and CPT violation, Rev. Mod. Phys. 83, 11 (2011), doi:10.1103/RevModPhys.83.11, "
+               "arXiv:0801.0287v19 (January 2026 edition)")
+_SME_URL = "https://arxiv.org/abs/0801.0287v19"
+_SME_FROM = "https://arxiv.org/e-print/0801.0287"
+_SME_CONVENTION = ("Section II: 'each displayed sensitivity value represents our conservative estimate of a 2 sigma limit, given to the nearest order of magnitude, "
+                   "on the modulus of the corresponding coefficient', with logarithmic rounding, and each entry assumes only that one coefficient is nonzero.")
+
+
+def _sme(key, table, coefficient, symbol, species, upper, unit, phrases=()):
+    who = f" for the {species}" if species else ""
+    printed = upper.replace("1 e", "10^")
+    return _q(f"sme2026.{key}", f"SME coefficient {coefficient}{who}: order of magnitude of the maximal attained two-sided sensitivity (2 sigma limit on the modulus)",
+              f"|{symbol}| limit scale", upper, "", unit, kind="no uncertainty printed", source=f"{_SME_SOURCE}, Table {table}",
+              edition="Data Tables for Lorentz and CPT Violation, 2026 edition (arXiv v19)", url=_SME_URL, retrieved_from=_SME_FROM,
+              keys=("lorentz violation", "sme", "cpt violation", "null result"),
+              phrases=("lorentz invariance", "lorentz violation", "sme coefficient", "lorentz-invariance limits", "null results") + phrases,
+              notes=(f"Printed in Table {table} as {printed} {unit}".rstrip() + ".", _SME_CONVENTION,
+                     "Because the entry is rounded to the nearest power of ten (a factor of 10^0.5 or more rounds up), it is stored as the printed order of magnitude, "
+                     "not as a hard interval edge: the underlying 2 sigma limit can sit somewhat above or below it.",
+                     "It is not a measured value of the coefficient; the data tables list the individual measurements."))
+
+
+SME_LIMITS: tuple[Quantity, ...] = (
+    *(_sme(f"matter.{sp}.b_{ax.lower()}", "S2", f"b~_{ax}", f"b~_{ax}({sp[0]})", name, up, "GeV", (f"{name} lorentz violation",))
+      for sp, name, row in (("electron", "electron", ("1 e-31", "1 e-31", "1 e-29", "1 e-26")),
+                            ("proton", "proton", ("1 e-32", "1 e-32", "1 e-29", "1 e-26")),
+                            ("neutron", "neutron", ("1 e-33", "1 e-33", "1 e-30", "1 e-27")))
+      for ax, up in zip(("X", "Y", "Z", "T"), row)),
+    _sme("photon.k3_v00", "S3", "k_(V)00^(3) (isotropic, d = 3)", "k_(V)00^(3)", "", "1 e-44", "GeV", ("photon lorentz violation", "photon birefringence")),
+    _sme("photon.k_tr", "S3", "kappa~_tr (d = 4)", "kappa~_tr", "", "1 e-20", "", ("photon lorentz violation", "isotropic speed of light")),
+    _sme("photon.k4_e20", "S3", "k_(E)20^(4) (d = 4)", "k_(E)20^(4)", "", "1 e-35", "", ("photon lorentz violation", "vacuum birefringence")),
+    _sme("neutrino.re_a_l_t_mutau", "S4", "Re (a_L)^T, mu-tau (d = 3)", "Re (a_L)^T_mutau", "", "1 e-24", "GeV", ("neutrino lorentz violation",)),
+    _sme("gravity.electron.a_bar_t", "S5", "alpha a-bar_T (d = 3)", "alpha a-bar_T(e)", "electron", "1 e-13", "GeV", ("gravity lorentz violation",)),
+    _sme("gravity.s_bar_tt", "S5", "s-bar^TT", "s-bar^TT", "", "1 e-5", "", ("gravity lorentz violation",)),
+)
+
+_POUND1960_SOURCE = "R. V. Pound and G. A. Rebka, Jr., Apparent weight of photons, Phys. Rev. Lett. 4, 337-341 (1960), doi:10.1103/PhysRevLett.4.337"
+_POUND1960_FROM = "https://fisica.unipv.it/percorsi/pdf/rebka_1960.pdf"
+_POUND1960_NOTE = ("Read from a scan of the printed letter hosted by the University of Pavia physics department (APS blocks the box); values checked against the page image.",)
+
+POUND_REBKA_1960: tuple[Quantity, ...] = (
+    _q("pound1960.net_shift", "net fractional frequency shift of the 14.4 keV 57Fe gamma ray, rising minus falling, Harvard tower (two-way 148 ft)", "Delta nu/nu",
+       "-5.13 e-15", "0.51 e-15", "", kind="uncertainty as printed, level not stated", source=_POUND1960_SOURCE + ", p. 340", edition="Phys. Rev. Lett. 4 (1960)",
+       url="https://doi.org/10.1103/PhysRevLett.4.337", retrieved_from=_POUND1960_FROM,
+       keys=("gravitational redshift", "pound-rebka"), phrases=("gravitational redshift", "pound rebka", "pound-rebka", "pound-rebka 1960", "redshift test"),
+       notes=("Printed as 'a net fractional shift, -(5.13 +- 0.51) x 10^-15. The error assigned is the rms statistical deviation including that of independent sensitivity calibrations'.",
+              "The paper compares it with its own predicted value for the two-way height difference; that prediction is not stored.") + _POUND1960_NOTE),
+    _q("pound1960.redshift_ratio", "measured over predicted gravitational shift of the 14.4 keV 57Fe line, Pound-Rebka 1960", "(Delta nu)_exp/(Delta nu)_theor",
+       "1.05", "0.10", "", kind="uncertainty as printed, level not stated", source=_POUND1960_SOURCE + ", p. 340", edition="Phys. Rev. Lett. 4 (1960)",
+       url="https://doi.org/10.1103/PhysRevLett.4.337", retrieved_from=_POUND1960_FROM,
+       keys=("gravitational redshift", "pound-rebka"), phrases=("gravitational redshift", "pound rebka", "pound-rebka", "pound-rebka 1960", "redshift test"),
+       notes=("Printed as (Delta nu)_exp/(Delta nu)_theor = +1.05 +- 0.10, 'where the plus sign indicates that the frequency increases in falling, as expected'.",
+              "This ratio is the paper's own printed result; no comparison is made by this system. Superseded by pound1965.redshift_ratio (Pound and Snider).") + _POUND1960_NOTE),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 
