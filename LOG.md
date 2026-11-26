@@ -1473,3 +1473,11 @@ Ricci = 0 is checked identically in the rational chart x = cos(theta), where the
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 439 tests, 0 failures, about 841.07 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Continuum L2 identities and finite-mode Fock space pgi-0.137.0
+
+L2 inner products of polynomial-Gaussian and polynomial-exponential waves are exact integrals. Hermite-Gaussians are orthonormal, and their Fourier transforms are (-i)^n psi_n. Position and momentum act on that domain, and [X, P] = i with hbar = 1. Plane waves are generalized free-particle eigenfunctions, not L2 vectors. The free Gaussian packet satisfies the free Schrodinger equation identically. Finite-mode Fock operators obey the CCR, and the quadratures satisfy [phi, pi] = i. A general L2 function, completeness of L2, Coulomb continuum waves, the Rutherford amplitude, and infinitely many field modes stay outside.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 442 tests, 0 failures, about 876.34 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

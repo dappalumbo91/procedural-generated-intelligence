@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.136.0`.
+Rule version `pgi-0.137.0`.
 
 In the kernel now:
 
@@ -118,6 +118,7 @@ In the kernel now:
 - Exact integrals of forms on an axis-aligned box in an admitted chart, and Stokes' theorem as the identity of the integral of dω over the box with the integral of ω over the oriented boundary. An antiderivative is kept only when its derivative is the integrand. The fundamental theorem on an interval, the unit square, the unit cube, an angular rectangle, and the integral of the sphere area form over [0, pi] × [0, 2 pi], which is 4 pi, are checked identically.
 - A tetrad and a torsion-free spin connection on Minkowski spacetime and on flat FLRW. The metric rebuilds as eta_ab e^a_mu e^b_nu. An inverse tetrad is kept only when both products are the identity. Cartan's first structure equation, de^a + omega^a_b wedge e^b = 0, is checked identically. The Dirac operator is gamma^a e_a^mu (partial_mu + (1/4) omega_mu^{bc} gamma_b gamma_c). On Minkowski it annihilates a constant spinor. On flat FLRW a constant spinor psi satisfies D psi = (3/2) (da/dt)/a gamma^0 psi, checked identically.
 - A position-dependent SU(3) gauge transformation by the rational rotation already checked, embedded in the 1-2 block of SU(3). It acts by A_mu |-> U A_mu U dagger + U d_mu U dagger, and the field strength F = dA + [A, A] transforms as F |-> U F U dagger, checked identically as 3x3 matrices of rational functions in x and y.
+- A dense domain in a continuum Hilbert space, and operators that are not polynomial differential operators on that domain. L2 inner products of polynomial-Gaussian waves e^{-alpha x^2 / 2} and of polynomial-exponential waves e^{-x} on [0, infinity) are exact integrals: Gaussian moments live in Q(sqrt(pi), sqrt(alpha)), and exponential moments are factorials. The Hermite-Gaussian functions psi_n, for n <= 4 in the standing checks and n <= 8 as an admitted range, are orthonormal. Their Fourier transforms, in the convention where F(e^{-x^2 / 2}) = e^{-k^2 / 2}, are (-i)^n psi_n. Position and momentum act on this domain, and [X, P] psi = i psi with hbar = 1, checked identically. Plane waves are generalized eigenfunctions of P and of the free Hamiltonian P^2 / 2, not L2 vectors. The free Gaussian packet with width 1 + i t satisfies the free Schrodinger equation identically. Creation and annihilation operators on a Fock space with at most four modes obey [a_i, a_j dagger] = delta_ij, number operators act by the occupation, and the quadratures satisfy [phi_i, pi_i] = i, checked on number states.
 
 Still outside the kernel, and required before a physical law can be written:
 
@@ -136,7 +137,7 @@ What a derivation round would still need:
 
 - An SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
 - A Hermitian spectrum whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational. Three or more independent square-free radicands stay open.
-- A continuum Hilbert space, and operators that are not polynomial differential operators in finitely many coordinates.
+- A general L2 function outside the polynomial-Gaussian and polynomial-exponential classes, completeness of L2 as a metric space, the spectral theorem for an unbounded operator, Coulomb continuum waves and the Rutherford amplitude, and a field theory with infinitely many modes.
 
 ## The board
 

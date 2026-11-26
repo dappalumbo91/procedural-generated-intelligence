@@ -1188,9 +1188,14 @@ No fission Q-value is printed in the AME files, so none is stored. This closes t
 
 Ricci = 0 is checked identically in the rational chart x = cos(theta). The metric is a rational function of (r, x, m, a). The denominators Sigma = r^2 + a^2 x^2, Delta = r^2 - 2 m r + a^2, and Xi = 1 - x^2 are kept as named factors and reduced by exact polynomial division. The inverse in that chart multiplies back to the identity. The Einstein tensor vanishes as well.
 
+### Continuum L2 identities and finite-mode Fock space
+
+L2 inner products of polynomial-Gaussian and polynomial-exponential waves are exact integrals. Hermite-Gaussians are orthonormal, and their Fourier transforms are (-i)^n psi_n. Position and momentum act on that domain, and [X, P] = i with hbar = 1. Plane waves are generalized free-particle eigenfunctions, not L2 vectors. The free Gaussian packet satisfies the free Schrodinger equation identically. Finite-mode Fock operators obey the CCR, and the quadratures satisfy [phi, pi] = i.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.136.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.137.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+- A general L2 function outside the polynomial-Gaussian and polynomial-exponential classes, completeness of L2 as a metric space, the spectral theorem for an unbounded operator, Coulomb continuum waves and the Rutherford amplitude, and a field theory with infinitely many modes stay outside.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
