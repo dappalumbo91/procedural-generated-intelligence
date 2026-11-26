@@ -1499,3 +1499,11 @@ The Bothwell, top-pair, per-channel, and laser-radius gaps close.
 That is 53 records.
 
 `python -m unittest discover -s tests -v` finished 444 tests, 0 failures, about 841.90 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — General non-constant SU(2) pgi-0.139.0
+
+A non-constant SU(2) matrix is kept in the general form U = [[alpha, beta], [-conj(beta), conj(alpha)]] when alpha and beta are rational functions with values in Q(i), |alpha|^2 + |beta|^2 = 1, both products U U dagger and U dagger U are the identity, and det U = 1. The one-parameter family alpha = (1 - x^2)/(1 + x^2), beta = 2 i x / (1 + x^2) is checked, distinct from the real rational rotation already admitted. It acts by A_mu |-> U A_mu U dagger + U d_mu U dagger, and F |-> U F U dagger, checked identically.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 445 tests, 0 failures, about 876.88 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
