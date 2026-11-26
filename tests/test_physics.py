@@ -2056,6 +2056,16 @@ class EmOpticsB15Tests(unittest.TestCase):
         self.assertEqual(quantity("leviton2008.fused_silica_dndt_0p6um_295k").value_text, "8.86 e-6")
         self.assertEqual(quantity("kayelaby_gamma.argon_0c").value_text, "1.667")
 
+class LatticeB16Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("nbs1953.cu.lattice_constant").value_text, "3.6150")
+        self.assertEqual(quantity("nbs1953.al.lattice_constant").value_text, "4.0494")
+        self.assertEqual(quantity("ioffe.gaas.lattice_constant_300k").value_text, "5.65325")
+
+    def test_nbs_and_ioffe_both_kept(self) -> None:
+        self.assertEqual({quantity("nbs1953.ge.lattice_constant").value_text, quantity("ioffe.ge.lattice_constant_300k").value_text}, {"5.6576", "5.658"})
+        self.assertEqual({quantity("nbs1953.diamond.lattice_constant").value_text, quantity("ioffe.diamond.lattice_constant_300k").value_text}, {"3.5667", "3.567"})
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

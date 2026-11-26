@@ -1327,3 +1327,16 @@ The solid harmonics r^ℓ Y_ℓ^m for ℓ = 0, 1, and 2 are admitted as homogene
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 420 tests, 0 failures, about 630.53 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Condensed matter: lattice constants pgi-0.125.0
+
+Added these records:
+
+- NBS Circular 539 lattice constants: Al, Cu, Ge (25 °C), diamond, NaCl (26 °C);
+- Ioffe NSM lattice constants at 300 K: Ge, GaAs, diamond.
+
+The NBS and Ioffe values for Ge and diamond are both kept. The lattice-constant gap closes.
+
+That is 8 records.
+
+`python -m unittest discover -s tests -v` finished 422 tests, 0 failures, about 613.08 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

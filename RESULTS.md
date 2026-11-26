@@ -955,9 +955,20 @@ The Kerr metric in Boyer–Lindquist coordinates, with mass m and spin a, is adm
 
 The solid harmonics r^ℓ Y_ℓ^m for ℓ = 0, 1, and 2 are homogeneous polynomials in x, y, z. L² has eigenvalue ℓ(ℓ+1) and Lz has eigenvalue m, checked by applying the angular-momentum operators. Hydrogen radial states for n = 1, 2, 3, and 4, with 0 ≤ ℓ < n, satisfy the radial equation identically.
 
+### Condensed matter: lattice constants beyond silicon
+
+NBS Circular 539 (Swanson et al., 1953), read from the NIST page scans, gives these powder-pattern lattice constants in ångströms:
+
+- aluminium `4.0494`, copper `3.6150`, and germanium `5.6576`, all at 25 °C (Vol. I);
+- diamond `3.5667` and sodium chloride `5.6402`, both at 26 °C (Vol. II).
+
+The Ioffe NSM "Basic Parameters at 300 K" pages, read from Internet Archive copies, give Ge `5.658`, GaAs `5.65325`, and diamond `3.567` Å.
+
+Neither source prints an uncertainty. Where the two sources overlap (Ge and diamond), both values are kept. The lattice-constant gap closes. This adds 8 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.124.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.125.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

@@ -4517,7 +4517,49 @@ EMOPTICS_B15: tuple[Quantity, ...] = (
     _klgamma("methane_20c", "methane", "20", "1.307"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15
+_NBS539_V1 = "https://nvlpubs.nist.gov/nistpubs/Legacy/circ/nbscircular539v1.pdf"
+_NBS539_V2 = "https://nvlpubs.nist.gov/nistpubs/Legacy/circ/nbscircular539v2.pdf"
+_NBS539_NOTE = "The circular prints the lattice constant with no uncertainty; it is the NBS powder-diffraction value, not a CODATA-style adjusted constant."
+_IOFFE_BASIC = {
+    "Ge": "https://web.archive.org/web/20251210060631/https://www.ioffe.ru/SVA/NSM/Semicond/Ge/basic.html",
+    "GaAs": "https://web.archive.org/web/20260122004905/http://www.ioffe.ru/SVA/NSM/Semicond/GaAs/basic.html",
+    "Diamond": "https://web.archive.org/web/20250513044705/http://www.ioffe.ru/SVA/NSM/Semicond/Diamond/basic.html",
+}
+
+
+def _nbs539(key: str, material: str, value: str, temp: str, vol: str, authors: str, url: str, page: str, header: str, phrases: tuple[str, ...]) -> Quantity:
+    return _q(f"nbs1953.{key}.lattice_constant", f"lattice constant of {material} at {temp} C (NBS powder pattern)", f"a({material})", value, "", "Angstrom",
+              kind="no uncertainty printed", source=f"{authors}, Standard X-ray Diffraction Powder Patterns, NBS Circular 539, {vol} (1953)",
+              edition=f"NBS Circular 539, {vol}", url=url, retrieved_from=url,
+              keys=("lattice constant", "unit cell"), phrases=phrases + ("lattice constants",),
+              notes=(f"{page}: the table headed '{header}' gives the NBS value {value} at {temp} C.", _NBS539_NOTE))
+
+
+def _ioffe_lattice(mol: str, value: str, printed: str, phrases: tuple[str, ...]) -> Quantity:
+    return _q(f"ioffe.{mol.lower()}.lattice_constant_300k", f"lattice constant of {mol} at 300 K (Ioffe)", f"a({mol})", value, "", "Angstrom",
+              kind="no uncertainty printed", source=f"Ioffe Institute, NSM Archive - Physical Properties of Semiconductors, {mol}: Basic Parameters.", edition="Ioffe NSM Archive",
+              url=_IOFFE_BASIC[mol], retrieved_from=_IOFFE_BASIC[mol],
+              keys=("lattice constant",), phrases=phrases + ("lattice constants",),
+              notes=(f"The 'Basic Parameters at 300 K' table prints 'Lattice constant {printed}'.", f"Original page: https://www.ioffe.ru/SVA/NSM/Semicond/{mol}/basic.html.", _IOFFE_REACH))
+
+
+LATTICE_CONSTANTS: tuple[Quantity, ...] = (
+    _nbs539("al", "aluminium", "4.0494", "25", "Vol. I", "H. E. Swanson and E. Tatge", _NBS539_V1, "Vol. I p. 11", "Unit cell, angstroms at 25°C",
+            ("lattice constant of aluminium", "lattice constant of aluminum", "aluminium lattice constant")),
+    _nbs539("cu", "copper", "3.6150", "25", "Vol. I", "H. E. Swanson and E. Tatge", _NBS539_V1, "Vol. I p. 15", "Unit cell in angstroms at 25°C",
+            ("lattice constant of copper", "copper lattice constant")),
+    _nbs539("ge", "germanium", "5.6576", "25", "Vol. I", "H. E. Swanson and E. Tatge", _NBS539_V1, "Vol. I p. 19", "Unit cell, angstroms at 25°C",
+            ("lattice constant of germanium", "germanium lattice constant")),
+    _nbs539("diamond", "diamond", "3.5667", "26", "Vol. II", "H. E. Swanson and R. K. Fuyat", _NBS539_V2, "Vol. II p. 6", "Lattice constants in angstroms",
+            ("lattice constant of diamond", "diamond lattice constant")),
+    _nbs539("nacl", "sodium chloride", "5.6402", "26", "Vol. II", "H. E. Swanson and R. K. Fuyat", _NBS539_V2, "Vol. II p. 42", "Lattice constant in angstroms",
+            ("lattice constant of sodium chloride", "lattice constant of nacl", "rock salt lattice constant")),
+    _ioffe_lattice("Ge", "5.658", "5.658 A", ("lattice constant of germanium", "germanium lattice constant")),
+    _ioffe_lattice("GaAs", "5.65325", "5.65325 A", ("lattice constant of gaas", "gallium arsenide lattice constant")),
+    _ioffe_lattice("Diamond", "3.567", "3.567A", ("lattice constant of diamond", "diamond lattice constant")),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 
