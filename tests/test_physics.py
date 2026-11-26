@@ -1983,6 +1983,16 @@ class AstroB13Tests(unittest.TestCase):
         self.assertIn("eht2022.sgra_shadow_diameter", self._linked("what is the sgr a* shadow diameter"))
 
 
+class FluidsB14Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("jones1984.air_eta_20c_1atm").value_text, "181.94")
+        self.assertEqual((quantity("berg2012.eta_ar").value_text, quantity("berg2012.eta_ar").uncertainty_text), ("22.5666", "0.0060"))
+        self.assertEqual(quantity("teos10.s_so").value_text, "35.165 04")
+
+    def test_pressure_raises_air_viscosity_as_printed(self) -> None:
+        # The two 20.00 C points from the same table, 1.00 atm and 34.97 atm.
+        self.assertLess(quantity("jones1984.air_eta_20c_1atm").value, quantity("jones1984.air_eta_20c_35atm").value)
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

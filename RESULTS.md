@@ -759,9 +759,38 @@ These close the Sgr A* and shadow gaps. This adds 10 records.
 
 A position-dependent SU(2) gauge transformation by the rational rotation U(x, y) already checked acts on a connection by A_μ ↦ U A_μ U† + U ∂_μ U†. The field strength F = ∂_x A_y − ∂_y A_x + [A_x, A_y] transforms as F ↦ U F U†, checked identically as matrix-valued rational functions. A non-constant SU(3) gauge transformation, and an SU(2) transformation that is not this rotation or a constant special unitary matrix, stay outside.
 
+### Fluids: measured air viscosity, dilute-gas viscosities, and TEOS-10
+
+Five measured dry-air viscosities come from Table 1 of NBS Technical Note 1186 (Jones 1984). That table reprints Kestin and Leidenfrost 1959 and DiPippo and Kestin 1968:
+
+- `181.94 µg/(cm·s)` at 20.00 °C and 1.00 atm;
+- `187.70` at 34.97 atm;
+- `183.75` at 23.44 °C;
+- `184.62` at 25.00 °C;
+- `197.25` at 49.91 °C.
+
+The table prints no per-point uncertainty, so none is stored. The note's fitted interpolation formula is not stored either.
+
+Berg and Moldover 2012 give viscosities at 25 °C and zero density, with standard uncertainties. They come from 235 measured ratios anchored to the ab initio helium value:
+
+- He `19.8253 ± 0.0002`;
+- Ne `31.7088 ± 0.0100`;
+- Ar `22.5666 ± 0.0060`;
+- Kr `25.3062 ± 0.0080`;
+- Xe `23.0183 ± 0.0072`;
+- N₂ `17.7494 ± 0.0048` µPa·s.
+
+TEOS-10 adds two defined (exact) values and one computed reference value:
+
+- S_SO = `35.165 04 g/kg` (exact);
+- c_p⁰ = `3991.867 957 119 63 J/(kg·K)` (exact);
+- the standard-ocean latent heat of evaporation, `2 498 510 J/kg`, which is computed by TEOS-10, not measured.
+
+This closes the measured-air, noble-gas, and seawater gaps. It adds 14 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.111.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.112.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

@@ -4106,7 +4106,60 @@ ASTRO_B13: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13
+_JONES1984 = "F. E. Jones, Interpolation formulas for viscosity of six gases: air, nitrogen, carbon dioxide, helium, argon, and oxygen, NBS Technical Note 1186 (1984), Table 1 'Viscosity of Dry Air'"
+_JONES1984_URL = "https://nvlpubs.nist.gov/nistpubs/Legacy/TN/nbstechnicalnote1186.pdf"
+_JONES_KL = "Table 1's first and third groups are taken from Table III of J. Kestin and W. Leidenfrost, Physica 25, 1033 (1959), an absolute oscillating-disk determination."
+_JONES_DK = "Table 1's second and fourth groups are taken from Table II of R. DiPippo and J. Kestin, Proc. 4th Symp. Thermophysical Properties (ASME, 1968)."
+_BERG2012 = "R. F. Berg and M. R. Moldover, Recommended viscosities of 11 dilute gases at 25 C, J. Phys. Chem. Ref. Data 41, 043104 (2012), doi:10.1063/1.4765368, Table 1(A)"
+_BERG_NOTE = "Table 1(A) gives eta_0, the viscosity at 25 C and zero density, from a fit of 235 measured viscosity ratios (18 instruments) anchored to the ab initio helium value; the uncertainties are standard (k = 1), already multiplied by sigma = 1.89."
+_TEOS10 = "IOC, SCOR and IAPSO, The international thermodynamic equation of seawater - 2010: Calculation and use of thermodynamic properties, Intergovernmental Oceanographic Commission, Manuals and Guides No. 56, UNESCO (2010)"
+_TEOS10_URL = "https://www.teos-10.org/pubs/TEOS-10_Manual.pdf"
+
+
+def _air(id, t, p, eta, group_note):
+    return _q(f"jones1984.{id}", f"measured viscosity of dry air at {t} C and {p} atm", "eta_meas(air)", eta, "", "ug/(cm s)",
+              kind="no uncertainty printed", source=_JONES1984, edition="NBS TN 1186 (1984)", url=_JONES1984_URL, retrieved_from=_JONES1984_URL,
+              keys=("air", "viscosity", "fluids"), phrases=("measured air viscosity", "viscosity of air", "air viscosity data"),
+              notes=(f"Printed in Table 1 as t = {t} C, P = {p} atm, mu_meas. = {eta} ug/cm-s (1 ug/(cm s) = 0.1 uPa s).", group_note,
+                     "Table 1 prints no per-point uncertainty; the text quotes Kestin and Leidenfrost's estimate of a final accuracy 'of the order of +-0.05%'."))
+
+
+def _berg(id, gas, eta, u, extra=()):
+    return _q(f"berg2012.{id}", f"viscosity of {gas} at 25 C and zero density", f"eta_0({gas})", eta, u, "uPa s",
+              kind="standard uncertainty", source=_BERG2012, edition="J. Phys. Chem. Ref. Data 41 (2012)", url="https://doi.org/10.1063/1.4765368",
+              retrieved_from="https://srd.nist.gov/jpcrdreprint/1.4765368.pdf", keys=("viscosity", "dilute gas", "fluids"),
+              phrases=(f"viscosity of {gas.lower()}", "dilute gas viscosity", "noble gas viscosity") + extra,
+              notes=(f"Printed in Table 1(A) as eta_0 = {eta} uPa s, u = {u} uPa s.", _BERG_NOTE))
+
+
+FLUIDS_B14: tuple[Quantity, ...] = (
+    _air("air_eta_20c_1atm", "20.00", "1.00", "181.94", _JONES_KL),
+    _air("air_eta_20c_35atm", "20.00", "34.97", "187.70", _JONES_KL),
+    _air("air_eta_23c_1atm", "23.44", "1.07", "183.75", _JONES_DK),
+    _air("air_eta_25c_1atm", "25.00", "1.00", "184.62", _JONES_KL),
+    _air("air_eta_50c_2atm", "49.91", "1.70", "197.25", _JONES_DK),
+    _berg("eta_he", "Helium", "19.8253", "0.0002", ("viscosity of helium gas",)),
+    _berg("eta_ne", "Neon", "31.7088", "0.0100"),
+    _berg("eta_ar", "Argon", "22.5666", "0.0060"),
+    _berg("eta_kr", "Krypton", "25.3062", "0.0080"),
+    _berg("eta_xe", "Xenon", "23.0183", "0.0072"),
+    _berg("eta_n2", "Nitrogen", "17.7494", "0.0048"),
+    _q("teos10.s_so", "standard-ocean Reference Salinity", "S_SO", "35.165 04", "exact", "g/kg",
+       kind="exact", source=_TEOS10 + ", Eqn. (2.4.1) and Sect. 2.6", edition="TEOS-10 Manual (2010)", url=_TEOS10_URL, retrieved_from=_TEOS10_URL,
+       keys=("seawater", "teos-10", "salinity", "fluids"), phrases=("seawater", "teos-10", "reference salinity", "standard ocean"),
+       notes=("Printed as S_SO = 35 u_PS = 35.165 04 g kg^-1, with u_PS = (35.165 04/35) g kg^-1. A sample of Practical Salinity 35 has Reference-Composition Salinity 'of precisely 35.165 04 g kg^-1' by definition.",
+              "The manual cites Millero et al. (2008a) for an absolute uncertainty of +-0.007 g kg^-1 when this value is used as an estimate of the Absolute Salinity of Reference-Composition Seawater; the defined value itself is exact.")),
+    _q("teos10.c_p0", "TEOS-10 conservative-temperature heat capacity c_p^0", "c_p^0", "3991.867 957 119 63", "exact", "J/(kg K)",
+       kind="exact", source=_TEOS10 + ", Eqn. (3.3.3)", edition="TEOS-10 Manual (2010)", url=_TEOS10_URL, retrieved_from=_TEOS10_URL,
+       keys=("seawater", "teos-10", "fluids"), phrases=("seawater", "teos-10", "conservative temperature"),
+       notes=("Printed as 'We adopt the exact definition for c_p^0 to be the 15-digit value', c_p^0 = 3991.867 957 119 63 J kg^-1 K^-1, motivated by [h(S_SO, 25 C, 0) - h(S_SO, 0 C, 0)]/(25 K).",)),
+    _q("teos10.latent_heat_standard_ocean", "latent heat of evaporation at the standard-ocean surface (TEOS-10)", "L_p^SA", "2 498 510", "", "J/kg",
+       kind="no uncertainty printed", source=_TEOS10 + ", Table 3.39.1", edition="TEOS-10 Manual (2010)", url=_TEOS10_URL, retrieved_from=_TEOS10_URL,
+       keys=("seawater", "teos-10", "fluids"), phrases=("seawater", "teos-10", "latent heat of evaporation of seawater"),
+       notes=("Printed in Table 3.39.1, row 'Standard ocean' (S_A = 35.165 04 g/kg, t = 0 C, p = 0 dbar), as L_p^SA = 2 498 510 J kg^-1. It is a TEOS-10 computed reference value, from Eqn. (3.39.7), not a measurement.",)),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

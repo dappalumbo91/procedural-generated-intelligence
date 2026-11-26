@@ -1213,3 +1213,11 @@ A position-dependent SU(2) gauge transformation by the rational rotation U(x, y)
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 403 tests, 0 failures, about 459.76 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — fluids: measured air viscosity, dilute-gas viscosities, TEOS-10 pgi-0.112.0
+
+Added five measured dry-air viscosities (NBS TN 1186, Table 1), the six Berg-Moldover 2012 viscosities, and three TEOS-10 reference values. The fluids gaps left are diffusion coefficients and He-4 viscosity and mutual friction.
+
+That is 14 records.
+
+`python -m unittest discover -s tests -v` finished 405 tests, 0 failures, about 527.10 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

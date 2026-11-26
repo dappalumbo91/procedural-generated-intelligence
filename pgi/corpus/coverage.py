@@ -52,7 +52,7 @@ for _domain, _names in {
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84"),
     "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971", "matula1979", "desai1984", "nist_tn1512"),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993"),
-    "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998"),
+    "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998", "jones1984", "berg2012", "teos10"),
     "thermodynamics and statistical": ("codata2017", "iapws1992", "iapws2011", "its90", "formula"),
     "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1960", "pound1965", "chou2010", "bothwell2022", "ciufolini2016", "williams2004", "hofmann2018", "takamoto2020", "gw170817", "gw190521", "gw190814", "gw190425", "gw200115", "gw230529", "gw231123", "gw250114"),
     "astrophysics": ("borexino", "bond2017", "joyce2018", "fonseca2021", "riley2021", "miller2021", "salmi2024", "dittmann2024", "haberreiter2008",
@@ -189,6 +189,9 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("quantum Hall universality", ("ribeiropalau2015.",)),
     ),
     "fluids": (
+        ("measured dry-air viscosity (Kestin et al., via NBS TN 1186)", ("jones1984.",)),
+        ("dilute-gas viscosities at 25 C (Berg-Moldover)", ("berg2012.",)),
+        ("TEOS-10 seawater reference values", ("teos10.",)),
         ("water properties at 20-25 C", ("webbook.",)),
         ("water surface tension", ("iapws2014.",)),
         ("speed of sound in air", ("wong1986.", "greenspan1987.")),
