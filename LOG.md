@@ -1279,3 +1279,11 @@ A mechanical Lagrangian L(q, v, t) has Euler–Lagrange expression d/dt(∂L/∂
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 414 tests, 0 failures, about 586.83 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Mechanics: GRAIL lunar Love numbers, moments of inertia pgi-0.120.0
+
+Added GRAIL lunar Love numbers from Lemoine 2013 (k20, k21, k22, k30), Konopliv 2013 (k2), and Williams 2014 (mean k2, solid-Moon Is/MR2), and Chen et al. 2015 Earth principal moments of inertia A, B, C, I. Earth J2 and the IERS nominal k2 and h2 were already stored. Mechanics now lists no gaps.
+
+That is 11 records.
+
+`python -m unittest discover -s tests -v` finished 415 tests, 0 failures, about 522.48 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

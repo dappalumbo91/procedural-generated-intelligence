@@ -2031,6 +2031,13 @@ class TransportB15Tests(unittest.TestCase):
         self.assertIn("id:pound1960.", gap.terms)
         self.assertTrue(any(i.startswith("pound1960.") for i in closing(gap, "gravitation")))
 
+class MechanicsB15Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual((quantity("lemoine2013.moon_k20").value_text, quantity("lemoine2013.moon_k20").uncertainty_text), ("0.024615", "0.0000914"))
+        self.assertEqual(quantity("konopliv2013.moon_k2").value_text, "0.02405")
+        self.assertEqual(quantity("williams2014.moon_is_mr2").value_text, "0.392728")
+        self.assertEqual(quantity("chen2015.earth_c").value_text, "80349.0")
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

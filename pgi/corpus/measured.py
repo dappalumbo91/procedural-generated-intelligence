@@ -4318,7 +4318,56 @@ TRANSPORT_B15: tuple[Quantity, ...] = (
     _db98x("mutual_friction_bprime_1p8k", "mutual friction coefficient B' at 1.8 K", "B'(1.8 K)", "0.052", "", "Table 11.3", "T90 = 1.80 K, B' = 0.052", ("mutual friction",)),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15
+_LEMOINE2013 = "F. G. Lemoine et al., High-degree gravity models from GRAIL primary mission data, J. Geophys. Res. Planets 118, 1676-1698 (2013), doi:10.1002/jgre.20118"
+_KONOPLIV2013 = "A. S. Konopliv et al., The JPL lunar gravity field to spherical harmonic degree 660 from the GRAIL Primary Mission, J. Geophys. Res. Planets 118, 1415-1434 (2013), doi:10.1002/jgre.20097"
+_WILLIAMS2014 = "J. G. Williams et al., Lunar interior properties from the GRAIL mission, J. Geophys. Res. Planets 119, 1546-1578 (2014), doi:10.1002/2013JE004559"
+_CHEN2015 = "W. Chen, J. C. Li, J. Ray, W. B. Shen, and C. L. Huang, Consistent estimates of the dynamic figure parameters of the earth, J. Geod. 89, 179-188 (2015), doi:10.1007/s00190-014-0768-y"
+_LUNAR_K = ("lunar love number", "measured love number", "love numbers", "grail")
+
+
+def _lem13(m, value, unc, extra=""):
+    return _q(f"lemoine2013.moon_k{m}", f"lunar Love number k{m} from GRAIL (GSFC GRGM660PRIM)", f"k_{m}(Moon)", value, unc, "",
+              kind="standard uncertainty", source=_LEMOINE2013 + ", abstract", edition="J. Geophys. Res. Planets 118 (2013)", url="https://doi.org/10.1002/jgre.20118",
+              retrieved_from="https://ntrs.nasa.gov/api/citations/20140010292/downloads/20140010292.pdf", keys=("lunar love number", "love number"), phrases=_LUNAR_K,
+              notes=(f"Printed in the abstract as k{m} = {value} +- {unc}; 'the Love number error sigmas are those obtained with VCE' (variance-component estimation)." + extra,
+                     "NTRS serves only the first page (title and abstract) of the article."))
+
+
+def _chen15(key, name, symbol, value, printed):
+    return _q(f"chen2015.earth_{key}", f"Earth's {name}", symbol, value, "9.6", "1e33 kg m^2", kind="uncertainty as printed, level not stated",
+              source=_CHEN2015 + ", abstract and Sect. 3 (EGM-IERS model)", edition="J. Geod. 89 (2015), open access", url="https://doi.org/10.1007/s00190-014-0768-y",
+              retrieved_from="https://link.springer.com/article/10.1007/s00190-014-0768-y", keys=("earth moment of inertia", "moment of inertia"),
+              phrases=("moment of inertia", "earth moment of inertia", "principal moments of inertia", "dynamic figure parameters"),
+              notes=(f"Printed as {printed} x 10^33 kg m^2 (comma as thousands separator); the paper's preferred values, 'the accuracies being limited by the uncertainties of G and e'.",))
+
+
+MECHANICS_B15: tuple[Quantity, ...] = (
+    _lem13("20", "0.024615", "0.0000914"),
+    _lem13("21", "0.023915", "0.0000132"),
+    _lem13("22", "0.024852", "0.0000167"),
+    _lem13("30", "0.00734", "0.0015", " The abstract calls this 'a preliminary solution'."),
+    _q("konopliv2013.moon_k2", "lunar Love number k2 from GRAIL (JPL GL0660B)", "k_2(Moon)", "0.02405", "0.00018", "",
+       kind="uncertainty as printed, level not stated", source=_KONOPLIV2013 + ", abstract and Sect. 7", edition="J. Geophys. Res. Planets 118 (2013)",
+       url="https://doi.org/10.1002/jgre.20097", retrieved_from="https://authors.library.caltech.edu/records/vdhyj-f3q68", keys=("lunar love number", "love number"), phrases=_LUNAR_K,
+       notes=("Printed as k2 = 0.02405 +- 0.00018 ('GRAIL has now determined the Love number to better than 1%'). The GL0660B solution constrained k20, k21 and k22 to be equal.",
+              "Lemoine et al. 2013 (GSFC) give separate k20, k21, k22; both are kept.")),
+    _q("williams2014.moon_k2_mean", "lunar Love number k2, average of the JPL and GSFC GRAIL solutions", "k_2(Moon)", "0.02416", "0.00022", "",
+       kind="uncertainty as printed, level not stated", source=_WILLIAMS2014 + ", abstract and Sect. 5", edition="J. Geophys. Res. Planets 119 (2014)",
+       url="https://doi.org/10.1002/2013JE004559", retrieved_from="https://authors.library.caltech.edu/records/2vaje-qnn35", keys=("lunar love number", "love number"), phrases=_LUNAR_K,
+       notes=("Printed as 0.02416 +- 0.00022 'at a 1 month period with reference radius R = 1738 km'; Sect. 5 calls it 'the unweighted average of the two values and their uncertainties'.",
+              "The paper also prints 0.02422 +- 0.00022 for R = 1737.151 km; only the R = 1738 km value is stored.")),
+    _q("williams2014.moon_is_mr2", "normalized mean moment of inertia of the solid Moon", "I_s/(M R^2)", "0.392728", "0.000012", "",
+       kind="uncertainty as printed, level not stated", source=_WILLIAMS2014 + ", abstract", edition="J. Geophys. Res. Planets 119 (2014)",
+       url="https://doi.org/10.1002/2013JE004559", retrieved_from="https://authors.library.caltech.edu/records/2vaje-qnn35", keys=("lunar moment of inertia", "moment of inertia"),
+       phrases=("moment of inertia", "lunar moment of inertia", "moment of inertia factor"),
+       notes=("Printed in the abstract as Is/MR2 = 0.392728 +- 0.000012, for gravity reference radius R = 1738 km. The paper also prints 0.393112 +- 0.000012 for R = 1737.151 km; only the first is stored.",)),
+    _chen15("a", "principal moment of inertia A", "A", "80085.1", "(80,085.1 +- 9.6)"),
+    _chen15("b", "principal moment of inertia B", "B", "80086.8", "(80,086.8 +- 9.6)"),
+    _chen15("c", "principal (polar) moment of inertia C", "C", "80349.0", "(80,349.0 +- 9.6)"),
+    _chen15("i_mean", "mean moment of inertia I = (A+B+C)/3", "I", "80173.6", "(80,173.6 +- 9.6)"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

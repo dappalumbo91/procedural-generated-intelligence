@@ -877,9 +877,21 @@ The Pound-Rebka 1960 gap now closes against the `pound1960.*` records by id. Thi
 
 A mechanical Lagrangian L(q, v, t) has Euler–Lagrange expression d/dt(∂L/∂v) − ∂L/∂q, with the total time derivative taken by the chain rule. The energy E = v ∂L/∂v − L satisfies dE/dt − v EL + ∂L/∂t = 0 identically. The harmonic oscillator L = v²/2 − q²/2 has EL = a + q and E = v²/2 + q²/2. A free particle L = v²/2 has EL equal to the acceleration and canonical momentum v. The pendulum L = v²/2 + cos(q) has EL = a + sin(q). The action is the integral of L; stationarity is the Euler–Lagrange identity.
 
+### Mechanics: GRAIL lunar Love numbers and Earth moments of inertia
+
+The Moon's tidal Love numbers from GRAIL are stored from both analysis groups:
+
+- GSFC (Lemoine et al. 2013), with VCE error sigmas: k₂₀ `0.024615 ± 0.0000914`, k₂₁ `0.023915 ± 0.0000132`, k₂₂ `0.024852 ± 0.0000167`, and a preliminary k₃₀ `0.00734 ± 0.0015`;
+- JPL (Konopliv et al. 2013): k₂ `0.02405 ± 0.00018`;
+- Williams et al. 2014: the unweighted average `0.02416 ± 0.00022` (R = 1738 km), and the solid Moon's normalized mean moment of inertia Iₛ/MR² `0.392728 ± 0.000012`.
+
+Chen, Li, Ray, Shen, and Huang 2015 give the Earth's principal moments of inertia from the EGM-IERS model: A `80,085.1`, B `80,086.8`, C `80,349.0`, and mean I `80,173.6`, each ± 9.6 ×10³³ kg m².
+
+The Earth's J₂ (`1.0826359e-3`), dynamical flattening, and nominal k₂ and h₂ were already stored from the IERS Conventions (2010). They are nominal model values, not measurements. With these, mechanics lists no gaps. This adds 11 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.119.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.120.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
