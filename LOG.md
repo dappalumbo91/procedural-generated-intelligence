@@ -1229,3 +1229,11 @@ Added Martin 1973's Theta_0^c and gamma for Cu, Ag, and Au, at 95% statistical l
 That is 6 records.
 
 `python -m unittest discover -s tests -v` finished 407 tests, 0 failures, about 584.42 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — mechanics: CCM.G-K2.2017 key comparison pgi-0.114.0
+
+Added the nine CCM.G-K2.2017 KCRVs as printed (residuals after subtracting 980 122 000.0 uGal, at 95%). The key-comparison gap is closed. Standard gravity was already held.
+
+That is 9 records.
+
+`python -m unittest discover -s tests -v` finished 408 tests, 0 failures, about 552.42 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

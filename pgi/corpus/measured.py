@@ -4185,7 +4185,33 @@ DEBYE_B14: tuple[Quantity, ...] = (
             "gamma = 164.7 +- 0.3 ucal/K^2 g atom (0.689 +- 0.001 mJ/K^2 g atom); the mJ form is stored", ("electronic specific heat", "sommerfeld coefficient")),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14
+_CCMGK2 = "S. Wu et al., CCM.G-K2.2017: CIPM Key Comparison of Absolute Gravimeters, Final Report, Metrologia 57, 07002 (2020) Technical Supplement, doi:10.1088/0026-1394/57/1A/07002, Table 5 'The official KCRVs of g'"
+_CCMGK2_PDF = "https://www.bipm.org/documents/20126/48150829/CCM.G-K2.2017.pdf"
+_CCMGK2_NOTE = "Table 5 caption: 'The constant value 980 122 000.0 uGal is subtracted from the KCRVs. The uncertainty U_site = 2 sigma ... is the expanded uncertainty at 95% confidence. All gravity values refer to 1.25 m above the marker.' The stored value is the printed residual; the subtracted constant is kept in the symbol, not added here."
+
+
+def _ccm(site, value, u):
+    return _q(f"ccmgk2.kcrv_site{site}", f"key comparison reference value of g at NIM Changping site {site} (CCM.G-K2.2017), minus 980 122 000.0 uGal",
+              "g_KCRV - 980 122 000.0 uGal", value, u, "uGal", kind="95% interval", source=_CCMGK2, edition="CCM.G-K2.2017 Final Report",
+              url="https://doi.org/10.1088/0026-1394/57/1A/07002", retrieved_from=_CCMGK2_PDF,
+              keys=("absolute gravity", "gravimetry", "mechanics", "key comparison"), phrases=("key comparison", "absolute gravimeter comparison", "kcrv", "free-fall acceleration"),
+              notes=(f"Printed in Table 5 as site {site}: KCRV = {value} uGal, U_site(k=2) = {u} uGal.", _CCMGK2_NOTE,
+                     "The comparison was held at the Changping campus of NIM, China, in October-November 2017; each gravimeter measured at 4 of the 9 sites, and the KCRVs come from a weighted least-squares adjustment."))
+
+
+CCM_B14: tuple[Quantity, ...] = (
+    _ccm("1", "575.1", "1.3"),
+    _ccm("2", "568.9", "1.3"),
+    _ccm("3", "579.0", "1.4"),
+    _ccm("4", "575.6", "1.3"),
+    _ccm("5", "581.1", "1.4"),
+    _ccm("6", "649.6", "1.4"),
+    _ccm("7", "641.9", "1.3"),
+    _ccm("8", "653.9", "1.3"),
+    _ccm("9", "647.3", "1.3"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

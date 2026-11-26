@@ -806,9 +806,22 @@ No source for measured heat-capacity ratios of gases could be reached: the Royal
 
 This adds 6 records.
 
+### Mechanics: CCM.G-K2.2017 absolute-gravity key comparison
+
+This adds the nine official key comparison reference values from Table 5 of the CCM.G-K2.2017 final report (NIM Changping, 2017). Each is stored exactly as printed, with 980 122 000.0 µGal subtracted:
+
+- sites 1–5: `575.1`, `568.9`, `579.0`, `575.6`, `581.1 µGal`;
+- sites 6–9: `649.6`, `641.9`, `653.9`, `647.3 µGal`.
+
+All values refer to 1.25 m above the marker, with expanded uncertainties (k=2, 95%) of 1.3–1.4 µGal. The subtracted constant stays in the symbol and is not added back.
+
+Standard gravity was already on the board as `codata2022.g_n` (9.806 65 m/s², exact), so it is not duplicated.
+
+This adds 9 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.113.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.114.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

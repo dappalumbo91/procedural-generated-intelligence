@@ -2002,6 +2002,12 @@ class DebyeB14Tests(unittest.TestCase):
         # The elastic Debye temperatures already on the board are a different observable; neither retracts the other.
         self.assertTrue(any(i.startswith("martin1973.") for i in (q.id for q in QUANTITIES)))
 
+class CcmB14Tests(unittest.TestCase):
+    def test_kcrvs_as_printed(self) -> None:
+        values = [quantity(f"ccmgk2.kcrv_site{i}").value_text for i in range(1, 10)]
+        self.assertEqual(values, ["575.1", "568.9", "579.0", "575.6", "581.1", "649.6", "641.9", "653.9", "647.3"])
+        self.assertEqual({quantity(f"ccmgk2.kcrv_site{i}").uncertainty_kind for i in range(1, 10)}, {"95% interval"})
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
