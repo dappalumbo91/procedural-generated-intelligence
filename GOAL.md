@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.123.0`.
+Rule version `pgi-0.124.0`.
 
 In the kernel now:
 
@@ -113,6 +113,8 @@ In the kernel now:
 - Variational principles. A mechanical Lagrangian L(q, v, t) has Euler–Lagrange expression d/dt(∂L/∂v) − ∂L/∂q, with the total time derivative taken by the chain rule. The energy is E = v ∂L/∂v − L, and the canonical momentum is ∂L/∂v. The off-shell identity dE/dt − v EL + ∂L/∂t = 0 is checked identically. For the harmonic oscillator L = v²/2 − q²/2, EL = a + q and E = v²/2 + q²/2. For a free particle L = v²/2, EL is the acceleration and the momentum is v. For the pendulum L = v²/2 + cos(q), EL = a + sin(q). The action is the integral of L; stationarity is the Euler–Lagrange identity.
 - The Kerr metric in Boyer–Lindquist coordinates, with mass parameter m and spin parameter a. The inverse multiplies back to the identity. Ricci = 0 for Kerr stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - FLRW with spatial curvature k = +1 and k = −1, in spherical coordinates, with a formal scale factor a(t). The Einstein tensor is exact: G_tt is 3 ((da/dt)² + k)/a², and the spatial components satisfy G_ij = -(2 (d²a/dt²)/a + ((da/dt)² + k)/a²) g_ij.
+- Solid spherical harmonics r^ℓ Y_ℓ^m for ℓ = 0, 1, and 2, as homogeneous polynomials in x, y, z. L² = Lx² + Ly² + Lz² has eigenvalue ℓ(ℓ+1), and Lz has eigenvalue m, checked by applying the angular-momentum operators already admitted.
+- Hydrogen radial states for every (n, ℓ) with n = 1, 2, 3, or 4 and 0 ≤ ℓ < n. The residual of u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² vanishes identically in atomic units.
 
 Still outside the kernel, and required before a physical law can be written:
 
@@ -133,7 +135,6 @@ What a derivation round would still need:
 - A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
 - Integration of forms, including Stokes' theorem on the charts already admitted.
 - Ricci = 0 for the Kerr metric. The generic Levi-Civita computation exceeds the polynomial degree and term limits.
-- Spherical harmonics, and hydrogen states beyond (n, ℓ) = (1, 0), (2, 0), and (2, 1).
 - A Hermitian spectrum whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational. Three or more independent square-free radicands stay open.
 - A continuum Hilbert space, and operators that are not polynomial differential operators in finitely many coordinates.
 

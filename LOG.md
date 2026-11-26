@@ -1319,3 +1319,11 @@ The Kerr metric in Boyer–Lindquist coordinates, with mass m and spin a, is adm
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 419 tests, 0 failures, about 648.74 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Spherical harmonics and more hydrogen states pgi-0.124.0
+
+The solid harmonics r^ℓ Y_ℓ^m for ℓ = 0, 1, and 2 are admitted as homogeneous polynomials in x, y, z. L² has eigenvalue ℓ(ℓ+1) and Lz has eigenvalue m, checked by applying the angular-momentum operators. Hydrogen radial states are admitted for every (n, ℓ) with n = 1, 2, 3, or 4 and 0 ≤ ℓ < n, and the residual of the radial equation vanishes identically.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 420 tests, 0 failures, about 630.53 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

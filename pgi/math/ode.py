@@ -9,9 +9,9 @@ only when it is identically zero. The admitted states are n = 0, 1, and 2:
 The hydrogen radial function is the reduced wave u_{n,ℓ}(r) = r R_{nℓ}(r)
 in atomic units with Z = 1. It must satisfy
 u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0, the radial equation at
-E = −1/(2n²). The admitted states are (n, ℓ) = (1, 0), (2, 0), and (2, 1),
-with u_10 = r exp(-r), u_20 = r (1 − r/2) exp(-r/2), and
-u_21 = r² exp(-r/2).
+E = −1/(2n²). The admitted states are every (n, ℓ) with n = 1, 2, 3, or 4 and
+0 ≤ ℓ ≤ n − 1, starting from u_10 = r exp(-r), u_20 = r (1 − r/2) exp(-r/2),
+and u_21 = r² exp(-r/2).
 
 A named check `ode(...)` is 0 only when the residual vanishes identically.
 The identities are checked exactly, with no approximation.
@@ -71,7 +71,21 @@ def hydrogen_radial(level: int, ell: int):
         return _fexpr("r * (1 - r / 2) * exp(-r / 2)")
     if level == 2 and ell == 1:
         return _fexpr("r^2 * exp(-r / 2)")
-    raise NotExact("a hydrogen radial check is admitted here only for (n, l) = (1, 0), (2, 0), or (2, 1)")
+    if level == 3 and ell == 0:
+        return _fexpr("r * (2 * r^2 - 18 * r + 27) * exp(-r / 3)")
+    if level == 3 and ell == 1:
+        return _fexpr("r^2 * (6 - r) * exp(-r / 3)")
+    if level == 3 and ell == 2:
+        return _fexpr("r^3 * exp(-r / 3)")
+    if level == 4 and ell == 0:
+        return _fexpr("r * (-r^3 + 24 * r^2 - 144 * r + 192) * exp(-r / 4)")
+    if level == 4 and ell == 1:
+        return _fexpr("r^2 * (r^2 - 20 * r + 80) * exp(-r / 4)")
+    if level == 4 and ell == 2:
+        return _fexpr("r^3 * (12 - r) * exp(-r / 4)")
+    if level == 4 and ell == 3:
+        return _fexpr("r^4 * exp(-r / 4)")
+    raise NotExact("a hydrogen radial check is admitted here only for n = 1, 2, 3, or 4, with 0 <= l < n")
 
 
 def hydrogen_residual(level: int, ell: int):
@@ -101,8 +115,9 @@ def _standing() -> None:
         return
     for level in (0, 1, 2):
         _check_residual(harmonic_residual(level))
-    for level, ell in ((1, 0), (2, 0), (2, 1)):
-        _check_residual(hydrogen_residual(level, ell))
+    for level in (1, 2, 3, 4):
+        for ell in range(level):
+            _check_residual(hydrogen_residual(level, ell))
     _STANDING = True
 
 
@@ -175,7 +190,7 @@ def _ode_detail() -> tuple[str, ...]:
     return (
         "A candidate solution is kept only when its residual in the linear ODE vanishes identically.",
         "The harmonic oscillator uses ħ = ω = m = 1, with ψ'' − (x² − 2n − 1) ψ = 0 for n = 0, 1, 2.",
-        "The hydrogen radial equation is u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0 in atomic units, for (n, ℓ) = (1, 0), (2, 0), and (2, 1).",
+        "The hydrogen radial equation is u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0 in atomic units, for every (n, ℓ) with n = 1, 2, 3, or 4 and 0 ≤ ℓ < n.",
     )
 
 

@@ -951,9 +951,13 @@ None of these print an uncertainty. Electromagnetism now lists no gaps, and the 
 
 The Kerr metric in Boyer–Lindquist coordinates, with mass m and spin a, is admitted, and its inverse multiplies back to the identity. Ricci = 0 for Kerr stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits. FLRW with spatial curvature k = +1 and k = −1 has an exact Einstein tensor: G_tt is 3 ((da/dt)² + k)/a², and the spatial components satisfy G_ij = -(2 (d²a/dt²)/a + ((da/dt)² + k)/a²) g_ij.
 
+### Spherical harmonics and more hydrogen states
+
+The solid harmonics r^ℓ Y_ℓ^m for ℓ = 0, 1, and 2 are homogeneous polynomials in x, y, z. L² has eigenvalue ℓ(ℓ+1) and Lz has eigenvalue m, checked by applying the angular-momentum operators. Hydrogen radial states for n = 1, 2, 3, and 4, with 0 ≤ ℓ < n, satisfy the radial equation identically.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.123.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.124.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

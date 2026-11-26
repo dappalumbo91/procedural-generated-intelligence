@@ -83,7 +83,12 @@ class OdeTests(unittest.TestCase):
             ).claims[0].atom,
             "identity(d(d(r * exp((-r)), r), r) - (1 - 2 / r) * r * exp((-r)) = 0)",
         )
+        for n, ell in ((3, 0), (3, 1), (3, 2), (4, 0), (4, 1), (4, 2), (4, 3)):
+            self.assertEqual(
+                run(Request(ask=f"prove ode(hydrogen({n}, {ell})) = 0", seed=1)).claims[0].atom,
+                f"identity(ode(hydrogen({n}, {ell})) = 0)",
+            )
         self.assertEqual(
-            run(Request(ask="what is ode(hydrogen(3, 0))", seed=1)).claims[0].atom,
-            "open(a hydrogen radial check is admitted here only for (n, l) = (1, 0), (2, 0), or (2, 1))",
+            run(Request(ask="what is ode(hydrogen(5, 0))", seed=1)).claims[0].atom,
+            "open(a hydrogen radial check is admitted here only for n = 1, 2, 3, or 4, with 0 <= l < n)",
         )
