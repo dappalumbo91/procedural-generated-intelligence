@@ -889,9 +889,35 @@ Chen, Li, Ray, Shen, and Huang 2015 give the Earth's principal moments of inerti
 
 The Earth's J₂ (`1.0826359e-3`), dynamical flattening, and nominal k₂ and h₂ were already stored from the IERS Conventions (2010). They are nominal model values, not measurements. With these, mechanics lists no gaps. This adds 11 records.
 
+### Atomic: transition probabilities, oscillator strengths, excited-state lifetimes
+
+NIST ASD lines data (queried 2026-11-25) give A and f for these resonance lines:
+
+| Line | A (s⁻¹) | f | ASD accuracy |
+|---|---|---|---|
+| H Lyman-α to 2p₃/₂ | `6.2647e+08` | `2.7760e-01` | AAA |
+| H Lyman-α to 2p₁/₂ | `6.2648e+08` | `1.3880e-01` | AAA |
+| Na D2 | `6.16e+07` | `6.41e-01` | AA |
+| Na D1 | `6.14e+07` | `3.20e-01` | AA |
+| Cs D2 | `3.279e+07` | `7.142e-01` | AAA |
+| Cs D1 | `2.863e+07` | `3.435e-01` | AAA |
+| Rb D2 | `3.812e+07` | `6.958e-01` | AAA |
+| Rb D1 | `3.614e+07` | `3.424e-01` | AAA |
+
+ASD prints accuracy grades, not numeric uncertainties: AAA means ≤ 0.3% and AA means ≤ 1%.
+
+Measured lifetimes, from published abstracts and the arXiv source:
+
+- Na (Volz et al. 1996, 1σ): 3p ²P₁/₂ `16.299(21)` ns and 3p ²P₃/₂ `16.254(22)` ns.
+- ⁸⁷Rb (Gutterres et al. 2002): 5P₃/₂ `26.25(8)` ns and 5P₁/₂ `27.75(8)` ns. These come from photoassociation spectroscopy, not a direct decay measurement.
+- Cs 6p ²P₃/₂, three results that are all kept: Young et al. 1994 `30.41(10)` ns, Rafac et al. 1999 `30.57 ± 0.07` ns, and Patterson et al. 2015 `30.462(46)` ns.
+- Cs 6p ²P₁/₂, two results that are both kept: Young et al. 1994 `34.75(7)` ns and Rafac et al. 1999 `35.07 ± 0.10` ns.
+
+No measured H 2p lifetime was found; only the ASD A values are stored. This adds 25 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.120.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.121.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

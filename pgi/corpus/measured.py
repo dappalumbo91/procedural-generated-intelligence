@@ -4367,7 +4367,84 @@ MECHANICS_B15: tuple[Quantity, ...] = (
     _chen15("i_mean", "mean moment of inertia I = (A+B+C)/3", "I", "80173.6", "(80,173.6 +- 9.6)"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15
+def _asd_tp_query(spectrum: str, low: str, high: str) -> str:
+    return (
+        f"https://physics.nist.gov/cgi-bin/ASD/lines1.pl?spectra={spectrum.replace(' ', '+')}&output_type=0&low_w={low}&upp_w={high}&unit=1&de=0&format=2"
+        "&line_out=0&remove_js=on&en_unit=0&output=0&bibrefs=1&page_size=15&show_obs_wl=1&show_calc_wl=1&unc_out=1&order_out=0&show_av=2"
+        "&tsb_value=0&A_out=0&f_out=on&intens_out=on&allowed_out=1&forbid_out=1&conf_out=on&term_out=on&enrg_out=on&J_out=on&submit=Retrieve+Data"
+    )
+
+
+_ASD_ACC = {"AAA": "<= 0.3%", "AA": "<= 1%"}
+
+
+def _tp(key, label, spectrum, low, high, upper, a_printed, a_value, f_printed, f_value, acc, tp_ref):
+    query = _asd_tp_query(spectrum, low, high)
+    src = ASD_SOURCE.replace("Ionization Energies Data.", f"Lines Data, {spectrum}.")
+    note = (f"ASD row for {label}: Aki = {a_printed} s^-1, fik = {f_printed}, Acc = {acc}, tp_ref {tp_ref}.",
+            f"ASD prints no numeric uncertainty, only the accuracy grade {acc}, which the ASD legend defines as {_ASD_ACC[acc]}.")
+    common = dict(kind="no uncertainty printed", source=src, edition=ASD_EDITION + ", queried 2026-11-25", url=query, retrieved_from=query)
+    return (
+        _q(f"asd512.tp.{key}_a", f"Einstein A coefficient of the {label} transition", f"A({label})", a_value, "", "s^-1",
+           keys=("transition probability", "einstein a coefficient"), phrases=("transition probability", "einstein a coefficient", f"{upper} decay rate"), notes=note, **common),
+        _q(f"asd512.tp.{key}_f", f"absorption oscillator strength of the {label} transition", f"f({label})", f_value, "", "",
+           keys=("oscillator strength", "absorption oscillator strength"), phrases=("oscillator strength", f"{upper} oscillator strength"), notes=note, **common),
+    )
+
+
+def _oa(doi: str) -> str:
+    return f"https://api.openalex.org/works/doi:{doi}"
+
+
+def _life(id, name, symbol, value, unc, kind, source, edition, doi, printed, extra=()):
+    return _q(id, name, symbol, value, unc, "ns", kind=kind, source=source + ", abstract", edition=edition, url=f"https://doi.org/{doi}", retrieved_from=_oa(doi),
+              keys=("radiative lifetime", "excited-state lifetime"), phrases=("excited-state lifetime", "radiative lifetime", "atomic lifetime"),
+              notes=(f"The abstract prints {printed}.",) + extra)
+
+
+_VOLZ1996 = "U. Volz, M. Majerus, H. Liebel, A. Schmitt, and H. Schmoranzer, Precision lifetime measurements on NaI 3p 2P1/2 and 3p 2P3/2 by beam-gas-laser spectroscopy, Phys. Rev. Lett. 76, 2862 (1996), doi:10.1103/PhysRevLett.76.2862"
+_GUTTERRES2002 = "R. F. Gutterres, C. Amiot, A. Fioretti, C. Gabbanini, M. Mazzoni, and O. Dulieu, Determination of the 87Rb 5p state dipole matrix element and radiative lifetime from the photoassociation spectroscopy of the Rb2 0g-(P3/2) long-range state, Phys. Rev. A 66, 024502 (2002), doi:10.1103/PhysRevA.66.024502"
+_YOUNG1994 = "L. Young, W. T. Hill III, S. J. Sibener, S. D. Price, C. E. Tanner, C. E. Wieman, and S. R. Leone, Precision lifetime measurements of Cs 6p 2P1/2 and 6p 2P3/2 levels by single-photon counting, Phys. Rev. A 50, 2174 (1994), doi:10.1103/PhysRevA.50.2174"
+_RAFAC1999 = "R. J. Rafac, C. E. Tanner, A. E. Livingston, and H. G. Berry, Fast-beam laser lifetime measurements of the cesium 6p 2P1/2,3/2 states, Phys. Rev. A 60, 3648 (1999), doi:10.1103/PhysRevA.60.3648"
+_PATTERSON2015 = "B. M. Patterson, J. F. Sell, T. Ehrenreich, M. A. Gearba, G. M. Brooke, J. Scoville, and R. J. Knize, Lifetime measurement of the cesium 6P3/2 level using ultrafast pump-probe laser pulses, Phys. Rev. A 91, 012506 (2015), doi:10.1103/PhysRevA.91.012506, arXiv:1410.7364"
+_CS_DISAGREE = ("Cs 6p 2P3/2 lifetimes are kept from Young 1994 (30.41(10)), Rafac 1999 (30.57 +- 0.07), and Patterson 2015 (30.462(46)); the board does not choose between them.",)
+
+ATOMIC_B15: tuple[Quantity, ...] = (
+    *_tp("h_1s_2p32", "H I 1s 2S1/2 - 2p 2P3/2 (Lyman-alpha)", "H I", "121.5", "121.6", "hydrogen 2p", "6.2647e+08", "6.2647 e8", "2.7760e-01", "2.7760 e-1", "AAA", "T7771"),
+    *_tp("h_1s_2p12", "H I 1s 2S1/2 - 2p 2P1/2 (Lyman-alpha)", "H I", "121.5", "121.6", "hydrogen 2p", "6.2648e+08", "6.2648 e8", "1.3880e-01", "1.3880 e-1", "AAA", "T7771"),
+    *_tp("na_3s_3p32", "Na I 3s 2S1/2 - 3p 2P3/2 (D2)", "Na I", "588.9", "589.7", "sodium 3p", "6.16e+07", "6.16 e7", "6.41e-01", "6.41 e-1", "AA", "T6617,T6568,T6567"),
+    *_tp("na_3s_3p12", "Na I 3s 2S1/2 - 3p 2P1/2 (D1)", "Na I", "588.9", "589.7", "sodium 3p", "6.14e+07", "6.14 e7", "3.20e-01", "3.20 e-1", "AA", "T6617,T6567"),
+    *_tp("cs_6s_6p32", "Cs I 6s 2S1/2 - 6p 2P3/2 (D2)", "Cs I", "852", "895", "cesium 6p", "3.279e+07", "3.279 e7", "7.142e-01", "7.142 e-1", "AAA", "T6469"),
+    *_tp("cs_6s_6p12", "Cs I 6s 2S1/2 - 6p 2P1/2 (D1)", "Cs I", "852", "895", "cesium 6p", "2.863e+07", "2.863 e7", "3.435e-01", "3.435 e-1", "AAA", "T6469"),
+    *_tp("rb_5s_5p32", "Rb I 5s 2S1/2 - 5p 2P3/2 (D2)", "Rb I", "780", "795", "rubidium 5p", "3.812e+07", "3.812 e7", "6.958e-01", "6.958 e-1", "AAA", "T6877,T6650,T1895"),
+    *_tp("rb_5s_5p12", "Rb I 5s 2S1/2 - 5p 2P1/2 (D1)", "Rb I", "780", "795", "rubidium 5p", "3.614e+07", "3.614 e7", "3.424e-01", "3.424 e-1", "AAA", "T6877,T6650"),
+    _life("volz1996.na_3p12_lifetime", "lifetime of the Na I 3p 2P1/2 level", "tau(Na 3p 2P1/2)", "16.299", "0.021", "standard uncertainty", _VOLZ1996, "Phys. Rev. Lett. 76 (1996)",
+          "10.1103/PhysRevLett.76.2862", "16.299(21) ns, at a stated precision of +-0.13%, 1 sigma"),
+    _life("volz1996.na_3p32_lifetime", "lifetime of the Na I 3p 2P3/2 level", "tau(Na 3p 2P3/2)", "16.254", "0.022", "standard uncertainty", _VOLZ1996, "Phys. Rev. Lett. 76 (1996)",
+          "10.1103/PhysRevLett.76.2862", "16.254(22) ns, at a stated precision of +-0.13%, 1 sigma"),
+    _life("gutterres2002.rb87_5p32_lifetime", "radiative lifetime of the 87Rb 5P3/2 level (from Rb2 photoassociation spectroscopy)", "tau(Rb 5P3/2)", "26.25", "0.08",
+          "uncertainty as printed, level not stated", _GUTTERRES2002, "Phys. Rev. A 66 (2002)", "10.1103/PhysRevA.66.024502", "26.25(8) ns, 'with a precision (0.3%)'",
+          ("Extracted from the 5p dipole matrix element fitted to molecular photoassociation spectra, not a direct decay measurement.",)),
+    _life("gutterres2002.rb87_5p12_lifetime", "radiative lifetime of the 87Rb 5P1/2 level (from Rb2 photoassociation spectroscopy)", "tau(Rb 5P1/2)", "27.75", "0.08",
+          "uncertainty as printed, level not stated", _GUTTERRES2002, "Phys. Rev. A 66 (2002)", "10.1103/PhysRevA.66.024502", "27.75(8) ns",
+          ("Extracted from the 5p dipole matrix element fitted to molecular photoassociation spectra, not a direct decay measurement.",)),
+    _life("young1994.cs_6p12_lifetime", "lifetime of the Cs 6p 2P1/2 level (single-photon counting)", "tau(Cs 6p 2P1/2)", "34.75", "0.07",
+          "uncertainty as printed, level not stated", _YOUNG1994, "Phys. Rev. A 50 (1994)", "10.1103/PhysRevA.50.2174", "34.75(7) ns, with accuracies of about 0.2-0.3%"),
+    _life("young1994.cs_6p32_lifetime", "lifetime of the Cs 6p 2P3/2 level (single-photon counting)", "tau(Cs 6p 2P3/2)", "30.41", "0.10",
+          "uncertainty as printed, level not stated", _YOUNG1994, "Phys. Rev. A 50 (1994)", "10.1103/PhysRevA.50.2174", "30.41(10) ns", _CS_DISAGREE),
+    _life("rafac1999.cs_6p12_lifetime", "lifetime of the Cs 6p 2P1/2 level (fast-beam laser)", "tau(Cs 6p 2P1/2)", "35.07", "0.10",
+          "uncertainty as printed, level not stated", _RAFAC1999, "Phys. Rev. A 60 (1999)", "10.1103/PhysRevA.60.3648", "35.07 +- 0.10 ns",
+          ("Young 1994 prints 34.75(7) ns for the same level; both are kept.",)),
+    _life("rafac1999.cs_6p32_lifetime", "lifetime of the Cs 6p 2P3/2 level (fast-beam laser)", "tau(Cs 6p 2P3/2)", "30.57", "0.07",
+          "uncertainty as printed, level not stated", _RAFAC1999, "Phys. Rev. A 60 (1999)", "10.1103/PhysRevA.60.3648", "30.57 +- 0.07 ns", _CS_DISAGREE),
+    _q("patterson2015.cs_6p32_lifetime", "lifetime of the Cs 6P3/2 level (ultrafast pump-probe)", "tau(Cs 6P3/2)", "30.462", "0.046", "ns",
+       kind="uncertainty as printed, level not stated", source=_PATTERSON2015 + ", abstract and Sect. IV", edition="Phys. Rev. A 91 (2015); arXiv:1410.7364v1",
+       url="https://doi.org/10.1103/PhysRevA.91.012506", retrieved_from="https://arxiv.org/e-print/1410.7364", keys=("radiative lifetime", "excited-state lifetime"),
+       phrases=("excited-state lifetime", "radiative lifetime", "atomic lifetime"),
+       notes=("Printed as 30.462(46) ns; the paper says the Table I uncertainties 'were added in quadrature to determine an overall measurement uncertainty of 0.046 ns (0.15%)'.",) + _CS_DISAGREE),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

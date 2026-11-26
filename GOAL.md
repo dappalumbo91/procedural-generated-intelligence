@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.120.0`.
+Rule version `pgi-0.121.0`.
 
 In the kernel now:
 
@@ -199,6 +199,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `base2022.*`, `torres2010.*`, `asplund2021.*` | Antiproton q/m, eclipsing-binary masses, solar abundances | R(p̄/p) `-1.000 000 000 003(16)` at 68%. Masses: V3903 Sgr `27.27 ± 0.55` / `19.01 ± 0.44`, V1143 Cyg, AI Phe `1.2336 ± 0.0045` / `1.1934 ± 0.0041`, EW Ori, CM Dra `0.23102 ± 0.00089` / `0.21409 ± 0.00083` M☉. Abundances: log ε C `8.46`, N `7.83`, O `8.69`, Fe `7.46`. Mass fractions: X `0.7438`, Y `0.2423`, Z `0.0139`, Z/X `0.0187`. |
 | `hpl1972.*`, `mills1973.*`, `db1998.he4.viscosity_*`, `db1998.he4.mutual_friction_*` | Thermal conductivities, water self-diffusion, helium II viscosity and mutual friction | k (W cm⁻¹ K⁻¹): Cu `4.03` (273.2 K), `4.01` (300 K); Al `2.36`, `2.37`; Si `1.48` (300 K); diamond type I `9.94`, type IIa `26.2` (273.2 K, typical). D at 25 °C: HTO in H₂O `2.236 ± 0.004`, H₂O `2.299`, D₂O `1.872` ×10⁻⁹ m²/s. He-4 η `1.346`, `1.468`, `3.319` µPa s at 1.5, 2.0, 4.0 K; B, B′ `1.296`, `0.317` (1.5 K), `1.024`, `0.052` (1.8 K). |
 | `lemoine2013.*`, `konopliv2013.*`, `williams2014.*`, `chen2015.*` | Lunar Love numbers and moments of inertia | Moon k₂₀ `0.024615 ± 0.0000914`, k₂₁ `0.023915 ± 0.0000132`, k₂₂ `0.024852 ± 0.0000167`, k₃₀ `0.00734 ± 0.0015` (GSFC); k₂ `0.02405 ± 0.00018` (JPL); mean `0.02416 ± 0.00022`; Iₛ/MR² `0.392728 ± 0.000012`. Earth A `80,085.1`, B `80,086.8`, C `80,349.0`, I `80,173.6` ± 9.6 ×10³³ kg m². |
+| `asd512.tp.*`, `volz1996.*`, `gutterres2002.*`, `young1994.*`, `rafac1999.*`, `patterson2015.*` | Transition probabilities, oscillator strengths, lifetimes | A (s⁻¹) and f: H 1s–2p₃/₂ `6.2647e+08`, `2.7760e-01`; Na D2 `6.16e+07`, `6.41e-01`; Cs D2 `3.279e+07`, `7.142e-01`; Rb D2 `3.812e+07`, `6.958e-01` (and the D1 lines). τ: Na 3p₁/₂ `16.299(21)`, 3p₃/₂ `16.254(22)` ns; ⁸⁷Rb 5P₃/₂ `26.25(8)`, 5P₁/₂ `27.75(8)`; Cs 6p₃/₂ `30.41(10)`, `30.57 ± 0.07`, `30.462(46)`; Cs 6p₁/₂ `34.75(7)`, `35.07 ± 0.10` ns. |
 | `gw150914.*` | Measured anchors | GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, via the GWOSC event API: source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, final mass `63.1 +3.4 −3.0` solar masses, final spin, radiated energy `3.1 ± 0.4` solar-mass c², `χ_eff`, `d_L = 440 +150 −170` Mpc, and `z`. Medians with 90% credible intervals. |
 | `bound.gw170817_speed_of_gravity` | Experimental bound | Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, from the 1.74 s delay of GRB 170817A, D = 26 Mpc, and an emission lag between 0 and 10 s. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |

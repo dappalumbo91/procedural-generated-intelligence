@@ -2038,6 +2038,16 @@ class MechanicsB15Tests(unittest.TestCase):
         self.assertEqual(quantity("williams2014.moon_is_mr2").value_text, "0.392728")
         self.assertEqual(quantity("chen2015.earth_c").value_text, "80349.0")
 
+class AtomicB15Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("asd512.tp.h_1s_2p32_a").value_text, "6.2647 e8")
+        self.assertEqual(quantity("asd512.tp.na_3s_3p32_f").value_text, "6.41 e-1")
+        self.assertEqual((quantity("volz1996.na_3p32_lifetime").value_text, quantity("volz1996.na_3p32_lifetime").uncertainty_text), ("16.254", "0.022"))
+
+    def test_cs_lifetime_disagreement_kept(self) -> None:
+        values = {quantity(f"{p}.cs_6p32_lifetime").value_text for p in ("young1994", "rafac1999", "patterson2015")}
+        self.assertEqual(values, {"30.41", "30.57", "30.462"})
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

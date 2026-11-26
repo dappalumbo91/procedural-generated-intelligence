@@ -44,7 +44,7 @@ _CODATA = {
 
 _PREFIX: dict[str, str] = {}
 for _domain, _names in {
-    "atomic": ("asd512", "rk2002", "blondel2001"),
+    "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015"),
     "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024"),
     "nuclear": ("ame2020", "ddep", "ensdf", "am2013"),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
@@ -147,6 +147,8 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("Verdet constants of fused silica and water", ("sivaramakrishnan1956.", "turvey1993.")),
     ),
     "atomic": (
+        ("transition probabilities and oscillator strengths (NIST ASD lines)", ("asd512.tp.",)),
+        ("measured excited-state lifetimes (Na 3p, Rb 5p, Cs 6p)", ("volz1996.", "gutterres2002.", "young1994.", "rafac1999.", "patterson2015.",)),
         ("NIST first and second ionization energies", ("asd512.ie.", "asd512.ie2.")),
         ("H-alpha components", ("asd512.h_alpha.",)),
         ("electron affinities", ("rk2002.", "blondel2001.")),

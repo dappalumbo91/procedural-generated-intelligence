@@ -1287,3 +1287,11 @@ Added GRAIL lunar Love numbers from Lemoine 2013 (k20, k21, k22, k30), Konopliv 
 That is 11 records.
 
 `python -m unittest discover -s tests -v` finished 415 tests, 0 failures, about 522.48 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Atomic: A values, oscillator strengths, lifetimes pgi-0.121.0
+
+Added NIST ASD Aki and fik for H Lyman-alpha (both fine-structure components) and the Na, Cs, and Rb D1 and D2 lines. Also added measured lifetimes: Na 3p from Volz 1996, 87Rb 5p from Gutterres 2002, and Cs 6p from Young 1994, Rafac 1999, and Patterson 2015. The three Cs 6p3/2 values are kept side by side.
+
+That is 25 records.
+
+`python -m unittest discover -s tests -v` finished 417 tests, 0 failures, about 444.15 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
