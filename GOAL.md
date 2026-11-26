@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.140.0`.
+Rule version `pgi-0.141.0`.
 
 In the kernel now:
 
@@ -123,6 +123,7 @@ In the kernel now:
 
 Still outside the kernel, and required before a physical law can be written:
 
+- Coulomb continuum identities in an admitted class. The regular reduced wave u_l(rho) = rho^{l+1} exp(-i rho) 1F1(l + 1 - i eta; 2 l + 2; 2 i rho) satisfies u'' + (1 - 2 eta / rho - l(l+1)/rho^2) u = 0 identically for l = 0, 1, 2, and 3, after the confluent equation z y'' + (c - z) y' - a y = 0 is used to eliminate y''. The Coulomb coefficient keeps Gamma(1 + i eta) as a named symbol, with the modulus identity |Gamma(1 + i eta)|^2 = pi eta / sinh(pi eta) checked to be even and to agree with Gamma(z+1) = z Gamma(z). The exact Rutherford amplitude then has |f|^2 = eta^2 / (4 k^2 sin(theta/2)^4), after the unimodular Gamma phase and the unimodular Coulomb logarithm cancel.
 - A set whose upper-bound predicate the kernel cannot decide. The bisection runs for a lessThan ray and for an interval whose upper end is open. An affine comparison in the binder is decided: `{x. x <= x + 1}` is UNIV and is not bounded above. A polynomial comparison, with rational or algebraic coefficients, is decided by a checked sign chart: `{x. x * x <= 2}` is atLeastAtMost(-sqrt(2), sqrt(2)) and its supremum is sqrt(2); `{x. x * x * x <= 2}` is atMost(root(x^3 - 2, 1)); `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}` is atLeastAtMost of the two real square roots of that radicand; `{x. x * x * x <= sqrt(2)}` is atMost(root(x^6 - 2, 2)). `>=` and `>` are rewritten to `<=` and `<` by flipping the sides. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A boolean connective whose sides the kernel can settle individually is composed: `{x. x * x <= 2 and 0 <= x}` is atLeastAtMost(0, sqrt(2)). A boolean connective whose sides the kernel cannot settle stays outside. A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring and checked by `real_sqrt_unique`. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A negative radicand stays open. Division by zero stays open.
 - A Hermitian matrix whose eigenvalues leave the radical tower Q, Q(√d), Q(√d, √e), or Q(√d, √e, √f), or whose eigenvector norm does not have a square root that denests in that tower, stays open. Four or more independent square-free radicands stay open. An algebraic eigenvalue given only as a minimal polynomial of degree three or more that does not denest in the tower stays open. Angular charts that would need trigonometric functions stay outside.
 - Any encoding of general relativity or the Standard Model.
@@ -137,7 +138,7 @@ The math toolkit is not finished. A derivation or prediction check of general re
 What a derivation round would still need:
 
 - A Hermitian spectrum whose eigenvalues leave the radical tower Q, Q(√d), Q(√d, √e), or Q(√d, √e, √f), or whose eigenvector norm does not have a square root that denests in that tower. Four or more independent square-free radicands stay open. An algebraic eigenvalue given only as a minimal polynomial of degree three or more that does not denest in the tower stays open.
-- A general L2 function outside the polynomial-Gaussian and polynomial-exponential classes, completeness of L2 as a metric space, the spectral theorem for an unbounded operator, Coulomb continuum waves and the Rutherford amplitude, and a field theory with infinitely many modes.
+- A general L2 function outside the polynomial-Gaussian and polynomial-exponential classes, completeness of L2 as a metric space, the spectral theorem for an unbounded operator, and a field theory with infinitely many modes.
 
 ## The board
 

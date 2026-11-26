@@ -1213,9 +1213,13 @@ A non-constant SU(2) matrix is kept in the general form U = [[alpha, beta], [-co
 
 Complex scalars now lie in the radical tower Q(i), Q(sqrt(d), i), Q(sqrt(d), sqrt(e), i), or Q(sqrt(d), sqrt(e), sqrt(f), i) when d, e, and f are pairwise coprime square-free integers. The real basis is the eight products of 1, sqrt(d), sqrt(e), and sqrt(f). An inverse is kept only when both products are 1. A square root is kept for a nonnegative rational, or for a nonnegative field element that denests in this tower, including sqrt(4 + 2*sqrt(3)) = 1 + sqrt(3). The off-diagonal Hermitian matrix with entries sqrt(2) + sqrt(3) + sqrt(5) has eigenvalues plus or minus that sum and rebuilds exactly. The Hermitian matrix [[2 + sqrt(3), 1], [1, 2 - sqrt(3)]] has a non-rational eigenvector norm that denests in Q(sqrt(2), sqrt(3)) and rebuilds exactly. Four or more independent square-free radicands stay open, as does a minimal polynomial of degree three or more that does not denest in the tower.
 
+### Coulomb continuum identities
+
+The regular reduced Coulomb wave u_l(rho) = rho^{l+1} exp(-i rho) 1F1(l + 1 - i eta; 2 l + 2; 2 i rho) satisfies u'' + (1 - 2 eta / rho - l(l+1)/rho^2) u = 0 identically for l = 0, 1, 2, and 3, after the confluent equation is used to eliminate the second z-derivative. Gamma(1 + i eta) is kept as a named symbol whose modulus identity |Gamma(1 + i eta)|^2 = pi eta / sinh(pi eta) is even and agrees with the recurrence Gamma(z+1) = z Gamma(z). The exact Rutherford amplitude then has modulus squared eta^2 / (4 k^2 sin(theta/2)^4). A general L2 function outside the already admitted classes, completeness of L2, the spectral theorem for an unbounded operator, and a field theory with infinitely many modes stay open.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.140.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.141.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 - A general L2 function outside the polynomial-Gaussian and polynomial-exponential classes, completeness of L2 as a metric space, the spectral theorem for an unbounded operator, Coulomb continuum waves and the Rutherford amplitude, and a field theory with infinitely many modes stay outside.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

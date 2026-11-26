@@ -40,6 +40,7 @@ from pgi.math.vary import eval_vary_result, has_vary, vary_equality_rules, vary_
 from pgi.math.ylm import eval_ylm_result, has_ylm, ylm_equality_rules, ylm_value_rule, side_as_ylm
 from pgi.math.tetrad import eval_tetrad_result, has_tetrad, tetrad_equality_rules, tetrad_value_rule, side_as_tetrad
 from pgi.math.continuum import eval_continuum_result, has_continuum, continuum_equality_rules, continuum_value_rule, side_as_continuum
+from pgi.math.coulomb import eval_coulomb_result, has_coulomb, coulomb_equality_rules, coulomb_value_rule, side_as_coulomb
 from pgi.math.stokes import eval_stokes_result, has_stokes, stokes_equality_rules, stokes_value_rule, side_as_stokes
 from pgi.math.poly import eval_sym_result, has_symbolic, sym_equality_rules, sym_value_rule
 from pgi.math.trans import (
@@ -111,6 +112,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return conflicts
         if _has_set(equation.left) or _has_set(equation.right):
             return _set_equation(equation, anchors)
+        if has_coulomb(equation.left) or has_coulomb(equation.right):
+            return _coulomb_equation(equation, anchors)
         if has_continuum(equation.left) or has_continuum(equation.right):
             return _continuum_equation(equation, anchors)
         if has_tetrad(equation.left) or has_tetrad(equation.right):
@@ -158,6 +161,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return conflicts
     if _has_set(term):
         return _set_value(term, anchors)
+    if has_coulomb(term):
+        return _coulomb_value(term, anchors)
     if has_continuum(term):
         return _continuum_value(term, anchors)
     if has_tetrad(term):
@@ -500,6 +505,34 @@ def _continuum_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...
         return (_note(str(exc)),)
     return (continuum_value_rule(term, result, prelude),)
 
+
+
+def _coulomb_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    try:
+        result = eval_coulomb_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (coulomb_value_rule(term, result, prelude),)
+
+
+def _coulomb_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left_sub = _substitute(equation.left, anchors)
+    right_sub = _substitute(equation.right, anchors)
+    left_body = left_sub.formula.right
+    right_body = right_sub.formula.right
+    prelude = (
+        *(trace(left_sub) if left_sub.rule != "Eq.refl" else ()),
+        *(trace(right_sub) if right_sub.rule != "Eq.refl" else ()),
+    )
+    try:
+        left_value = side_as_coulomb(left_body)
+        right_value = side_as_coulomb(right_body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return coulomb_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
 
 def _continuum_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
     left_sub = _substitute(equation.left, anchors)
