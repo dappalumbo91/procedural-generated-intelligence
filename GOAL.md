@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.103.0`.
+Rule version `pgi-0.104.0`.
 
 In the kernel now:
 
@@ -105,6 +105,7 @@ In the kernel now:
 - The Lorentz algebra so(3,1) and the Dirac matrices. The Minkowski metric is `η = diag(-1, 1, 1, 1)`. A boost with a rational velocity is kept only when `1 - v^2` is the square of a positive rational, and when both `Λ^T η Λ` and `Λ η Λ^T` equal `η`. The so(3,1) generators satisfy `[J_i, J_j] = ε_ijk J_k`, `[K_i, K_j] = -ε_ijk J_k`, and `[J_i, K_j] = ε_ijk K_k`, and each preserves `η` infinitesimally. The Dirac matrices satisfy `{γ^μ, γ^ν} = 2 η^{μν} I`, checked on every pair.
 - A Hermitian spectral decomposition in size up to 8, kept only when the eigenvalues lie in Q or Q(√d), eigenvector norms are positive rationals, `H = U D U†`, `U` is unitary, and `D` is real diagonal. The 3×3 case `[[0, 1, 0], [1, 0, 1], [0, 1, 0]]` has diagonal `diag(-√2, 0, √2)` and rebuilds exactly. Mixing two different square-free radicands stays open. An SU(3) gauge transformation by a constant special unitary matrix acts on a constant connection by `A ↦ U A U†`. The field strength `F = [A_x, A_y]` transforms as `F ↦ U F U†`, and `tr(F²)` is invariant.
 - Exact ODE checks. A candidate is kept only when its residual in a linear ODE vanishes identically. The harmonic oscillator, with ħ = ω = m = 1, is checked for n = 0, 1, and 2, where ψ'' − (x² − 2n − 1) ψ = 0 and E_n = n + 1/2. The hydrogen radial equation in atomic units is checked for (n, ℓ) = (1, 0), (2, 0), and (2, 1), where u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0 and E = −1/(2n²). The admitted candidates are polynomials times an exponential.
+- Differential forms and the exterior derivative. The wedge product is alternating. d² = 0 is checked identically, including on elementary 1-forms. On flat Minkowski spacetime, the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is that identity: the homogeneous Maxwell equations in the language of forms. The inhomogeneous equation d⋆F = J stays outside until the Hodge star is admitted.
 
 Still outside the kernel, and required before a physical law can be written:
 

@@ -33,6 +33,7 @@ from pgi.math.hilbert import eval_hilbert_result, has_hilbert, hilbert_equality_
 from pgi.math.gauge import eval_gauge_result, has_gauge, gauge_equality_rules, gauge_value_rule, side_as_gauge
 from pgi.math.lorentz import eval_lorentz_result, has_lorentz, lorentz_equality_rules, lorentz_value_rule, side_as_lorentz
 from pgi.math.ode import eval_ode_result, has_ode, ode_equality_rules, ode_value_rule, side_as_ode
+from pgi.math.forms import eval_forms_result, has_forms, forms_equality_rules, forms_value_rule, side_as_forms
 from pgi.math.poly import eval_sym_result, has_symbolic, sym_equality_rules, sym_value_rule
 from pgi.math.trans import (
     enclose_term,
@@ -103,6 +104,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
             return conflicts
         if _has_set(equation.left) or _has_set(equation.right):
             return _set_equation(equation, anchors)
+        if has_forms(equation.left) or has_forms(equation.right):
+            return _forms_equation(equation, anchors)
         if has_ode(equation.left) or has_ode(equation.right):
             return _ode_equation(equation, anchors)
         if has_lorentz(equation.left) or has_lorentz(equation.right):
@@ -134,6 +137,8 @@ def rules_from_ask(ask: str, facts: tuple[str, ...]) -> tuple[Rule, ...]:
         return conflicts
     if _has_set(term):
         return _set_value(term, anchors)
+    if has_forms(term):
+        return _forms_value(term, anchors)
     if has_ode(term):
         return _ode_value(term, anchors)
     if has_lorentz(term):
@@ -444,6 +449,34 @@ def _real_order(body: str, anchors: dict[str, Theorem]) -> tuple[Rule, ...] | No
     except NotExact as exc:
         return (_note(str(exc)),)
     return (real_order_rule(left, right, left_real, right_real, (*left_closed[1], *right_closed[1])),)
+
+
+def _forms_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    substituted = _substitute(term, anchors)
+    body = substituted.formula.right
+    prelude = trace(substituted) if substituted.rule != "Eq.refl" else ()
+    try:
+        result = eval_forms_result(body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return (forms_value_rule(term, result, prelude),)
+
+
+def _forms_equation(equation: Eq, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:
+    left_sub = _substitute(equation.left, anchors)
+    right_sub = _substitute(equation.right, anchors)
+    left_body = left_sub.formula.right
+    right_body = right_sub.formula.right
+    prelude = (
+        *(trace(left_sub) if left_sub.rule != "Eq.refl" else ()),
+        *(trace(right_sub) if right_sub.rule != "Eq.refl" else ()),
+    )
+    try:
+        left_value = side_as_forms(left_body)
+        right_value = side_as_forms(right_body)
+    except NotExact as exc:
+        return (_note(str(exc)),)
+    return forms_equality_rules(equation.left, equation.right, left_value, right_value, prelude)
 
 
 def _ode_value(term: Term, anchors: dict[str, Theorem]) -> tuple[Rule, ...]:

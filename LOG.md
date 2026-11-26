@@ -1148,3 +1148,11 @@ Added 18 SME summary-table sensitivities (matter b̃, photon, neutrino, gravity)
 That is 20 records.
 
 `python -m unittest discover -s tests -v` finished 380 tests, 0 failures, about 436.10 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — differential forms and Maxwell on flat spacetime pgi-0.104.0
+
+A k-form on a coordinate chart has exact components, either multivariate rationals or elementary expressions. The wedge product is alternating. The exterior derivative satisfies d² = 0, checked identically. On flat Minkowski spacetime, the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is that identity: the homogeneous Maxwell equations in the language of forms. The inhomogeneous equation d⋆F = J stays outside until the Hodge star is admitted.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 383 tests, 0 failures, about 446.59 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
