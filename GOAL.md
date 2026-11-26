@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.116.0`.
+Rule version `pgi-0.117.0`.
 
 In the kernel now:
 
@@ -105,7 +105,7 @@ In the kernel now:
 - The Lorentz algebra so(3,1) and the Dirac matrices. The Minkowski metric is `η = diag(-1, 1, 1, 1)`. A boost with a rational velocity is kept only when `1 - v^2` is the square of a positive rational, and when both `Λ^T η Λ` and `Λ η Λ^T` equal `η`. The so(3,1) generators satisfy `[J_i, J_j] = ε_ijk J_k`, `[K_i, K_j] = -ε_ijk J_k`, and `[J_i, K_j] = ε_ijk K_k`, and each preserves `η` infinitesimally. The Dirac matrices satisfy `{γ^μ, γ^ν} = 2 η^{μν} I`, checked on every pair.
 - A Hermitian spectral decomposition in size up to 8, kept only when the eigenvalues lie in Q, Q(√d), or Q(√d, √e), eigenvector norms are positive rationals, `H = U D U†`, `U` is unitary, and `D` is real diagonal. The 3×3 case `[[0, 1, 0], [1, 0, 1], [0, 1, 0]]` has diagonal `diag(-√2, 0, √2)` and rebuilds exactly. The 3×3 case `[[2, 1, 1], [1, 2, 1], [1, 1, 2]]` has diagonal `diag(1, 1, 4)`, a spectral factor in Q(√2, √3), and rebuilds exactly. An SU(3) gauge transformation by a constant special unitary matrix acts on a constant connection by `A ↦ U A U†`. The field strength `F = [A_x, A_y]` transforms as `F ↦ U F U†`, and `tr(F²)` is invariant.
 - Exact ODE checks. A candidate is kept only when its residual in a linear ODE vanishes identically. The harmonic oscillator, with ħ = ω = m = 1, is checked for n = 0, 1, and 2, where ψ'' − (x² − 2n − 1) ψ = 0 and E_n = n + 1/2. The hydrogen radial equation in atomic units is checked for (n, ℓ) = (1, 0), (2, 0), and (2, 1), where u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0 and E = −1/(2n²). The admitted candidates are polynomials times an exponential.
-- Differential forms and the exterior derivative. The wedge product is alternating. d² = 0 is checked identically, including on elementary 1-forms. On flat Minkowski spacetime, the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is that identity: the homogeneous Maxwell equations in the language of forms. The inhomogeneous equation d⋆F = J stays outside until the Hodge star is admitted.
+- Differential forms and the exterior derivative. The wedge product is alternating. d² = 0 is checked identically, including on elementary 1-forms. On flat Minkowski spacetime, the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is that identity: the homogeneous Maxwell equations in the language of forms. The Hodge star is kept only when the volume density squares back to |det g|. ⋆⋆ of a 2-form on Minkowski spacetime is minus the form. For a uniform charge density, with A_t = -x²/2, d⋆F equals ⋆(dt). On the Schwarzschild metric the Coulomb potential A = dt/r has ⋆F = -sin(θ) dθ ∧ dφ and d⋆F = 0.
 - Killing vectors and the Lie derivative of a metric. L_X g vanishes identically if and only if X is a Killing field. The translations and the rotation of the Euclidean plane are Killing. Schwarzschild's time-translation ∂_t, axial rotation ∂_φ, and the remaining rotation fields J_x and J_y are Killing, checked identically.
 - Canonical commutators, angular momentum, and oscillator ladder operators. With ħ = 1, position is multiplication by the coordinate and P = −i ∂. The identities [X_i, P_j] = i δ_ij and [L_i, L_j] = i ε_ijk L_k are checked as operator equalities in normal form. The oscillator ladders a = (X + iP)/√2 and a† = (X − iP)/√2 satisfy [a, a†] = 1, checked identically.
 - A position-dependent SU(2) gauge transformation by the rational rotation already checked. It acts by A_μ ↦ U A_μ U† + U ∂_μ U†, and the field strength F = ∂A + [A, A] transforms as F ↦ U F U†, checked identically as matrix-valued rational functions.
@@ -126,7 +126,6 @@ The math toolkit is not finished. A derivation or prediction check of general re
 
 What a derivation round would still need:
 
-- The Hodge star, and the inhomogeneous Maxwell equation d⋆F = J, including Maxwell's equations on a curved metric.
 - The Dirac operator on curved spacetime, with a tetrad and a spin connection.
 - A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
 - Variational principles: an action, the Euler–Lagrange equation, and a Noether current, checked identically for a Lagrangian the kernel already admits.

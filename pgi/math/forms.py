@@ -6,8 +6,10 @@ The exterior derivative satisfies d² = 0, checked identically on every
 admitted form. On flat Minkowski spacetime with coordinates (t, x, y, z),
 the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is the identity
 d²A = 0: the homogeneous Maxwell equations in the language of forms.
-The inhomogeneous equation d⋆F = J stays outside until the Hodge star
-is admitted.
+The Hodge star of a k-form is the complementary (n-k)-form built from
+the inverse metric and the exact volume density √|g|, kept only when
+that density squares back to |det g|. On flat Minkowski spacetime and
+on the Schwarzschild metric, d⋆F is the inhomogeneous Maxwell 3-form J.
 
 Certificates are identities, checked exactly, with no approximation.
 """
@@ -19,6 +21,7 @@ from dataclasses import dataclass
 from pgi.math.kernel import KernelError, NotExact
 from pgi.math.manifold import actual_names
 from pgi.math.metric import (
+    Metric,
     _field_add,
     _field_diff,
     _field_embed,
@@ -29,6 +32,10 @@ from pgi.math.metric import (
     _field_show,
     _is_fun,
     _lift,
+    _zero_for,
+    metric_eq,
+    metric_inverse,
+    named_metric,
 )
 from pgi.math.poly import MRat, eval_symbolic, show_rat, zero_poly, as_rat
 from pgi.math.rational import Ratio, RatTheorem, rat_normalize
@@ -45,10 +52,13 @@ def _zero_coeff(names: tuple[str, ...]):
 
 
 def _coeff_in(value, names: tuple[str, ...]) -> bool:
-    from pgi.math.trans import FExpr, _plains_of
+    from pgi.math.metric import _fexpr_used_names
+    from pgi.math.trans import FExpr
 
     if isinstance(value, FExpr):
-        return set(_plains_of(value)) <= set(names) | {"pi"}
+        # Unused plains may remain after a cancellation. The mass parameter
+        # of Schwarzschild is allowed, as on the metric itself.
+        return _fexpr_used_names(value) <= set(names) | {"m", "pi"}
     if isinstance(value, MRat):
         return actual_names(value.num, value.den) <= set(names)
     return False
@@ -241,6 +251,220 @@ def faraday(potential: Form) -> Form:
     return exterior(potential)
 
 
+def _perm_parity(values: tuple[int, ...]) -> int:
+    inversions = 0
+    for i in range(len(values)):
+        for j in range(i + 1, len(values)):
+            if values[i] > values[j]:
+                inversions += 1
+    return 1 if inversions % 2 == 0 else -1
+
+
+def _metric_det(metric: Metric):
+    from itertools import permutations
+
+    n = metric.dim
+    total = None
+    for perm in permutations(range(n)):
+        term = None
+        for i, j in enumerate(perm):
+            entry = metric.rows[i][j]
+            term = entry if term is None else _field_mul(term, entry)
+        if _perm_parity(perm) < 0:
+            term = _field_neg(term)
+        total = term if total is None else _field_add(total, term)
+    if total is None:
+        return _zero_for(metric)
+    return _field_embed(total, metric.names)
+
+
+def _ratio_sqrt_abs(value: Ratio) -> Ratio | None:
+    from math import isqrt
+
+    num, den = abs(value.num), value.den
+    root_num, root_den = isqrt(num), isqrt(den)
+    if root_num * root_num == num and root_den * root_den == den:
+        return Ratio(root_num, root_den)
+    return None
+
+
+def _constant_ratio(value) -> Ratio | None:
+    from pgi.math.trans import FExpr, _as_ratio
+
+    if isinstance(value, FExpr):
+        return _as_ratio(value)
+    if isinstance(value, MRat) and value.num.is_constant and value.den.is_constant:
+        num = value.num.constant() if not value.num.is_zero else _ZERO
+        den = value.den.constant()
+        if den.num == 0:
+            return None
+        return rat_normalize(num.num * den.den, num.den * den.num).value
+    return None
+
+
+def _volume_candidate(metric: Metric):
+    from pgi.math.poly import const_poly
+    from pgi.math.syntax import parse_term
+    from pgi.math.trans import eval_trans, fexpr_pow, formal_expr, var_fexpr
+
+    names = metric.names
+    one = as_rat(const_poly(Ratio(1, 1), names))
+    if metric_eq(metric, named_metric("minkowski4")) or metric_eq(metric, named_metric("e3")) or metric_eq(metric, named_metric("e2")) or metric_eq(metric, named_metric("minkowski2")):
+        return one
+    if metric.dim == 4 and names == ("t", "r", "theta", "phi") and metric_eq(metric, named_metric("schwarzschild")):
+        return _field_embed(eval_trans(parse_term("r^2 * sin(theta)")), names)
+    if metric.dim == 4 and names == ("t", "x", "y", "z") and metric_eq(metric, named_metric("flrw")):
+        scale = formal_expr("a", var_fexpr("t", names), 0, names)
+        return _field_embed(fexpr_pow(scale, 3), names)
+    if metric.dim == 2 and names == ("theta", "phi") and metric_eq(metric, named_metric("s2", "angular")):
+        return _field_embed(eval_trans(parse_term("sin(theta)")), names)
+    ratio = _constant_ratio(_metric_det(metric))
+    if ratio is not None:
+        root = _ratio_sqrt_abs(ratio)
+        if root is not None:
+            return as_rat(const_poly(root, names))
+    return None
+
+
+def _volume_density(metric: Metric):
+    det = _metric_det(metric)
+    candidate = _volume_candidate(metric)
+    if candidate is None:
+        raise NotExact("the volume density of this metric is not an exact square")
+    square = _field_mul(candidate, candidate)
+    if _field_eq(square, det) or _field_eq(square, _field_neg(det)):
+        return _field_embed(candidate, metric.names)
+    raise KernelError("this volume density did not square back to the absolute determinant")
+
+
+def _form_component(value: Form, indices: tuple[int, ...]):
+    sign, ordered = _sort_indices(indices)
+    if sign == 0:
+        return _zero_coeff(value.names)
+    present = {item: coeff for item, coeff in value.terms}
+    coeff = present.get(ordered)
+    if coeff is None:
+        return _zero_coeff(value.names)
+    return coeff if sign > 0 else _field_neg(coeff)
+
+
+def _raised_component(value: Form, inverse: Metric, indices: tuple[int, ...]):
+    k = len(indices)
+    n = inverse.dim
+    acc = _zero_coeff(value.names)
+    slots = [0] * k
+
+    def walk(pos: int) -> None:
+        nonlocal acc
+        if pos == k:
+            omega = _form_component(value, tuple(slots))
+            if _field_is_zero(omega):
+                return
+            factor = omega
+            for a in range(k):
+                factor = _field_mul(factor, inverse.rows[indices[a]][slots[a]])
+            acc = _field_add(acc, factor)
+            return
+        for index in range(n):
+            slots[pos] = index
+            walk(pos + 1)
+
+    if k == 0:
+        return _form_component(value, ())
+    walk(0)
+    return acc
+
+
+def hodge(value: Form, metric: Metric) -> Form:
+    """The Hodge star of a k-form, a complementary (n − k)-form."""
+    if value.names != metric.names:
+        raise NotExact("the Hodge star needs a form and a metric on the same chart")
+    n = metric.dim
+    k = value.degree
+    if k > n:
+        return zero_form(value.names, 0)
+    inverse = metric_inverse(metric)
+    density = _volume_density(metric)
+    raw = []
+    from itertools import combinations
+
+    for chosen in combinations(range(n), k):
+        raised = _raised_component(value, inverse, chosen)
+        if _field_is_zero(raised):
+            continue
+        complement = tuple(index for index in range(n) if index not in chosen)
+        coeff = _field_mul(density, raised)
+        if _perm_parity(chosen + complement) < 0:
+            coeff = _field_neg(coeff)
+        raw.append((complement, coeff))
+    return _make_form(value.names, n - k, raw)
+
+
+def _hodge_double_sign(metric: Metric, degree: int) -> int:
+    """The sign in ⋆⋆α = σ α, namely (−1)^{k(n−k)} sgn(det g)."""
+    n = metric.dim
+    density = _volume_density(metric)
+    det = _metric_det(metric)
+    square = _field_mul(density, density)
+    if _field_eq(square, det):
+        signature = 1
+    elif _field_eq(square, _field_neg(det)):
+        signature = -1
+    else:
+        raise KernelError("this volume density did not square back to the absolute determinant")
+    return (1 if (degree * (n - degree)) % 2 == 0 else -1) * signature
+
+
+def _double_hodge(value: Form, metric: Metric) -> Form:
+    return hodge(hodge(value, metric), metric)
+
+
+def _check_hodge_standing() -> None:
+    from pgi.math.poly import const_poly, var_poly, mrat_mul, mrat_div, mrat_neg
+
+    minkowski = named_metric("minkowski4")
+    names4 = minkowski.names
+    one = as_rat(const_poly(Ratio(1, 1), names4))
+    # ⋆⋆α = σ α on 0-, 1-, and 2-forms.
+    unit = zeroform(one, names4)
+    if not form_eq(_double_hodge(unit, minkowski), form_scale(unit, as_rat(const_poly(Ratio(-1, 1), names4)))):
+        raise KernelError("⋆⋆ of a 0-form on Minkowski was not -1 times the form")
+    dt = coframe(names4, 0)
+    dx = coframe(names4, 1)
+    if not form_eq(_double_hodge(dt, minkowski), dt):
+        raise KernelError("⋆⋆ of dt on Minkowski was not dt")
+    two = wedge(dt, dx)
+    if not form_eq(_double_hodge(two, minkowski), form_neg(two)):
+        raise KernelError("⋆⋆ of a 2-form on Minkowski was not minus the form")
+    # Uniform charge density: A_t = -x²/2, E = x ê_x, ∇·E = 1, J = ⋆(dt).
+    x4 = as_rat(var_poly("x", names4))
+    half = as_rat(const_poly(Ratio(-1, 2), names4))
+    pot = oneform((mrat_mul(half, mrat_mul(x4, x4)), _zero_coeff(names4), _zero_coeff(names4), _zero_coeff(names4)), names4)
+    field = faraday(pot)
+    current = hodge(dt, minkowski)
+    if not form_eq(exterior(hodge(field, minkowski)), current):
+        raise KernelError("d⋆F did not equal ⋆j for a uniform charge density on Minkowski")
+    # Coulomb field on Schwarzschild: A = dt/r, ⋆F = sin(θ) dθ ∧ dφ, d⋆F = 0, ⋆⋆F = -F.
+    schw = named_metric("schwarzschild")
+    coords = schw.names
+    from pgi.math.syntax import parse_term
+    from pgi.math.trans import eval_trans
+
+    inverse_r = _field_embed(eval_trans(parse_term("1/r")), coords)
+    zero = _zero_coeff(coords)
+    coulomb = oneform((inverse_r, zero, zero, zero), coords)
+    schw_field = faraday(coulomb)
+    if not form_eq(_double_hodge(schw_field, schw), form_neg(schw_field)):
+        raise KernelError("⋆⋆ of the Coulomb field on Schwarzschild was not minus the field")
+    star_field = hodge(schw_field, schw)
+    sine = _field_embed(eval_trans(parse_term("sin(theta)")), coords)
+    expected = _make_form(coords, 2, [((2, 3), _field_neg(sine))])
+    if not form_eq(star_field, expected):
+        raise KernelError("⋆F of the Coulomb field on Schwarzschild was not -sin(θ) dθ ∧ dφ")
+    if not form_is_zero(exterior(star_field)):
+        raise KernelError("d⋆F did not vanish for the Coulomb field on Schwarzschild")
+
+
 def _standing() -> None:
     global _STANDING
     if _STANDING:
@@ -297,6 +521,8 @@ def _standing() -> None:
     wave = oneform((eval_trans(parse_term("sin(t + x)")), _zero_coeff(names4), _zero_coeff(names4), _zero_coeff(names4)), names4)
     if not form_is_zero(exterior(faraday(wave))):
         raise KernelError("dF did not vanish for an elementary potential")
+    # Hodge star and d⋆F = J on Minkowski, and the Coulomb field on Schwarzschild.
+    _check_hodge_standing()
     _STANDING = True
 
 
@@ -339,6 +565,7 @@ FORMS_OPS = frozenset({
     "coframe",
     "form",
     "zeroform",
+    "hodge",
 })
 
 
@@ -387,6 +614,16 @@ def _coords_from(args: tuple[Term, ...]) -> tuple[str, ...]:
     if not args:
         return _MINKOWSKI
     return tuple(_name(arg) for arg in args)
+
+
+def _eval_hodge_metric(term: Term) -> Metric:
+    from pgi.math.metric import eval_metric
+
+    if isinstance(term, Var):
+        return named_metric(term.name)
+    if isinstance(term, App) and term.op == "metric":
+        return eval_metric(term)
+    raise NotExact("hodge takes a named metric")
 
 
 def _eval_form(term: Term) -> Form:
@@ -458,6 +695,10 @@ def _eval_form(term: Term) -> Form:
             if isinstance(arg, App) and arg.op in {"potential", "oneform"}:
                 return faraday(_eval_form(arg))
             return faraday(_eval_form(arg))
+        if term.op == "hodge":
+            if len(term.args) != 2:
+                raise NotExact("hodge takes a form and a metric")
+            return hodge(_eval_form(term.args[0]), _eval_hodge_metric(term.args[1]))
         if term.op in {"add", "sub"} and len(term.args) == 2:
             left, right = _eval_form(term.args[0]), _eval_form(term.args[1])
             return form_add(left, right) if term.op == "add" else form_sub(left, right)
@@ -496,6 +737,8 @@ def _detail() -> tuple[str, ...]:
     return (
         "The exterior derivative satisfies d² = 0, checked identically.",
         "On flat spacetime, F = dA and dF = 0 is that identity: the homogeneous Maxwell equations in form language.",
+        "The Hodge star uses the inverse metric and an exact volume density that squares back to |det g|.",
+        "On Minkowski spacetime and on the Schwarzschild metric, d⋆F is the inhomogeneous Maxwell 3-form J.",
     )
 
 

@@ -1255,3 +1255,11 @@ GOAL.md now has a TOOLKIT_STATUS section listing the mathematics a derivation ro
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 410 tests, 0 failures, about 603.57 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Hodge star and d⋆F = J pgi-0.117.0
+
+The Hodge star of a k-form is the complementary (n-k)-form built from the inverse metric and an exact volume density √|g|, kept only when that density squares back to |det g|. ⋆⋆ of a 2-form on Minkowski spacetime is minus the form, checked identically. A uniform charge density on flat spacetime, with potential A_t = -x²/2, satisfies d⋆F = ⋆(dt). On the Schwarzschild metric, the Coulomb potential A = dt/r has ⋆F = -sin(θ) dθ ∧ dφ and d⋆F = 0 away from the origin.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 411 tests, 0 failures, about 657.47 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

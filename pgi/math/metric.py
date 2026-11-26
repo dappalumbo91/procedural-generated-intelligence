@@ -822,6 +822,8 @@ def named_metric(manifold: str, chart: str | None = None) -> Metric:
         if chart == "tx":
             return minkowski
         return pullback(minkowski, transition_map("minkowski2", chart, "tx"))
+    if manifold in {"minkowski4", "m4"}:
+        return constant_metric(("t", "x", "y", "z"), (_NEG_ONE, _ONE, _ONE, _ONE))
     if manifold in {"schwarzschild", "schw"}:
         return _schwarzschild_metric()
     if manifold in {"flrw", "friedmann"}:
@@ -844,6 +846,7 @@ def _canonical_metric(manifold: str, chart: str | None) -> tuple[str, str]:
         "euclidean3": "e3",
         "minkowski": "minkowski2",
         "m2": "minkowski2",
+        "m4": "minkowski4",
         "sphere": "s2",
         "schw": "schwarzschild",
         "friedmann": "flrw",
@@ -853,6 +856,7 @@ def _canonical_metric(manifold: str, chart: str | None) -> tuple[str, str]:
         "e2": "xy",
         "e3": "xyz",
         "minkowski2": "tx",
+        "minkowski4": "txyz",
         "s2": "north",
         "schwarzschild": "standard",
         "flrw": "cartesian",
@@ -867,6 +871,8 @@ def _canonical_metric(manifold: str, chart: str | None) -> tuple[str, str]:
         return manifold, chart
     if manifold == "minkowski2" and chart in {"tx", "uv"}:
         return manifold, chart
+    if manifold == "minkowski4" and chart in {"txyz", "standard"}:
+        return manifold, "txyz"
     if manifold == "s2" and chart in {"north", "south", "angular", "thetaphi"}:
         return manifold, chart
     if manifold == "schwarzschild" and chart in {"standard", "schwarzschild"}:
@@ -1142,7 +1148,7 @@ def _is_unit_sphere(metric: Metric) -> bool:
 
 
 def _is_flat_named(metric: Metric) -> bool:
-    for man, chart in (("e2", "xy"), ("e2", "uv"), ("e3", "xyz"), ("minkowski2", "tx"), ("minkowski2", "uv")):
+    for man, chart in (("e2", "xy"), ("e2", "uv"), ("e3", "xyz"), ("minkowski2", "tx"), ("minkowski2", "uv"), ("minkowski4", "txyz")):
         try:
             if metric_eq(metric, named_metric(man, chart)):
                 return True
@@ -1430,6 +1436,8 @@ def _metric_coords(manifold: str, chart: str) -> tuple[str, ...]:
         return ("x", "y", "z")
     if manifold in {"minkowski2", "m2"}:
         return ("t", "x") if chart == "tx" else ("u", "v")
+    if manifold in {"minkowski4", "m4"}:
+        return ("t", "x", "y", "z")
     if manifold in {"s2", "sphere"}:
         if chart in {"angular", "thetaphi"}:
             return ("theta", "phi")
