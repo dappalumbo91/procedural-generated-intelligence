@@ -4444,7 +4444,80 @@ ATOMIC_B15: tuple[Quantity, ...] = (
        notes=("Printed as 30.462(46) ns; the paper says the Table I uncertainties 'were added in quadrature to determine an overall measurement uncertainty of 0.046 ns (0.15%)'.",) + _CS_DISAGREE),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15
+_KL = "Kaye & Laby, Tables of Physical and Chemical Constants, NPL online edition (Version 1.0 content)"
+_KL_MAG_WB = "https://web.archive.org/web/20160103231152/http://www.kayelaby.npl.co.uk/general_physics/2_6/2_6_6.html"
+_KL_GAMMA_WB = "https://web.archive.org/web/20161203063541/http://www.kayelaby.npl.co.uk/general_physics/2_3/2_3_6.html"
+_LEVITON_FS = "D. B. Leviton and B. J. Frey, Temperature-dependent absolute refractive index measurements of synthetic fused silica, NASA GSFC (CHARMS), arXiv:0805.0091"
+_FREY_SIGE = "B. J. Frey, D. B. Leviton, and T. J. Madison, Temperature-dependent refractive index of silicon and germanium, Proc. SPIE 6273 (2006), doi:10.1117/12.672850, arXiv:physics/0606168"
+_KHATIWADA = "R. Khatiwada, L. Dennis, R. Kendrick, M. Khosravi, M. Peters, E. Smith, and W. M. Snow, Materials with low DC magnetic susceptibility for sensitive magnetic measurements, Meas. Sci. Technol. 27, 025902 (2016), doi:10.1088/0957-0233/27/2/025902, arXiv:1506.09199"
+_HAVENS = "G. G. Havens, The magnetic susceptibilities of some common gases, Phys. Rev. 43, 992 (1933), doi:10.1103/PhysRev.43.992"
+
+
+def _klmag(key, name, value):
+    return _q(f"kayelaby_mag.{key}", f"mass magnetic susceptibility of {name} at 20 C", f"chi_m({name})", value, "", "1e-8 m^3/kg", kind="no uncertainty printed",
+              source=_KL + ", Sect. 2.6.6 Magnetic properties of materials, Table (1) Magnetic susceptibilities of paramagnetic and diamagnetic materials",
+              edition="Kaye & Laby online, Wayback snapshot 2016-01-03", url=_KL_MAG_WB, retrieved_from=_KL_MAG_WB, keys=("magnetic susceptibility", "mass susceptibility"),
+              phrases=("magnetic susceptibility", f"magnetic susceptibility of {name.split()[0].lower()}", "mass susceptibility"),
+              notes=(f"Printed as {value} in the x 10^-8 column; the table heading says 'Values are mass susceptibility per kilogram, chi, at 20 C'.",
+                     "The page was kayelaby.npl.co.uk/general_physics/2_6/2_6_6.html (NPL); the live site is retired, so the Wayback copy is cited.", "Note (1) of the table: to obtain values in CGS units per gramme, multiply the SI values by 10^3/4 pi. Not converted here."))
+
+
+def _klgamma(key, gas, temp, value):
+    return _q(f"kayelaby_gamma.{key}", f"ratio of principal specific heats of {gas} at {temp} C", f"gamma({gas})", value, "", "", kind="no uncertainty printed",
+              source=_KL + ", Sect. 2.3.6 Specific heat capacities, 'Ratio of the principal specific heat capacities for gases and vapours'",
+              edition="Kaye & Laby online, Wayback snapshot 2016-12-03", url=_KL_GAMMA_WB, retrieved_from=_KL_GAMMA_WB, keys=("heat capacity ratio", "adiabatic index"),
+              phrases=("heat capacity ratio", "adiabatic index", f"heat capacity ratio of {gas.split()[0].lower()}", "ratio of specific heats"),
+              notes=(f"The table row prints Gas {gas}, Temp./C {temp}, gamma {value}.", "The section says gamma 'is usually determined directly by some method involving an adiabatic expansion, such as the determination of the velocity of sound in the gas'.", "The page was kayelaby.npl.co.uk/general_physics/2_3/2_3_6.html (NPL); the live site is retired, so the Wayback copy is cited."))
+
+
+def _dndt(prefix, key, material, wl, temp, printed, value, source, edition, url, retrieved, table):
+    return _q(f"{prefix}.{key}", f"thermo-optic coefficient dn/dT of {material} at {wl} um and {temp} K", f"dn/dT({material}, {wl} um, {temp} K)", value, "", "1/K",
+              kind="no uncertainty printed", source=f"{source}, {table}", edition=edition, url=url, retrieved_from=retrieved, keys=("thermo-optic coefficient", "dn/dt"),
+              phrases=("thermo-optic", "thermo-optic coefficient", "dn/dt", f"thermo-optic coefficient of {material.lower()}"),
+              notes=(f"{table} prints {printed} at {wl} microns and {temp} K.",))
+
+
+_FS_NOTE_ARGS = dict(source=_LEVITON_FS, edition="arXiv:0805.0091v1", url="https://arxiv.org/abs/0805.0091", retrieved="https://arxiv.org/e-print/0805.0091",
+                     table="Table 6 (thermo-optic coefficient of Corning 7980 fused silica)")
+_SI_ARGS = dict(source=_FREY_SIGE, edition="arXiv:physics/0606168v1", url="https://doi.org/10.1117/12.672850", retrieved="https://arxiv.org/e-print/physics/0606168",
+                table="Table 4 (measured thermo-optic coefficient of silicon)")
+_GE_ARGS = dict(_SI_ARGS, table="Table 9 (measured thermo-optic coefficient of germanium)")
+
+EMOPTICS_B15: tuple[Quantity, ...] = (
+    _klmag("water", "water (H2O)", "-0.90"),
+    _klmag("bismuth", "bismuth", "-1.70"),
+    _klmag("aluminium", "aluminium", "+0.82"),
+    _klmag("oxygen", "oxygen", "+133.6"),
+    _klmag("copper", "copper", "-0.107"),
+    _q("khatiwada2015.water_chi_v", "volume magnetic susceptibility of water (room temperature)", "chi_v(H2O)", "-0.716", "0.094", "1e-6 (cgs volume)",
+       kind="uncertainty as printed, level not stated", source=_KHATIWADA + ", Table 1 (0% MnCl2 row)", edition="arXiv:1506.09199v1", url="https://doi.org/10.1088/0957-0233/27/2/025902",
+       retrieved_from="https://arxiv.org/e-print/1506.09199", keys=("magnetic susceptibility", "water magnetic susceptibility"), phrases=("magnetic susceptibility", "magnetic susceptibility of water"),
+       notes=("Printed as 0% MnCl2: -0.716 +- 0.094 (chi x 10^-6, cgs volume). The caption says 'The errors are dominated by systematic error'.",)),
+    _q("havens1933.o2_chi_molar_provisional_20c", "molar magnetic susceptibility of O2 at 20 C (provisional reference value)", "chi_mol(O2, 20 C)", "3335", "", "1e-6 (cgs molar)",
+       kind="no uncertainty printed", source=_HAVENS + ", abstract", edition="Phys. Rev. 43 (1933)", url="https://doi.org/10.1103/PhysRev.43.992", retrieved_from="https://api.openalex.org/works/doi:10.1103/PhysRev.43.992",
+       keys=("magnetic susceptibility", "oxygen magnetic susceptibility"), phrases=("magnetic susceptibility", "magnetic susceptibility of oxygen"),
+       notes=("The abstract says the reported values 'are based on the provisional value of chi(O2) = 3335 x 10^-6 at 20 C'; it is Havens's adopted calibration value, not a result of the paper.",)),
+    _q("havens1933.n2_chi_molar_room", "molar magnetic susceptibility of N2 at room temperature", "chi_mol(N2)", "-11.938", "", "1e-6 (cgs molar)",
+       kind="no uncertainty printed", source=_HAVENS + ", abstract", edition="Phys. Rev. 43 (1933)", url="https://doi.org/10.1103/PhysRev.43.992", retrieved_from="https://api.openalex.org/works/doi:10.1103/PhysRev.43.992",
+       keys=("magnetic susceptibility", "nitrogen magnetic susceptibility"), phrases=("magnetic susceptibility", "magnetic susceptibility of nitrogen"),
+       notes=("Printed in the abstract as chi(N2) = -11.938 (x 10^6, molecular susceptibility) at room temperature, by the Faraday test-body method.",)),
+    _dndt("leviton2008", "fused_silica_dndt_0p5um_295k", "fused silica", "0.5", "295", "9.12E-06", "9.12 e-6", **_FS_NOTE_ARGS),
+    _dndt("leviton2008", "fused_silica_dndt_0p6um_295k", "fused silica", "0.6", "295", "8.86E-06", "8.86 e-6", **_FS_NOTE_ARGS),
+    _dndt("leviton2008", "fused_silica_dndt_1p0um_295k", "fused silica", "1.0", "295", "8.48E-06", "8.48 e-6", **_FS_NOTE_ARGS),
+    _dndt("leviton2008", "fused_silica_dndt_0p5um_100k", "fused silica", "0.5", "100", "3.60E-06", "3.60 e-6", **_FS_NOTE_ARGS),
+    _dndt("frey2006", "si_dndt_1p5um_295k", "silicon", "1.5", "295", "1.87E-04", "1.87 e-4", **_SI_ARGS),
+    _dndt("frey2006", "si_dndt_4p0um_295k", "silicon", "4.0", "295", "1.70E-04", "1.70 e-4", **_SI_ARGS),
+    _dndt("frey2006", "ge_dndt_4p0um_295k", "germanium", "4.0", "295", "4.25E-04", "4.25 e-4", **_GE_ARGS),
+    _klgamma("helium_0c", "helium", "0", "1.63"),
+    _klgamma("argon_0c", "argon", "0", "1.667"),
+    _klgamma("nitrogen_20c", "nitrogen", "20", "1.401"),
+    _klgamma("oxygen_5_14c", "oxygen", "5-14", "1.400"),
+    _klgamma("air_m79c", "dry air", "-79.3", "1.405"),
+    _klgamma("co2_4_11c", "carbon dioxide", "4-11", "1.300"),
+    _klgamma("methane_20c", "methane", "20", "1.307"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

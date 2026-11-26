@@ -1295,3 +1295,19 @@ Added NIST ASD Aki and fik for H Lyman-alpha (both fine-structure components) an
 That is 25 records.
 
 `python -m unittest discover -s tests -v` finished 417 tests, 0 failures, about 444.15 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — EM, optics, thermo: susceptibilities, dn/dT, gas gamma pgi-0.122.0
+
+Added these records:
+
+- Kaye & Laby mass susceptibilities: water, Bi, Al, O2, Cu;
+- Khatiwada 2015 water volume susceptibility;
+- Havens 1933 N2 and provisional O2 molar susceptibilities;
+- CHARMS dn/dT: fused silica (4), Si (2), Ge (1);
+- Kaye & Laby gas heat-capacity ratios: He, Ar, N2, O2, air, CO2, CH4.
+
+The EM, thermo-optic, and heat-capacity-ratio gaps close.
+
+That is 22 records.
+
+`python -m unittest discover -s tests -v` finished 418 tests, 0 failures, about 445.22 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

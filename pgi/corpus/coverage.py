@@ -50,10 +50,10 @@ for _domain, _names in {
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015", "martin1973", "hpl1972"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84", "ccmgk2", "lemoine2013", "konopliv2013", "williams2014", "chen2015"),
-    "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971", "matula1979", "desai1984", "nist_tn1512"),
-    "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993"),
+    "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971", "matula1979", "desai1984", "nist_tn1512", "kayelaby_mag", "khatiwada2015", "havens1933"),
+    "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993", "leviton2008", "frey2006"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998", "jones1984", "berg2012", "teos10", "mills1973"),
-    "thermodynamics and statistical": ("codata2017", "iapws1992", "iapws2011", "its90", "formula"),
+    "thermodynamics and statistical": ("codata2017", "iapws1992", "iapws2011", "its90", "formula", "kayelaby_gamma"),
     "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1960", "pound1965", "chou2010", "bothwell2022", "ciufolini2016", "williams2004", "hofmann2018", "takamoto2020", "gw170817", "gw190521", "gw190814", "gw190425", "gw200115", "gw230529", "gw231123", "gw250114"),
     "astrophysics": ("borexino", "bond2017", "joyce2018", "fonseca2021", "riley2021", "miller2021", "salmi2024", "dittmann2024", "haberreiter2008",
                      "iau2015", "iau2012", "iau2026", "nssdc", "williams2016", "gravity2018", "gravity2019", "gravity2022", "eht2019", "eht2022", "torres2010", "asplund2021"),
@@ -121,6 +121,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("WGS 84", ("wgs84.",)),
     ),
     "thermodynamics and statistical": (
+        ("heat-capacity ratios of gases (Kaye & Laby)", ("kayelaby_gamma.",)),
         ("CODATA radiation and gas constants", ("codata2022.",)),
         ("Planck and Rayleigh-Jeans spectra", ("formula.", "known.rayleigh_jeans")),
         ("water critical and triple points", ("iapws1992.", "iapws2011.")),
@@ -128,6 +129,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("pre-2019 Boltzmann-constant data (AGT, DCGT, JNT) and the CODATA 2017 k", ("codata2017.",)),
     ),
     "electromagnetism": (
+        ("magnetic susceptibilities (Kaye & Laby, Khatiwada, Havens)", ("kayelaby_mag.", "khatiwada2015.", "havens1933.",)),
         ("CODATA electromagnetic constants", ("codata2022.",)),
         ("the mechanical-ether known mistake", ("known.mechanical_ether_required",)),
         ("IGRF-14 dipole coefficients", ("igrf14.",)),
@@ -138,6 +140,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("microwave permittivities of solid dielectrics (NIST TN 1512)", ("nist_tn1512.",)),
     ),
     "optics": (
+        ("thermo-optic coefficients of fused silica, Si, and Ge (CHARMS)", ("leviton2008.", "frey2006.")),
         ("NIST ASD reference lines", ("asd512.line.",)),
         ("Schott N-BK7 indices and dispersion", ("schott.",)),
         ("water refractive index (IAPWS)", ("iapws1997.",)),

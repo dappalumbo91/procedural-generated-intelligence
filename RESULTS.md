@@ -915,9 +915,41 @@ Measured lifetimes, from published abstracts and the arXiv source:
 
 No measured H 2p lifetime was found; only the ASD A values are stored. This adds 25 records.
 
+### Electromagnetism, optics, thermodynamics: susceptibilities, thermo-optic coefficients, heat-capacity ratios
+
+Kaye & Laby (NPL online, Sect. 2.6.6, cited from the Wayback copy because the site is retired) give mass susceptibilities at 20 °C in ×10⁻⁸ m³/kg:
+
+- water `-0.90`;
+- bismuth `-1.70`;
+- aluminium `+0.82`;
+- oxygen `+133.6`;
+- copper `-0.107`.
+
+Khatiwada et al. (Meas. Sci. Technol. 27, 025902) measured water's volume susceptibility directly: `-0.716 ± 0.094` ×10⁻⁶ (cgs volume). Their errors are dominated by systematics.
+
+Havens 1933 gives N₂ `-11.938` ×10⁻⁶ (cgs molar). It also gives the provisional O₂ value `3335` ×10⁻⁶ at 20 °C, which is his calibration basis, not a result.
+
+CHARMS thermo-optic coefficients dn/dT, in 1/K, as tabulated:
+
+- Corning 7980 fused silica (Leviton & Frey, arXiv:0805.0091): `9.12E-06` at 0.5 µm, `8.86E-06` at 0.6 µm and `8.48E-06` at 1.0 µm, all at 295 K; `3.60E-06` at 0.5 µm and 100 K.
+- Silicon (Frey, Leviton, and Madison 2006): `1.87E-04` at 1.5 µm and `1.70E-04` at 4.0 µm, at 295 K.
+- Germanium (same paper): `4.25E-04` at 4.0 µm and 295 K.
+
+Gas heat-capacity ratios, which were unreachable in batch 14, now come from Kaye & Laby Sect. 2.3.6:
+
+- helium `1.63` (0 °C);
+- argon `1.667` (0 °C);
+- nitrogen `1.401` (20 °C);
+- oxygen `1.400` (5–14 °C);
+- dry air `1.405` (−79.3 °C);
+- carbon dioxide `1.300` (4–11 °C);
+- methane `1.307` (20 °C).
+
+None of these print an uncertainty. Electromagnetism now lists no gaps, and the thermo-optic and heat-capacity-ratio gaps close. This adds 22 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.121.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.122.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

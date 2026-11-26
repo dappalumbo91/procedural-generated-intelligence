@@ -2048,6 +2048,14 @@ class AtomicB15Tests(unittest.TestCase):
         values = {quantity(f"{p}.cs_6p32_lifetime").value_text for p in ("young1994", "rafac1999", "patterson2015")}
         self.assertEqual(values, {"30.41", "30.57", "30.462"})
 
+class EmOpticsB15Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("kayelaby_mag.bismuth").value_text, "-1.70")
+        self.assertEqual(quantity("kayelaby_mag.oxygen").value_text, "+133.6")
+        self.assertEqual(quantity("khatiwada2015.water_chi_v").uncertainty_text, "0.094")
+        self.assertEqual(quantity("leviton2008.fused_silica_dndt_0p6um_295k").value_text, "8.86 e-6")
+        self.assertEqual(quantity("kayelaby_gamma.argon_0c").value_text, "1.667")
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
