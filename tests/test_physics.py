@@ -1960,6 +1960,29 @@ class QedB13Tests(unittest.TestCase):
         self.assertIn("meyer2000.mu_1s2s", self._linked("what is the muonium 1S-2S interval"))
 
 
+class AstroB13Tests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_split_stat_sys_as_printed(self) -> None:
+        r0 = quantity("gravity2019.r0")
+        self.assertEqual((r0.value_text, r0.uncertainty_text, r0.systematic_text), ("8178", "13", "22"))
+        f = quantity("gravity2018.f_redshift")
+        self.assertEqual((f.value_text, f.uncertainty_text, f.systematic_text), ("0.90", "0.09", "0.15"))
+
+    def test_eht_diameters(self) -> None:
+        self.assertEqual(quantity("eht2019.m87_ring_diameter").value_text, "42")
+        self.assertEqual(quantity("eht2022.sgra_ring_diameter").uncertainty_kind, "68% interval")
+        self.assertEqual(quantity("eht2022.sgra_shadow_diameter").uncertainty_text, "7.0")
+
+    def test_both_gravity_editions_kept(self) -> None:
+        self.assertEqual({quantity(i).value_text for i in ("gravity2019.m_bh", "gravity2022.m_bh")}, {"4.152 e6", "4.297 e6"})
+
+    def test_asks_link(self) -> None:
+        self.assertIn("eht2022.sgra_shadow_diameter", self._linked("what is the sgr a* shadow diameter"))
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

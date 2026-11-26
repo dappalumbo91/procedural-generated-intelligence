@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.109.0`.
+Rule version `pgi-0.110.0`.
 
 In the kernel now:
 
@@ -175,6 +175,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `bound.kamlandzen2023.*`, `bound.lz2025.*`, `bound.cast2017.*`, `bound.eotwash2020.*`, `filzinger2023.*`, `pdg2026.null.*` | Searches that found nothing | ¹³⁶Xe 0νββ `T½ > 2.3×10²⁶ yr` (90%), SI WIMP-nucleon `σ < 2.2×10⁻⁴⁸ cm²` at 40 GeV (90%), `g_aγ < 0.66×10⁻¹⁰ GeV⁻¹` (95%), gravitational-strength Yukawa range `< 38.6 µm` (95%), `α̇/α = 1.8(2.5)×10⁻¹⁹ /yr`, `|q_p+q_e|/e < 1×10⁻²¹`, `q_n = (−0.2 ± 0.8)×10⁻²¹ e`, free n→n̄ `τ > 8.6×10⁷ s` (90%). |
 | `planck2018.age`, `planck2018.z_re`, `planck2018.omega_k`, `*.eta10*`, `kids2021.*`, `desy3.*` | Cosmology extras and the S8 tension | Age `13.797 ± 0.023 Gyr`, z_re `7.67 ± 0.73`, Ω_K `0.0007 ± 0.0019` (+BAO); η₁₀ `5.931 ± 0.051` (Cooke D/H), `6.148 ± 0.191` (BBN+D), `6.104 ± 0.058` (CMB); S8 `0.759 +0.024 −0.021` (KiDS-1000), `0.759 +0.025 −0.023` (DES Y3 shear), `0.776 ± 0.017` (DES Y3 3×2pt), beside Planck's `0.832 ± 0.013`. |
 | `fee1993.*`, `meyer2000.*`, `patra2020.*`, `vanderwerf2025.*` | Exotic-atom and few-body QED | Ps 1S-2S `1 233 607 216.4(3.2) MHz`; Mu 1s-2s `2 455 528 941.0(9.8) MHz`; HD⁺ v=0→9 `415 264 925 500.5(1.2) kHz`; ³He 2³S→2¹S `192 504 914 418.96(17) kHz`; r_h² − r_α² `1.0757(15) fm²`. |
+| `gravity2018.*`, `gravity2019.*`, `gravity2022.*`, `eht2019.*`, `eht2022.*` | Galactic Center and black-hole imaging | R₀ `8178 ± 13stat ± 22sys pc` (2019), `8277 ± 9 pc` (2022); M `4.152 ± 0.014` / `4.297 ± 0.012 ×10⁶ M☉`; S2 f `0.90 ± 0.09stat ± 0.15sys` (2018), `1.04 ± 0.05` (2019); EHT ring M87* `42 ± 3 µas`, Sgr A* `51.8 ± 2.3 µas`, Sgr A* shadow `48.7 ± 7.0 µas`; M87* mass `(6.5 ± 0.7)×10⁹ M☉`. |
 | `gw150914.*` | Measured anchors | GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, via the GWOSC event API: source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, final mass `63.1 +3.4 −3.0` solar masses, final spin, radiated energy `3.1 ± 0.4` solar-mass c², `χ_eff`, `d_L = 440 +150 −170` Mpc, and `z`. Medians with 90% credible intervals. |
 | `bound.gw170817_speed_of_gravity` | Experimental bound | Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, from the 1.74 s delay of GRB 170817A, D = 26 Mpc, and an emission lag between 0 and 10 s. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |

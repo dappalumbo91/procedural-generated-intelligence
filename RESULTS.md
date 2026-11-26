@@ -737,9 +737,27 @@ The Lie derivative of a metric along a vector field X is (L_X g)μν = X^ρ ∂_
 
 Position and momentum are polynomial operators, with ħ = 1 and P = −i ∂. A commutator is kept only as an identity of operators in normal form, with coefficients on the left and derivatives on the right. [X_i, P_j] = i δ_ij, and the angular-momentum operators L_i = ε_ijk X_j P_k satisfy [L_i, L_j] = i ε_ijk L_k. The oscillator ladders a = (X + iP)/√2 and a† = (X − iP)/√2 satisfy [a, a†] = 1. These identities are checked exactly, with no approximation.
 
+### Astrophysics: Sgr A* with GRAVITY, and EHT ring and shadow sizes
+
+GRAVITY gives the distance to the Galactic Center and the mass of Sgr A* in two editions, and both are kept:
+
+- **2019:** R₀ = `8178 ± 13stat ± 22sys pc`, M = `4.152 ± 0.014 ×10⁶ M☉`.
+- **2022 (four-star fit):** R₀ = `8277 ± 9 pc` and M = `4.297 ± 0.012 ×10⁶ M☉`, both statistical. The approximate systematics (about 30 pc and about 40,000 M☉) are noted but not stored.
+
+The S2 redshift parameter is stored as printed: f = `0.90 ± 0.09stat ± 0.15sys` (2018) and `1.04 ± 0.05` (2019). Here f = 0 is Newtonian and f = 1 is GR, and no check is made here.
+
+From the EHT:
+
+- **M87\* ring diameter:** `42 ± 3 µas` (Paper I prints no separate M87\* shadow diameter).
+- **M87\* mass:** `(6.5 ± 0.7)×10⁹ M☉` (68%).
+- **Sgr A\* ring diameter:** `51.8 ± 2.3 µas` (68% credible).
+- **Sgr A\* shadow diameter:** `48.7 ± 7.0 µas` (68% credible).
+
+These close the Sgr A* and shadow gaps. This adds 10 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.109.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.110.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

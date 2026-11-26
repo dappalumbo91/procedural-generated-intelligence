@@ -4045,7 +4045,68 @@ QED_B13: tuple[Quantity, ...] = (
 )
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13
+_GRAVITY2019 = "GRAVITY Collaboration, R. Abuter et al., A geometric distance measurement to the Galactic center black hole with 0.3% uncertainty, Astron. Astrophys. 625, L10 (2019), doi:10.1051/0004-6361/201935656, arXiv:1904.05721"
+_GRAVITY2018 = "GRAVITY Collaboration, R. Abuter et al., Detection of the gravitational redshift in the orbit of the star S2 near the Galactic centre massive black hole, Astron. Astrophys. 615, L15 (2018), doi:10.1051/0004-6361/201833718, arXiv:1807.09409, abstract"
+_GRAVITY2022 = "GRAVITY Collaboration, R. Abuter et al., Mass distribution in the Galactic Center based on interferometric astrometry of multiple stellar orbits, Astron. Astrophys. 657, L12 (2022), doi:10.1051/0004-6361/202142465, arXiv:2112.07478"
+_EHT_M87 = "Event Horizon Telescope Collaboration, First M87 Event Horizon Telescope Results. I. The Shadow of the Supermassive Black Hole, Astrophys. J. Lett. 875, L1 (2019), doi:10.3847/2041-8213/ab0ec7, arXiv:1906.11238, Table 1"
+_EHT_SGRA = "Event Horizon Telescope Collaboration, First Sagittarius A* Event Horizon Telescope Results. I. The Shadow of the Supermassive Black Hole in the Center of the Milky Way, Astrophys. J. Lett. 930, L12 (2022), doi:10.3847/2041-8213/ac6674, arXiv:2311.08680, Table 'Measured Parameters of Sgr A*'"
+_GC_KEYS = ("galactic center", "sgr a*", "black hole", "astrophysics")
+
+ASTRO_B13: tuple[Quantity, ...] = (
+    _q("gravity2019.r0", "distance to the Galactic Center (Sgr A*), S2 orbit", "R_0", "8178", "13", "pc",
+       kind=_SPLIT_KIND, systematic_text="22", source=_GRAVITY2019 + ", abstract", edition="A&A 625 (2019)",
+       url="https://doi.org/10.1051/0004-6361/201935656", retrieved_from="https://arxiv.org/e-print/1904.05721",
+       keys=_GC_KEYS, phrases=("sgr a*", "galactic center distance", "distance to the galactic center", "r0"),
+       notes=("Printed as R_0 = 8178 +- 13_stat. +- 22_sys. pc.",)),
+    _q("gravity2019.m_bh", "mass of Sgr A*, S2 orbit (noise model fit)", "M_SgrA*", "4.152 e6", "0.014 e6", "M_sun",
+       kind="uncertainty as printed, level not stated", source=_GRAVITY2019 + ", Table 1 (noise model fit)", edition="A&A 625 (2019)",
+       url="https://doi.org/10.1051/0004-6361/201935656", retrieved_from="https://arxiv.org/e-print/1904.05721",
+       keys=_GC_KEYS, phrases=("sgr a*", "sgr a* mass", "galactic center black hole mass"),
+       notes=("Printed in Table 1 as mass [10^6 M_sun] = 4.152 +- 0.014 in the 'noise model fit' column, which matches the adopted R_0 = 8178 pc. The paper says these are formal fit errors from the error matrix.",)),
+    _q("gravity2019.f_redshift", "S2 gravitational-redshift parameter f (2019 update)", "f_redshift", "1.04", "0.05", "",
+       kind="uncertainty as printed, level not stated", source=_GRAVITY2019 + ", abstract", edition="A&A 625 (2019)",
+       url="https://doi.org/10.1051/0004-6361/201935656", retrieved_from="https://arxiv.org/e-print/1904.05721",
+       keys=_GC_KEYS + ("gravitational redshift",), phrases=("s2 redshift", "sgr a*", "gravitational redshift s2"),
+       notes=("Printed as f_redshift = 1.04 +- 0.05, 'detected with a significance level of 20 sigma'. Here f = 0 is Newtonian and f = 1 is GR.",)),
+    _q("gravity2018.f_redshift", "S2 gravitational redshift plus transverse Doppler parameter f", "f", "0.90", "0.09", "",
+       kind=_SPLIT_KIND, systematic_text="0.15", source=_GRAVITY2018, edition="A&A 615 (2018)",
+       url="https://doi.org/10.1051/0004-6361/201833718", retrieved_from="https://arxiv.org/e-print/1807.09409",
+       keys=_GC_KEYS + ("gravitational redshift",), phrases=("s2 redshift", "sgr a*", "gravitational redshift s2", "s2 pericentre"),
+       notes=("Printed as f = 0.90 +- 0.09|stat +- 0.15|sys. f = 0 and f = 1 are the Newtonian and GR limits; it is stored as printed, with no check made here.",)),
+    _q("gravity2022.r0", "distance to the Galactic Center, four-star fit", "R_0", "8277", "9", "pc",
+       kind="uncertainty as printed, level not stated", source=_GRAVITY2022 + ", Conclusions and Table 1", edition="A&A 657 (2022)",
+       url="https://doi.org/10.1051/0004-6361/202142465", retrieved_from="https://arxiv.org/e-print/2112.07478",
+       keys=_GC_KEYS, phrases=("sgr a*", "galactic center distance", "distance to the galactic center", "r0"),
+       notes=("Printed as R_0 = (8277 +- 9) pc, 'statistical errors'. The text puts the systematics at about 30 pc; that approximate figure is not stored as an uncertainty.",)),
+    _q("gravity2022.m_bh", "mass of Sgr A*, four-star fit (S2, S29, S38, S55)", "M_SgrA*", "4.297 e6", "0.012 e6", "M_sun",
+       kind="standard uncertainty", source=_GRAVITY2022 + ", Conclusions, Table 1 and Fig. caption", edition="A&A 657 (2022)",
+       url="https://doi.org/10.1051/0004-6361/202142465", retrieved_from="https://arxiv.org/e-print/2112.07478",
+       keys=_GC_KEYS, phrases=("sgr a*", "sgr a* mass", "galactic center black hole mass"),
+       notes=("Printed as M = (4.297 +- 0.012) x 10^6 M_sun, statistical. A figure caption calls 12,000 M_sun its 1 sigma uncertainty. The text puts the systematics at about 40,000 M_sun; that is not stored.",)),
+    _q("eht2019.m87_ring_diameter", "M87* emission ring diameter", "d (M87*)", "42", "3", "microarcsecond",
+       kind="uncertainty as printed, level not stated", source=_EHT_M87, edition="ApJL 875 (2019)",
+       url="https://doi.org/10.3847/2041-8213/ab0ec7", retrieved_from="https://arxiv.org/e-print/1906.11238",
+       keys=("event horizon telescope", "black hole", "m87*", "astrophysics"), phrases=("shadow", "m87* shadow", "black hole shadow", "eht ring diameter", "m87"),
+       notes=("Printed as ring diameter d = 42 +- 3 uas. Paper I prints no separate shadow diameter for M87*; the ring diameter is the stored observable, 'consistent with expectations for the shadow of a Kerr black hole'.",)),
+    _q("eht2019.m87_mass", "M87* black hole mass from the EHT ring (at 16.8 Mpc)", "M (M87*)", "6.5 e9", "0.7 e9", "M_sun",
+       kind="68% interval", source=_EHT_M87, edition="ApJL 875 (2019)",
+       url="https://doi.org/10.3847/2041-8213/ab0ec7", retrieved_from="https://arxiv.org/e-print/1906.11238",
+       keys=("event horizon telescope", "black hole", "m87*", "astrophysics"), phrases=("m87* mass", "m87 black hole mass", "m87"),
+       notes=("Printed as M = (6.5 +- 0.7) x 10^9 M_sun for the adopted distance 16.8 +- 0.8 Mpc. The 'systematic error refers to the 68% confidence level and is much larger than the statistical error of 0.2 x 10^9 M_sun'.",)),
+    _q("eht2022.sgra_ring_diameter", "Sgr A* emission ring diameter", "d (Sgr A*)", "51.8", "2.3", "microarcsecond",
+       kind="68% interval", source=_EHT_SGRA, edition="ApJL 930 (2022)",
+       url="https://doi.org/10.3847/2041-8213/ac6674", retrieved_from="https://arxiv.org/e-print/2311.08680",
+       keys=("event horizon telescope", "black hole", "sgr a*", "astrophysics"), phrases=("sgr a*", "sgr a* ring", "eht ring diameter"),
+       notes=("Printed as Diameter, d = 51.8 +- 2.3 uas; the table notes say 'Stated uncertainties correspond to 68% credible intervals.'",)),
+    _q("eht2022.sgra_shadow_diameter", "Sgr A* angular shadow diameter", "d_sh (Sgr A*)", "48.7", "7.0", "microarcsecond",
+       kind="68% interval", source=_EHT_SGRA, edition="ApJL 930 (2022)",
+       url="https://doi.org/10.3847/2041-8213/ac6674", retrieved_from="https://arxiv.org/e-print/2311.08680",
+       keys=("event horizon telescope", "black hole", "sgr a*", "astrophysics"), phrases=("shadow", "sgr a* shadow", "black hole shadow", "sgr a*"),
+       notes=("Printed as angular shadow diameter d_sh = 48.7 +- 7.0 uas, 'determined solely from EHT data'; 68% credible interval per the table notes.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

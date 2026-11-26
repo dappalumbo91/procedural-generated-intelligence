@@ -1197,3 +1197,11 @@ Position and momentum act on polynomials, with ħ = 1: X is multiplication by th
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 398 tests, 0 failures, about 501.29 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — astrophysics: GRAVITY Sgr A*, S2 redshift, EHT diameters pgi-0.110.0
+
+Added GRAVITY 2019 and 2022 (R0 and M), the S2 f parameter (2018 and 2019), the EHT M87* ring and mass, and the Sgr A* ring and shadow. The two remaining astrophysics gaps are eclipsing binaries and the solar abundance scale.
+
+That is 10 records.
+
+`python -m unittest discover -s tests -v` finished 402 tests, 0 failures, about 411.45 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
