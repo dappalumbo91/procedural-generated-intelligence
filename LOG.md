@@ -1165,6 +1165,15 @@ That is 10 records.
 
 `python -m unittest discover -s tests -v` finished 386 tests, 0 failures, about 490.29 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
 
+
+## 2026-11-25 — Killing vectors and the Lie derivative pgi-0.106.0
+
+The Lie derivative of a metric along a vector field X is the symmetric 2-tensor (L_X g)μν = X^ρ ∂_ρ g_μν + (∂_μ X^ρ) g_ρν + (∂_ν X^ρ) g_μρ. X is a Killing field of g only when L_X g vanishes identically, checked exactly. The translations and the rotation of the Euclidean plane are Killing; a coordinate dilation is not. Schwarzschild's time-translation ∂_t, axial rotation ∂_φ, and the remaining rotation fields J_x = −sin(φ) ∂_θ − cot(θ) cos(φ) ∂_φ and J_y = cos(φ) ∂_θ − cot(θ) sin(φ) ∂_φ are Killing, checked identically.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 389 tests, 0 failures, about 619.33 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
 ## 2026-11-25 — cosmology: age, z_re, Omega_K, eta, weak-lensing S8 pgi-0.107.0
 
 Added Planck 2018's age, reionization redshift, and Omega_K (+BAO), eta_10 from Cooke 2018 and Fields 2020, and S8 from KiDS-1000 and DES Y3 (shear and 3x2pt), kept beside Planck's S8. Every cosmology gap in COVERAGE.md is now closed.
@@ -1180,3 +1189,11 @@ Added Fee 1993 (Ps 1S-2S), Meyer 2000 (Mu 1s-2s), Patra 2020 (HD+ v=0-9), and va
 That is 5 records.
 
 `python -m unittest discover -s tests -v` finished 395 tests, 0 failures, about 603.39 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — canonical commutators and ladder operators pgi-0.109.0
+
+Position and momentum act on polynomials, with ħ = 1: X is multiplication by the coordinate and P = −i ∂. The canonical commutator [X_i, P_j] = i δ_ij is checked as an identity of operators in normal form. Angular momentum L_i = ε_ijk X_j P_k satisfies [L_i, L_j] = i ε_ijk L_k, checked identically. The harmonic-oscillator ladder operators a = (X + iP)/√2 and a† = (X − iP)/√2 satisfy [a, a†] = 1, checked identically.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 398 tests, 0 failures, about 501.29 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

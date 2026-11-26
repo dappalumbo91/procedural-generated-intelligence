@@ -729,9 +729,17 @@ None of the papers states a confidence level, so all five carry "level not state
 
 This adds 5 records.
 
+### Killing vectors and the Lie derivative
+
+The Lie derivative of a metric along a vector field X is (L_X g)μν = X^ρ ∂_ρ g_μν + (∂_μ X^ρ) g_ρν + (∂_ν X^ρ) g_μρ. X is a Killing field only when that 2-tensor vanishes identically. The translations and the rotation −y ∂_x + x ∂_y of the Euclidean plane are Killing, and a coordinate dilation is not. On Schwarzschild spacetime, the time-translation ∂_t, the axial rotation ∂_φ, and the remaining rotation fields J_x = −sin(φ) ∂_θ − cot(θ) cos(φ) ∂_φ and J_y = cos(φ) ∂_θ − cot(θ) sin(φ) ∂_φ are Killing, checked identically.
+
+### Canonical commutators, angular momentum, and oscillator ladders
+
+Position and momentum are polynomial operators, with ħ = 1 and P = −i ∂. A commutator is kept only as an identity of operators in normal form, with coefficients on the left and derivatives on the right. [X_i, P_j] = i δ_ij, and the angular-momentum operators L_i = ε_ijk X_j P_k satisfy [L_i, L_j] = i ε_ijk L_k. The oscillator ladders a = (X + iP)/√2 and a† = (X − iP)/√2 satisfy [a, a†] = 1. These identities are checked exactly, with no approximation.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.105.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.109.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

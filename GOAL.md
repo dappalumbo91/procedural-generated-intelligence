@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.108.0`.
+Rule version `pgi-0.109.0`.
 
 In the kernel now:
 
@@ -107,6 +107,7 @@ In the kernel now:
 - Exact ODE checks. A candidate is kept only when its residual in a linear ODE vanishes identically. The harmonic oscillator, with ħ = ω = m = 1, is checked for n = 0, 1, and 2, where ψ'' − (x² − 2n − 1) ψ = 0 and E_n = n + 1/2. The hydrogen radial equation in atomic units is checked for (n, ℓ) = (1, 0), (2, 0), and (2, 1), where u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0 and E = −1/(2n²). The admitted candidates are polynomials times an exponential.
 - Differential forms and the exterior derivative. The wedge product is alternating. d² = 0 is checked identically, including on elementary 1-forms. On flat Minkowski spacetime, the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is that identity: the homogeneous Maxwell equations in the language of forms. The inhomogeneous equation d⋆F = J stays outside until the Hodge star is admitted.
 - Killing vectors and the Lie derivative of a metric. L_X g vanishes identically if and only if X is a Killing field. The translations and the rotation of the Euclidean plane are Killing. Schwarzschild's time-translation ∂_t, axial rotation ∂_φ, and the remaining rotation fields J_x and J_y are Killing, checked identically.
+- Canonical commutators, angular momentum, and oscillator ladder operators. With ħ = 1, position is multiplication by the coordinate and P = −i ∂. The identities [X_i, P_j] = i δ_ij and [L_i, L_j] = i ε_ijk L_k are checked as operator equalities in normal form. The oscillator ladders a = (X + iP)/√2 and a† = (X − iP)/√2 satisfy [a, a†] = 1, checked identically.
 
 Still outside the kernel, and required before a physical law can be written:
 
