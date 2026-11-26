@@ -1507,3 +1507,11 @@ A non-constant SU(2) matrix is kept in the general form U = [[alpha, beta], [-co
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 445 tests, 0 failures, about 876.88 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Tri-quadratic scalars and denesting norms pgi-0.140.0
+
+Complex scalars now lie in the radical tower Q(i), Q(sqrt(d), i), Q(sqrt(d), sqrt(e), i), or Q(sqrt(d), sqrt(e), sqrt(f), i) when d, e, and f are pairwise coprime square-free integers. The real basis is the eight products of 1, sqrt(d), sqrt(e), and sqrt(f). An inverse is kept only when both products are 1. A square root is kept for a nonnegative rational, or for a nonnegative field element that denests in this tower, including sqrt(4 + 2*sqrt(3)) = 1 + sqrt(3). The off-diagonal Hermitian matrix with entries sqrt(2) + sqrt(3) + sqrt(5) has eigenvalues plus or minus that sum and rebuilds exactly. The Hermitian matrix [[2 + sqrt(3), 1], [1, 2 - sqrt(3)]] has a non-rational eigenvector norm that denests in Q(sqrt(2), sqrt(3)) and rebuilds exactly. Four or more independent square-free radicands stay open, as does a minimal polynomial of degree three or more that does not denest in the tower.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 450 tests, 0 failures, about 872.78 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

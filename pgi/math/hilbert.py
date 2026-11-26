@@ -309,28 +309,9 @@ def _check_inner_axioms(left: CMatrix, right: CMatrix) -> None:
 
 
 def _nonneg_real(value: CNum) -> bool:
-    if not c_is_real(value):
-        return False
-    if value.d == 0:
-        return value.re0.num >= 0
-    # a + b √d >= 0. If b>=0 and a>=0, yes. If both negative, no.
-    # Compare a^2 ? d b^2 with the sign of a, or of the leading term.
-    a, b, d = value.re0, value.re1, value.d
-    if a.num >= 0 and b.num >= 0:
-        return True
-    if a.num <= 0 and b.num <= 0:
-        return a.num == 0 and b.num == 0
-    # Signs differ: a + b√d >= 0 iff the positive part wins.
-    # (a + b√d) >= 0 iff a >= -b√d. Square both sides only when they have the same sign.
-    # Evaluate sign of a^2 - d b^2 together with the sign of the larger-magnitude term.
-    from pgi.math.cnum import _qmul, _qsub, _q, _qeq
+    from pgi.math.cnum import c_is_nonneg
 
-    diff = _qsub(_qmul(a, a), _qmul(_qmul(b, b), _q(d)))
-    # If a >= 0 and b < 0: a >= |b|√d iff a^2 >= d b^2
-    if a.num >= 0 and b.num < 0:
-        return diff.num >= 0
-    # a < 0 and b > 0: a + b√d >= 0 iff b√d >= -a iff d b^2 >= a^2
-    return diff.num <= 0
+    return c_is_nonneg(value)
 
 
 def vector_from_entries(entries: tuple[CNum, ...]) -> CMatrix:
@@ -472,10 +453,14 @@ def gram_schmidt(vectors: tuple[CMatrix, ...]) -> CMatrix:
         if not c_is_real(n2):
             raise KernelError("a Gram–Schmidt norm was not real")
         # scale = 1 / √⟨v,v⟩
-        ratio = c_as_ratio(n2)
-        if ratio is None:
-            raise NotExact("this norm is not a rational, so the normalization stays open")
-        scale = c_inv(c_sqrt_ratio(ratio))
+        from pgi.math.cnum import c_is_nonneg, c_sqrt
+
+        if not c_is_nonneg(n2):
+            raise KernelError("a Gram–Schmidt norm was not nonnegative")
+        try:
+            scale = c_inv(c_sqrt(n2))
+        except NotExact as exc:
+            raise NotExact("this norm does not have a tower square root, so the normalization stays open") from exc
         unit = cmatrix_smul(scale, current)
         if not c_eq(inner(unit, unit), c_one()):
             raise KernelError("Gram–Schmidt did not produce a unit vector")
@@ -520,10 +505,12 @@ def _spectral_2x2(value: CMatrix) -> tuple[CMatrix, CMatrix]:
     disc = c_add(c_mul(diff, diff), c_mul(c_from_int(4), c_norm2(c)))
     if not c_is_real(disc) or not _nonneg_real(disc):
         raise KernelError("the Hermitian discriminant was not nonnegative")
-    disc_q = c_as_ratio(disc)
-    if disc_q is None:
-        raise NotExact("this Hermitian discriminant is not a rational")
-    root = c_sqrt_ratio(disc_q)
+    try:
+        from pgi.math.cnum import c_sqrt
+
+        root = c_sqrt(disc)
+    except NotExact as exc:
+        raise NotExact("this Hermitian discriminant does not have a tower square root") from exc
     half = c_from_ratio(Ratio(1, 2))
     lam_p = c_mul(half, c_add(c_add(a, b), root))
     lam_m = c_mul(half, c_sub(c_add(a, b), root))
@@ -563,7 +550,7 @@ def _spectral_general(value: CMatrix) -> tuple[CMatrix, CMatrix]:
             columns.append(vector)
             values.append(lam)
     if accounted != value.nrows:
-        raise NotExact("this characteristic polynomial did not split into Q or Q(√d) factors of full degree")
+        raise NotExact("this characteristic polynomial did not split into tower factors of full degree")
     u = _columns_to_matrix(columns)
     d = CMatrix(
         tuple(
@@ -612,7 +599,7 @@ def _cnum_from_root(root: object) -> CNum:
     from pgi.math.algebraic import AlgebraicReal, degree
 
     if not isinstance(root, AlgebraicReal) or degree(root.coeffs) != 2:
-        raise NotExact("this eigenvalue is not in Q or Q(√d)")
+        raise NotExact("this eigenvalue is not in a quadratic tower the kernel can use")
     constant, linear, lead = root.coeffs
     disc = linear * linear - 4 * lead * constant
     if disc <= 0:
@@ -706,12 +693,17 @@ def _null_vectors(shifted: CMatrix) -> tuple[CMatrix, ...]:
 
 def _normalize_vector(raw: CMatrix) -> CMatrix:
     n2 = inner(raw, raw)
-    ratio = c_as_ratio(n2)
-    if ratio is None:
-        raise NotExact("this eigenvector norm is not a rational")
-    if ratio.num <= 0:
+    if not c_is_real(n2):
+        raise KernelError("this eigenvector norm was not real")
+    from pgi.math.cnum import c_is_nonneg, c_sqrt
+
+    if not c_is_nonneg(n2) or c_is_zero(n2):
         raise KernelError("this eigenvector had a non-positive norm")
-    return cmatrix_smul(c_inv(c_sqrt_ratio(ratio)), raw)
+    try:
+        scale = c_inv(c_sqrt(n2))
+    except NotExact as exc:
+        raise NotExact("this eigenvector norm does not have a tower square root") from exc
+    return cmatrix_smul(scale, raw)
 
 
 def _columns_to_matrix(columns: list[CMatrix]) -> CMatrix:
