@@ -133,6 +133,31 @@ class GaugeTests(unittest.TestCase):
             GaugeMatrix(su2_gen("z"), origin)
         self.assertEqual(eval_gauge_result(origin).value.rows, su2_gen("x").rows)
 
+    def test_nonconstant_su2_gauge_transforms_covariantly(self) -> None:
+        covariant = run(
+            Request(
+                ask=(
+                    "prove fieldstrength(su2, gauge(su2rot, su2(x), x), gauge(su2rot, su2(y), y)) "
+                    "= adjoint(su2rot, fieldstrength(su2, su2(x), su2(y)))"
+                ),
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            covariant.claims[0].atom,
+            "identity(fieldstrength(su2, gauge(su2rot, su2(x), x), gauge(su2rot, su2(y), y)) = adjoint(su2rot, fieldstrength(su2, su2(x), su2(y))))",
+        )
+        rejected = run(
+            Request(
+                ask="prove fieldstrength(su2, gauge(su2rot, su2(x), x), gauge(su2rot, su2(y), y)) = 0",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            rejected.claims[0].atom,
+            "open(fieldstrength(su2, gauge(su2rot, su2(x), x), gauge(su2rot, su2(y), y)) = 0 is not a theorem)",
+        )
+
     def test_su3_gauge_transform_on_a_constant_connection(self) -> None:
         u = "[[3/5, -4/5, 0], [4/5, 3/5, 0], [0, 0, 1]]"
         u_pretty = "[[3 / 5, -4 / 5, 0], [4 / 5, 3 / 5, 0], [0, 0, 1]]"

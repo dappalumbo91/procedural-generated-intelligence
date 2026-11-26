@@ -1205,3 +1205,11 @@ Added GRAVITY 2019 and 2022 (R0 and M), the S2 f parameter (2018 and 2019), the 
 That is 10 records.
 
 `python -m unittest discover -s tests -v` finished 402 tests, 0 failures, about 411.45 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — non-constant SU(2) gauge transformations pgi-0.111.0
+
+A position-dependent SU(2) gauge transformation by the rational rotation U(x, y) already checked acts by A_μ ↦ U A_μ U† + U ∂_μ U†. The field strength F = ∂_x A_y − ∂_y A_x + [A_x, A_y] then transforms as F ↦ U F U†, checked identically as matrix-valued rational functions. A gauge transformation that is not this rotation, or a non-constant SU(3) transformation, stays outside.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 403 tests, 0 failures, about 459.76 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

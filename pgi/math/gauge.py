@@ -12,8 +12,12 @@ partials. It is invariant under A ↦ A + dλ. An SU(2) field strength of
 two connection components is F = ∂A + [A_x, A_y], with vanishing
 partials when the components are constant. A constant SU(2) gauge
 transformation acts by A ↦ U A U†, and F transforms covariantly:
-F ↦ U F U†. The trace of F² is invariant. A pure-gauge connection built
-from a rational SU(2) rotation in x + y has vanishing field strength,
+F ↦ U F U†. The trace of F² is invariant. A position-dependent SU(2)
+gauge transformation by the rational rotation already checked acts by
+A_μ ↦ U A_μ U† + U ∂_μ U†, and the field strength
+F_μν = ∂_μ A_ν − ∂_ν A_μ + [A_μ, A_ν] transforms as F ↦ U F U†,
+checked identically as matrix-valued rational functions. A pure-gauge
+connection built from that rotation has vanishing field strength,
 checked identically.
 
 These are the named constructions of su(2), su(3), and the fundamental
@@ -325,6 +329,7 @@ def _standing() -> None:
     _algebra_checks("su2")
     _algebra_checks("su3")
     _pure_gauge_check()
+    _nonconst_covariance_check()
     _STANDING = True
 
 
@@ -426,7 +431,167 @@ def _pure_gauge_check() -> None:
         raise KernelError("a pure-gauge SU(2) connection had a nonzero field strength")
 
 
+
+# --- position-dependent SU(2) matrices with entries in Q(i)(x, y) ---
+
+
+@dataclass(frozen=True)
+class CFun:
+    """A position-dependent scalar a + b i, with exact rational functions a, b."""
+
+    re: MRat
+    im: MRat
+
+
+def _cf_zero(names: tuple[str, ...]) -> CFun:
+    return CFun(_rat_const(0, names), _rat_const(0, names))
+
+
+def _cf_from_mrat(value: MRat) -> CFun:
+    return CFun(value, _rat_const(0, value.num.names))
+
+
+def _cf_from_cnum(value: CNum, names: tuple[str, ...]) -> CFun:
+    if value.d != 0:
+        raise NotExact("a position-dependent SU(2) entry is admitted here only in Q(i)")
+    return CFun(_rat_const(value.re0, names), _rat_const(value.im0, names))
+
+
+def _cf_add(left: CFun, right: CFun) -> CFun:
+    return CFun(mrat_add(left.re, right.re), mrat_add(left.im, right.im))
+
+
+def _cf_sub(left: CFun, right: CFun) -> CFun:
+    return CFun(mrat_sub(left.re, right.re), mrat_sub(left.im, right.im))
+
+
+def _cf_mul(left: CFun, right: CFun) -> CFun:
+    return CFun(
+        mrat_sub(mrat_mul(left.re, right.re), mrat_mul(left.im, right.im)),
+        mrat_add(mrat_mul(left.re, right.im), mrat_mul(left.im, right.re)),
+    )
+
+
+def _cf_neg(value: CFun) -> CFun:
+    return CFun(mrat_neg(value.re), mrat_neg(value.im))
+
+
+def _cf_conj(value: CFun) -> CFun:
+    return CFun(value.re, mrat_neg(value.im))
+
+
+def _cf_diff(value: CFun, name: str) -> CFun:
+    return CFun(mrat_diff(value.re, name), mrat_diff(value.im, name))
+
+
+def _cf_eq(left: CFun, right: CFun) -> bool:
+    return mrat_eq(left.re, right.re) and mrat_eq(left.im, right.im)
+
+
+def _cf_is_zero(value: CFun) -> bool:
+    return mrat_eq(value.re, _rat_const(0, value.re.num.names)) and mrat_eq(value.im, _rat_const(0, value.im.num.names))
+
+
+def _cm_from_rm(value) -> tuple:
+    return tuple(tuple(_cf_from_mrat(entry) for entry in row) for row in value)
+
+
+def _cm_from_cmatrix(value: CMatrix, names: tuple[str, ...]) -> tuple:
+    return tuple(
+        tuple(_cf_from_cnum(value.rows[i][j], names) for j in range(value.ncols))
+        for i in range(value.nrows)
+    )
+
+
+def _cm_add(left, right):
+    return tuple(tuple(_cf_add(a, b) for a, b in zip(lrow, rrow)) for lrow, rrow in zip(left, right))
+
+
+def _cm_sub(left, right):
+    return tuple(tuple(_cf_sub(a, b) for a, b in zip(lrow, rrow)) for lrow, rrow in zip(left, right))
+
+
+def _cm_mul(left, right):
+    n = len(left)
+    names = left[0][0].re.num.names
+    zero = _cf_zero(names)
+    rows = []
+    for i in range(n):
+        row = []
+        for j in range(n):
+            total = zero
+            for k in range(n):
+                total = _cf_add(total, _cf_mul(left[i][k], right[k][j]))
+            row.append(total)
+        rows.append(tuple(row))
+    return tuple(rows)
+
+
+def _cm_dagger(value):
+    n = len(value)
+    return tuple(tuple(_cf_conj(value[j][i]) for j in range(n)) for i in range(n))
+
+
+def _cm_diff(value, name: str):
+    return tuple(tuple(_cf_diff(entry, name) for entry in row) for row in value)
+
+
+def _cm_eq(left, right) -> bool:
+    return all(_cf_eq(a, b) for lrow, rrow in zip(left, right) for a, b in zip(lrow, rrow))
+
+
+def _cm_is_zero(value) -> bool:
+    return all(_cf_is_zero(entry) for row in value for entry in row)
+
+
+def _cm_comm(left, right):
+    return _cm_sub(_cm_mul(left, right), _cm_mul(right, left))
+
+
+def _su2rot_field() -> tuple:
+    u = _cm_from_rm(_su2rot_matrix())
+    dagger = _cm_dagger(u)
+    names = ("x", "y")
+    ident = _cm_from_rm(((_rat_const(1, names), _rat_const(0, names)), (_rat_const(0, names), _rat_const(1, names))))
+    if not _cm_eq(_cm_mul(u, dagger), ident) or not _cm_eq(_cm_mul(dagger, u), ident):
+        raise KernelError("the rational SU(2) rotation was not unitary over Q(i)(x, y)")
+    # det U = c^2 + s^2 = 1 already checked on the real matrix.
+    return u, dagger
+
+
+def gauge_transform(connection, coord: str):
+    """A_μ ↦ U A_μ U† + U ∂_μ U† for the rational SU(2) rotation U(x, y)."""
+    if coord not in {"x", "y"}:
+        raise NotExact("this non-constant SU(2) gauge transform is admitted in x or y")
+    u, dagger = _su2rot_field()
+    return _cm_add(_cm_mul(u, _cm_mul(connection, dagger)), _cm_mul(u, _cm_diff(dagger, coord)))
+
+
+def adjoint_field(value):
+    """F ↦ U F U† for the rational SU(2) rotation U(x, y)."""
+    u, dagger = _su2rot_field()
+    return _cm_mul(u, _cm_mul(value, dagger))
+
+
+def su2_field_fun(ax, ay):
+    """F = ∂_x A_y − ∂_y A_x + [A_x, A_y], with exact rational partials."""
+    return _cm_add(_cm_sub(_cm_diff(ay, "x"), _cm_diff(ax, "y")), _cm_comm(ax, ay))
+
+
+def _nonconst_covariance_check() -> None:
+    names = ("x", "y")
+    ax = _cm_from_cmatrix(su2_gen("x"), names)
+    ay = _cm_from_cmatrix(su2_gen("y"), names)
+    ax_p = gauge_transform(ax, "x")
+    ay_p = gauge_transform(ay, "y")
+    field = su2_field_fun(ax, ay)
+    field_p = su2_field_fun(ax_p, ay_p)
+    if not _cm_eq(field_p, adjoint_field(field)):
+        raise KernelError("a non-constant SU(2) gauge transformation did not act covariantly on the field strength")
+
+
 def u1_field(ax: MRat, ay: MRat, x_name: str = "x", y_name: str = "y") -> MRat:
+
     return mrat_sub(mrat_diff(ay, x_name), mrat_diff(ax, y_name))
 
 
@@ -461,6 +626,7 @@ GAUGE_OPS = frozenset({
     "puregauge",
     "su2rot",
     "adjoint",
+    "gauge",
 })
 
 
@@ -527,9 +693,15 @@ def _eval(term: Term):
             raise NotExact("ask fieldstrength(puregauge(su2rot))")
         if term.op == "fieldstrength":
             return _eval_field(term)
+        if term.op == "gauge":
+            if len(term.args) != 3 or not _is_su2rot(term.args[0]):
+                raise NotExact("gauge takes su2rot, a connection component, and a coordinate")
+            return gauge_transform(_eval_connection_field(term.args[1]), _name(term.args[2]))
         if term.op == "adjoint":
             if len(term.args) != 2:
                 raise NotExact("adjoint takes a special unitary matrix and a connection component")
+            if _is_su2rot(term.args[0]):
+                return adjoint_field(_eval_connection_field(term.args[1]))
             return adjoint_action(_eval_matrix(term.args[0]), _eval_matrix(term.args[1]))
         if term.op in {"add", "sub", "mul", "neg", "trace", "dagger", "commutator", "comm", "pow", "div"}:
             return _eval_mixed(term)
@@ -556,15 +728,50 @@ def _eval_field(term: App):
         if len(term.args) == 5:
             x_name, y_name = _name(term.args[3]), _name(term.args[4])
         return u1_field(ax, ay, x_name, y_name)
-    if group in {"su2", "su3"}:
+    if group == "su2":
         if len(term.args) != 3:
-            raise NotExact("an SU(2) or SU(3) field strength takes two connection components")
+            raise NotExact("an SU(2) field strength takes two connection components")
+        if _is_fun_connection(term.args[1]) or _is_fun_connection(term.args[2]):
+            return su2_field_fun(_eval_connection_field(term.args[1]), _eval_connection_field(term.args[2]))
+        return su2_field_const(_eval_matrix(term.args[1]), _eval_matrix(term.args[2]))
+    if group == "su3":
+        if len(term.args) != 3:
+            raise NotExact("an SU(3) field strength takes two connection components")
         ax = _eval_matrix(term.args[1])
         ay = _eval_matrix(term.args[2])
-        if group == "su3" and (ax.nrows != 3 or ay.nrows != 3):
+        if ax.nrows != 3 or ay.nrows != 3:
             raise NotExact("an SU(3) connection component must be 3×3")
         return su2_field_const(ax, ay)
     raise NotExact("a field strength for this group is not available here")
+
+
+def _is_su2rot(term: Term) -> bool:
+    if isinstance(term, Var) and term.name == "su2rot":
+        return True
+    return isinstance(term, App) and term.op == "su2rot"
+
+
+def _is_cfun_matrix(value) -> bool:
+    return (
+        isinstance(value, tuple)
+        and value
+        and isinstance(value[0], tuple)
+        and value[0]
+        and isinstance(value[0][0], CFun)
+    )
+
+
+def _is_fun_connection(term: Term) -> bool:
+    return isinstance(term, App) and term.op in {"gauge"} or (isinstance(term, App) and term.op == "adjoint" and term.args and _is_su2rot(term.args[0]))
+
+
+def _eval_connection_field(term: Term):
+    value = _eval_any(term)
+    if _is_cfun_matrix(value):
+        return value
+    if isinstance(value, CMatrix):
+        return _cm_from_cmatrix(value, ("x", "y"))
+    raise NotExact("this term is not an SU(2) connection component")
 
 
 def _eval_matrix(term: Term) -> CMatrix:
@@ -699,11 +906,25 @@ class GaugeRat:
             raise KernelError("this gauge-theory field strength does not match the exact evaluation")
 
 
+@dataclass(frozen=True)
+class GaugeField:
+    value: tuple
+    origin: Term
+    detail: tuple[str, ...] = ()
+
+    def __post_init__(self) -> None:
+        got = _eval_any(self.origin)
+        if not _is_cfun_matrix(got) or not _cm_eq(got, self.value):
+            raise KernelError("this position-dependent gauge result does not match the exact evaluation")
+
+
 def eval_gauge_result(term: Term):
     _standing()
     value = _eval_any(term)
     if isinstance(value, CMatrix):
         return GaugeMatrix(value, term, _detail())
+    if _is_cfun_matrix(value):
+        return GaugeField(value, term, _detail())
     if isinstance(value, CNum):
         ratio = c_as_ratio(value)
         if ratio is not None:
@@ -720,6 +941,7 @@ def _detail() -> tuple[str, ...]:
     return (
         "The su(2) and su(3) structure constants, Jacobi identity, and Killing form are checked exactly.",
         "A U(1) field strength is invariant under A ↦ A + dλ. An SU(2) field strength of constant components transforms as F ↦ U F U†, and tr(F²) is invariant.",
+        "A position-dependent SU(2) gauge transformation by the rational rotation U(x, y) acts by A_μ ↦ U A_μ U† + U ∂_μ U†, and F ↦ U F U†, checked identically.",
         "A pure-gauge connection from a rational SU(2) rotation has vanishing field strength.",
     )
 
@@ -748,6 +970,16 @@ def gauge_value_rule(origin: Term, result: object, prelude: tuple[str, ...] = ()
             stage="quantity",
             title=f"{title_left} = {shown}",
             produces=f"cmatrix({shown})",
+            detail_lines=(*prelude, *result.detail),
+        )
+    if isinstance(result, GaugeField):
+        shown = "gaugefield"
+        return Rule(
+            id="math.gaugefield",
+            layer="base",
+            stage="quantity",
+            title=f"{title_left} = {shown}",
+            produces=shown,
             detail_lines=(*prelude, *result.detail),
         )
     if isinstance(result, GaugeRat):
@@ -805,7 +1037,18 @@ def _gauge_eq(left: object, right: object) -> bool:
     lr, rr = _as_ratfun(left), _as_ratfun(right)
     if lr is not None and rr is not None:
         return mrat_eq(lr, rr)
+    lf, rf = _as_field(left), _as_field(right)
+    if lf is not None and rf is not None:
+        return _cm_eq(lf, rf)
     return False
+
+
+def _as_field(value: object):
+    if isinstance(value, GaugeField):
+        return value.value
+    if _is_cfun_matrix(value):
+        return value
+    return None
 
 
 def _as_matrix(value: object) -> CMatrix | None:
