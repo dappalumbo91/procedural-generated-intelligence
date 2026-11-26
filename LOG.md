@@ -1436,3 +1436,17 @@ The dipole, electrode-potential, solubility-product, and combustion gaps close.
 That is 26 records.
 
 `python -m unittest discover -s tests -v` finished 435 tests, 0 failures, about 789.74 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Atomic: ionization energies Rb–Cs, isotope shifts pgi-0.134.0
+
+Added these records:
+
+- NIST ASD first ionization energies, Z = 37–55, with per-row uncertainty (19);
+- H–D 1S–2S isotope shift: Parthey 2010, Huber 1998;
+- Knollmann 2019 Ca+ 729 nm isotope shifts: 42, 44, 48.
+
+The ionization-energy and isotope-shift gaps close.
+
+That is 24 records.
+
+`python -m unittest discover -s tests -v` finished 437 tests, 0 failures, about 771.31 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

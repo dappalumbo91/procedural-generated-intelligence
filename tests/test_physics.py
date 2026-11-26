@@ -438,7 +438,7 @@ class AsdIonizationTests(unittest.TestCase):
             self.assertNotIn("parentheses", " ".join(item.notes))
         self.assertEqual(quantity("asd512.ie.ca").uncertainty, Fraction(5, 10**10))
         self.assertEqual(quantity("asd512.ie.fe").value_text, "7.9024681")
-        self.assertEqual(len([item for item in QUANTITIES if item.id.startswith("asd512.ie.")]), 36)
+        self.assertEqual(len([item for item in QUANTITIES if item.id.startswith("asd512.ie.")]), 55)  # H-Kr, plus Rb-Cs from the Rb-Cs query
 
     def test_an_ask_links_the_row(self) -> None:
         session = unfold(Request(ask="what is the ionization energy of neon", seed=1))
@@ -2113,6 +2113,17 @@ class ChemB17Tests(unittest.TestCase):
 
     def test_methane_combustion_both_kept(self) -> None:
         self.assertEqual({quantity("webbook_comb.ch4_pittam1972").value_text, quantity("webbook_comb.ch4_prosen1945").value_text}, {"-890.7", "-890.35"})
+
+class AtomicB17Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual((quantity("asd512.ie.rb").value_text, quantity("asd512.ie.rb").uncertainty_text), ("4.1771281", "0.0000012"))
+        self.assertEqual((quantity("asd512.ie.xe").value_text, quantity("asd512.ie.xe").uncertainty_text), ("12.1298437", "0.0000015"))
+        self.assertEqual(quantity("asd512.ie.cs").value_text, "3.89390572743")
+        self.assertEqual(quantity("parthey2010.h_d_1s2s_isotope_shift").value_text, "670 994 334 606")
+        self.assertEqual(quantity("knollmann2019.ca48_ca40_729nm").uncertainty_text, "6.3")
+
+    def test_h_d_isotope_shift_both_kept(self) -> None:
+        self.assertEqual(quantity("huber1998.h_d_1s2s_isotope_shift").unit, "kHz")
 
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:

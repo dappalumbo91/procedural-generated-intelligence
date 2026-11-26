@@ -44,7 +44,7 @@ _CODATA = {
 
 _PREFIX: dict[str, str] = {}
 for _domain, _names in {
-    "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015", "amini2003", "ekstrom1995", "cccbdb_pol"),
+    "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015", "amini2003", "ekstrom1995", "cccbdb_pol", "parthey2010", "huber1998", "knollmann2019"),
     "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024", "shimanouchi1972", "cccbdb_dip", "kayelaby_e0", "kayelaby_ksp", "webbook_comb"),
     "nuclear": ("ame2020", "ddep", "ensdf", "am2013"),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
@@ -153,6 +153,8 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("Verdet constants of fused silica and water", ("sivaramakrishnan1956.", "turvey1993.")),
     ),
     "atomic": (
+        ("NIST first ionization energies Rb-Cs", ("asd512.ie.rb", "asd512.ie.sr", "asd512.ie.y", "asd512.ie.zr", "asd512.ie.nb", "asd512.ie.mo", "asd512.ie.tc", "asd512.ie.ru", "asd512.ie.rh", "asd512.ie.pd", "asd512.ie.ag", "asd512.ie.cd", "asd512.ie.in", "asd512.ie.sn", "asd512.ie.sb", "asd512.ie.te", "asd512.ie.i", "asd512.ie.xe", "asd512.ie.cs",)),
+        ("isotope shifts (H-D 1S-2S, Ca+ 729 nm)", ("parthey2010.", "huber1998.", "knollmann2019.",)),
         ("static polarizabilities (Cs, Na, He)", ("amini2003.", "ekstrom1995.", "cccbdb_pol.",)),
         ("transition probabilities and oscillator strengths (NIST ASD lines)", ("asd512.tp.",)),
         ("measured excited-state lifetimes (Na 3p, Rb 5p, Cs 6p)", ("volz1996.", "gutterres2002.", "young1994.", "rafac1999.", "patterson2015.",)),

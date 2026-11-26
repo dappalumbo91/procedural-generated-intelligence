@@ -1127,9 +1127,29 @@ The WebBook gives these enthalpies of combustion:
 
 All four molecular gaps close. This adds 26 records.
 
+### Atomic: ionization energies Rb–Cs and isotope shifts
+
+NIST ASD gives first ionization energies for Z = 37–55, each with ASD's own per-row uncertainty. None of these rows is bracketed or parenthesised. Examples:
+
+- Rb `4.1771281 ± 0.0000012` eV;
+- Sr `5.69486745 ± 0.00000012` eV;
+- In `5.7863558 ± 0.0000005` eV;
+- Xe `12.1298437 ± 0.0000015` eV;
+- Cs `3.89390572743 ± 0.00000000017` eV.
+
+The H–D 1S–2S isotope shift is `670 994 334 606(15)` Hz (Parthey et al. 2010) and `670 994 334.64(15)` kHz (Huber et al. 1998). Both are kept.
+
+Knollmann, Patel and Doret (2019) measured the Ca⁺ 4s ²S₁/₂ → 3d ²D₅/₂ isotope shifts relative to ⁴⁰Ca⁺:
+
+- ⁴²Ca⁺: `2 771 872 467.6(7.6)` Hz;
+- ⁴⁴Ca⁺: `5 340 887 394.6(7.8)` Hz;
+- ⁴⁸Ca⁺: `9 990 381 870.0(6.3)` Hz.
+
+The atomic gaps both close, and atomic now lists no gaps. This adds 24 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.133.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.134.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

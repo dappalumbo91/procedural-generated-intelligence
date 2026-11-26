@@ -4868,7 +4868,75 @@ CHEM_B17: tuple[Quantity, ...] = (
     _comb("c2h5oh_chao1965", "C64175", "Ethanol", "liquid", "-1367.6", "0.3", "Chao and Rossini, 1965"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT + CHEM_B17
+ASD_QUERY_RB_CS = (
+    "https://physics.nist.gov/cgi-bin/ASD/ie.pl?spectra=Rb-Cs&submit=Retrieve+Data&units=1&format=2&order=0"
+    "&at_num_out=on&sp_name_out=on&ion_charge_out=on&el_name_out=on&seq_out=on&shells_out=on&level_out=on"
+    "&ion_conf_out=on&e_out=0&unc_out=on&biblio=on"
+)
+
+
+def _asd_rbcs(id: str, z: int, element: str, spectrum: str, value_text: str, uncertainty_text: str, shells: str, level: str, ionized: str, refs: str) -> Quantity:
+    lower = element.lower()
+    names = (lower, "caesium") if lower == "cesium" else (lower,)
+    return _q(id, f"first ionization energy of {lower} ({spectrum}, Z = {z})", f"E_i({spectrum})", value_text, uncertainty_text, "eV",
+              kind="uncertainty as printed, level not stated", source=ASD_SOURCE, edition="NIST ASD ionization energies, as served 2026-11-25 (Rb-Cs query)",
+              url=ASD_QUERY_RB_CS, retrieved_from=ASD_QUERY_RB_CS, keys=(),
+              phrases=tuple(p for n in names for p in (f"ionization energy of {n}", f"{n} ionization energy", f"ionisation energy of {n}")),
+              notes=(f"ASD ground shells {shells}, ground level {level}, ionized level {ionized}.", f"ASD bibliography codes: {refs}.",
+                     "ASD prints this energy without brackets or parentheses, with the per-row uncertainty stored here.", _ASD_EV))
+
+
+_IS_OA = "https://api.openalex.org/works/doi:"
+
+
+def _ca_is(a: str, value: str, unc: str, printed: str) -> Quantity:
+    return _q(f"knollmann2019.ca{a}_ca40_729nm", f"isotope shift of the Ca+ 4s 2S1/2 - 3d 2D5/2 (729 nm) transition, {a}Ca+ relative to 40Ca+", f"dnu({a}-40, Ca+ 729)", value, unc, "Hz",
+              kind="uncertainty as printed, level not stated",
+              source="F. Knollmann, A. N. Patel, and S. C. Doret, Part-per-billion measurement of the 4 2S1/2 -> 3 2D5/2 electric-quadrupole-transition isotope shifts between 42,44,48Ca+ and 40Ca+, Phys. Rev. A 100, 022514 (2019), doi:10.1103/PhysRevA.100.022514, abstract",
+              edition="Phys. Rev. A 100 (2019)", url="https://doi.org/10.1103/PhysRevA.100.022514", retrieved_from=_IS_OA + "10.1103/PhysRevA.100.022514",
+              keys=("isotope shift", "calcium ion isotope shift"), phrases=("isotope shift of calcium", "ca+ isotope shift", "isotope shifts"),
+              notes=(f"The abstract prints shifts of 2 771 872 467.6(7.6), 5 340 887 394.6(7.8), and 9 990 381 870.0(6.3) Hz between 42,44,48Ca+ and 40Ca+; this is the {printed} entry.",
+                     "Co-trapped ions excited simultaneously from one laser's sidebands."))
+
+
+def _hd(key: str, ref: str, doi: str, value: str, unc: str, unit: str, printed: str, extra: str) -> Quantity:
+    return _q(f"{key}.h_d_1s2s_isotope_shift", f"hydrogen-deuterium isotope shift of the 1S-2S two-photon transition ({ref})", "dnu(H-D, 1S-2S)", value, unc, unit,
+              kind="uncertainty as printed, level not stated", source=f"{ref}, doi:{doi}, abstract", edition=ref.split(", ")[-1],
+              url=f"https://doi.org/{doi}", retrieved_from=_IS_OA + doi,
+              keys=("isotope shift", "hydrogen deuterium isotope shift"), phrases=("hydrogen-deuterium isotope shift", "h-d isotope shift", "1s-2s isotope shift", "isotope shifts"),
+              notes=(f"Printed in the abstract as {printed}.", extra))
+
+
+ATOMIC_B17: tuple[Quantity, ...] = (
+    _asd_rbcs("asd512.ie.rb", 37, "Rubidium", "Rb I", "4.1771281", "0.0000012", "[Kr].5s", "2S<1/2>", "4p6 1S<0>", "L4740, L5783"),
+    _asd_rbcs("asd512.ie.sr", 38, "Strontium", "Sr I", "5.69486745", "0.00000012", "[Kr].5s2", "1S0", "5s 2S<1/2>", "L15350, L5644"),
+    _asd_rbcs("asd512.ie.y", 39, "Yttrium", "Y I", "6.21726", "0.00010", "[Kr].4d.5s2", "2D<3/2>", "5s2 1S<0>", "L8844, L2111, L9735"),
+    _asd_rbcs("asd512.ie.zr", 40, "Zirconium", "Zr I", "6.634126", "0.000005", "[Kr].4d2.5s2", "3F<2>", "4d2.5s 4F<3/2>", "L21107"),
+    _asd_rbcs("asd512.ie.nb", 41, "Niobium", "Nb I", "6.75885", "0.00004", "[Kr].4d4.5s", "6D<1/2>", "4d4 5D<0>", "L6829"),
+    _asd_rbcs("asd512.ie.mo", 42, "Molybdenum", "Mo I", "7.09243", "0.00004", "[Kr].4d5.5s", "7S<3>", "4d5 6S<5/2>", "L6829"),
+    _asd_rbcs("asd512.ie.tc", 43, "Technetium", "Tc I", "7.11938", "0.00003", "[Kr].4d5.5s2", "6S<5/2>", "4d5.5s 7S<3>", "L15237"),
+    _asd_rbcs("asd512.ie.ru", 44, "Ruthenium", "Ru I", "7.36050", "0.00005", "[Kr].4d7.5s", "5F<5>", "4d7 4F<9/2>", "L10032"),
+    _asd_rbcs("asd512.ie.rh", 45, "Rhodium", "Rh I", "7.45890", "0.00005", "[Kr].4d8.5s", "4F<9/2>", "4d8 3F<4>", "L10032"),
+    _asd_rbcs("asd512.ie.pd", 46, "Palladium", "Pd I", "8.336839", "0.000010", "[Kr].4d10", "1S0", "4d9 2D<5/2>", "L20363"),
+    _asd_rbcs("asd512.ie.ag", 47, "Silver", "Ag I", "7.576234", "0.000025", "[Kr].4d10.5s", "2S<1/2>", "4d10 1S<0>", "L11835"),
+    _asd_rbcs("asd512.ie.cd", 48, "Cadmium", "Cd I", "8.993820", "0.000016", "[Kr].4d10.5s2", "1S0", "5s 2S<1/2>", "L18843"),
+    _asd_rbcs("asd512.ie.in", 49, "Indium", "In I", "5.7863558", "0.0000005", "[Cd].5p", "2P*<1/2>", "5s2 1S<0>", "L21649"),
+    _asd_rbcs("asd512.ie.sn", 50, "Tin", "Sn I", "7.343918", "0.000012", "[Cd].5p2", "3P0", "5s2.5p 2P*<1/2>", "L3936"),
+    _asd_rbcs("asd512.ie.sb", 51, "Antimony", "Sb I", "8.608389", "0.000012", "[Cd].5p3", "4S*<3/2>", "5s2.5p2 3P<0>", "L8844, L6684"),
+    _asd_rbcs("asd512.ie.te", 52, "Tellurium", "Te I", "9.009808", "0.000006", "[Cd].5p4", "3P<2>", "5s2.5p3 4S*<3/2>", "L21109"),
+    _asd_rbcs("asd512.ie.i", 53, "Iodine", "I I", "10.451236", "0.000025", "[Cd].5p5", "2P*<3/2>", "5s2.5p4 3P<2>", "L13998, L22518"),
+    _asd_rbcs("asd512.ie.xe", 54, "Xenon", "Xe I", "12.1298437", "0.0000015", "[Cd].5p6", "1S0", "5s2.5p5 2P*<3/2>", "L12013, L9794, L6426"),
+    _asd_rbcs("asd512.ie.cs", 55, "Cesium", "Cs I", "3.89390572743", "0.00000000017", "[Xe].6s", "2S<1/2>", "5s2.5p6 1S<0>", "L19479"),
+    _hd("parthey2010", "C. G. Parthey et al., Precision Measurement of the Hydrogen-Deuterium 1S-2S Isotope Shift, Phys. Rev. Lett. 104, 233001 (2010)", "10.1103/PhysRevLett.104.233001",
+        "670 994 334 606", "15", "Hz", "670,994,334,606(15) Hz", "The abstract calls this a 10-times improvement over Huber et al. 1998, 'confirming its frequency value'; both are kept."),
+    _hd("huber1998", "A. Huber et al., Hydrogen-Deuterium 1S-2S Isotope Shift and the Structure of the Deuteron, Phys. Rev. Lett. 80, 468 (1998)", "10.1103/PhysRevLett.80.468",
+        "670 994 334.64", "0.15", "kHz", "670994334.64(15) kHz", "Measured with an optical frequency comb and a CH4-stabilized He-Ne reference."),
+    _ca_is("42", "2 771 872 467.6", "7.6", "42Ca+"),
+    _ca_is("44", "5 340 887 394.6", "7.8", "44Ca+"),
+    _ca_is("48", "9 990 381 870.0", "6.3", "48Ca+"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT + CHEM_B17 + ATOMIC_B17
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 
