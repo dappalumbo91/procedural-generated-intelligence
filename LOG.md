@@ -1311,3 +1311,11 @@ The EM, thermo-optic, and heat-capacity-ratio gaps close.
 That is 22 records.
 
 `python -m unittest discover -s tests -v` finished 418 tests, 0 failures, about 445.22 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Kerr metric and curved FLRW pgi-0.123.0
+
+The Kerr metric in Boyer–Lindquist coordinates, with mass m and spin a, is admitted. Its inverse multiplies back to the identity. Ricci = 0 for Kerr stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits. FLRW with spatial curvature k = +1 and k = −1 is admitted in spherical coordinates. The Einstein tensor is exact: G_tt is 3 ((da/dt)² + k)/a², and the spatial components are -(2 (d²a/dt²)/a + ((da/dt)² + k)/a²) times the metric.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 419 tests, 0 failures, about 648.74 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

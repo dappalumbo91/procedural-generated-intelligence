@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.122.0`.
+Rule version `pgi-0.123.0`.
 
 In the kernel now:
 
@@ -111,6 +111,8 @@ In the kernel now:
 - A position-dependent SU(2) gauge transformation by the rational rotation already checked. It acts by A_μ ↦ U A_μ U† + U ∂_μ U†, and the field strength F = ∂A + [A, A] transforms as F ↦ U F U†, checked identically as matrix-valued rational functions.
 - Complex scalars in Q(√d, √e, i) when d and e are coprime square-free integers. √d, √e, and √(de) are the same field. An inverse is kept only when both products are 1. Three or more independent square-free radicands, or two that do not lie in one such field, stay open.
 - Variational principles. A mechanical Lagrangian L(q, v, t) has Euler–Lagrange expression d/dt(∂L/∂v) − ∂L/∂q, with the total time derivative taken by the chain rule. The energy is E = v ∂L/∂v − L, and the canonical momentum is ∂L/∂v. The off-shell identity dE/dt − v EL + ∂L/∂t = 0 is checked identically. For the harmonic oscillator L = v²/2 − q²/2, EL = a + q and E = v²/2 + q²/2. For a free particle L = v²/2, EL is the acceleration and the momentum is v. For the pendulum L = v²/2 + cos(q), EL = a + sin(q). The action is the integral of L; stationarity is the Euler–Lagrange identity.
+- The Kerr metric in Boyer–Lindquist coordinates, with mass parameter m and spin parameter a. The inverse multiplies back to the identity. Ricci = 0 for Kerr stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
+- FLRW with spatial curvature k = +1 and k = −1, in spherical coordinates, with a formal scale factor a(t). The Einstein tensor is exact: G_tt is 3 ((da/dt)² + k)/a², and the spatial components satisfy G_ij = -(2 (d²a/dt²)/a + ((da/dt)² + k)/a²) g_ij.
 
 Still outside the kernel, and required before a physical law can be written:
 
@@ -130,7 +132,7 @@ What a derivation round would still need:
 - The Dirac operator on curved spacetime, with a tetrad and a spin connection.
 - A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
 - Integration of forms, including Stokes' theorem on the charts already admitted.
-- The Kerr metric, and FLRW with spatial curvature k ≠ 0.
+- Ricci = 0 for the Kerr metric. The generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - Spherical harmonics, and hydrogen states beyond (n, ℓ) = (1, 0), (2, 0), and (2, 1).
 - A Hermitian spectrum whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational. Three or more independent square-free radicands stay open.
 - A continuum Hilbert space, and operators that are not polynomial differential operators in finitely many coordinates.

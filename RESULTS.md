@@ -947,10 +947,15 @@ Gas heat-capacity ratios, which were unreachable in batch 14, now come from Kaye
 
 None of these print an uncertainty. Electromagnetism now lists no gaps, and the thermo-optic and heat-capacity-ratio gaps close. This adds 22 records.
 
+### Kerr metric and curved FLRW
+
+The Kerr metric in Boyer–Lindquist coordinates, with mass m and spin a, is admitted, and its inverse multiplies back to the identity. Ricci = 0 for Kerr stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits. FLRW with spatial curvature k = +1 and k = −1 has an exact Einstein tensor: G_tt is 3 ((da/dt)² + k)/a², and the spatial components satisfy G_ij = -(2 (d²a/dt²)/a + ((da/dt)² + k)/a²) g_ij.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.122.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.123.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
+- Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
 - A polynomial whose resultant would exceed the kernel's degree limit stays outside.

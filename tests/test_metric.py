@@ -183,6 +183,34 @@ class MetricTests(unittest.TestCase):
         )
         self.assertIn("Einstein", einstein.text(lod=2))
 
+    def test_kerr_and_curved_flrw(self) -> None:
+        closed = run(Request(ask="what is metric(flrw, closed)", seed=1))
+        self.assertEqual(
+            closed.claims[0].atom,
+            "g([[-1, 0, 0, 0], [0, -a(t)^2 / (r^2 - 1), 0, 0], [0, 0, a(t)^2 * r^2, 0], [0, 0, 0, a(t)^2 * sin(theta)^2 * r^2]])",
+        )
+        closed_einstein = run(Request(ask="what is einstein(metric(flrw, closed))", seed=1))
+        self.assertEqual(
+            closed_einstein.claims[0].atom,
+            "g([[(3 * d(a(t), t)^2 + 3) / a(t)^2, 0, 0, 0], [0, (2 * a(t) * d(a(t), t, 2) + d(a(t), t)^2 + 1) / (r^2 - 1), 0, 0], [0, 0, -2 * a(t) * d(a(t), t, 2) * r^2 - d(a(t), t)^2 * r^2 - r^2, 0], [0, 0, 0, 2 * a(t) * d(a(t), t, 2) * cos(theta)^2 * r^2 + d(a(t), t)^2 * cos(theta)^2 * r^2 - 2 * a(t) * d(a(t), t, 2) * r^2 - d(a(t), t)^2 * r^2 + cos(theta)^2 * r^2 - r^2]])",
+        )
+        opened = run(Request(ask="what is metric(flrw, open)", seed=1))
+        self.assertEqual(
+            opened.claims[0].atom,
+            "g([[-1, 0, 0, 0], [0, a(t)^2 / (r^2 + 1), 0, 0], [0, 0, a(t)^2 * r^2, 0], [0, 0, 0, a(t)^2 * sin(theta)^2 * r^2]])",
+        )
+        open_einstein = run(Request(ask="what is einstein(metric(flrw, open))", seed=1))
+        self.assertEqual(
+            open_einstein.claims[0].atom,
+            "g([[(3 * d(a(t), t)^2 - 3) / a(t)^2, 0, 0, 0], [0, (-2 * a(t) * d(a(t), t, 2) - d(a(t), t)^2 + 1) / (r^2 + 1), 0, 0], [0, 0, -2 * a(t) * d(a(t), t, 2) * r^2 - d(a(t), t)^2 * r^2 + r^2, 0], [0, 0, 0, 2 * a(t) * d(a(t), t, 2) * cos(theta)^2 * r^2 + d(a(t), t)^2 * cos(theta)^2 * r^2 - 2 * a(t) * d(a(t), t, 2) * r^2 - d(a(t), t)^2 * r^2 - cos(theta)^2 * r^2 + r^2]])",
+        )
+        kerr = run(Request(ask="what is metric(kerr)", seed=1))
+        self.assertEqual(
+            kerr.claims[0].atom,
+            "g([[(-cos(theta)^2 * a^2 + 2 * m * r - r^2) / (cos(theta)^2 * a^2 + r^2), 0, 0, (2 * cos(theta)^2 * a * m * r - 2 * a * m * r) / (cos(theta)^2 * a^2 + r^2)], [0, (cos(theta)^2 * a^2 + r^2) / (a^2 - 2 * m * r + r^2), 0, 0], [0, 0, cos(theta)^2 * a^2 + r^2, 0], [(2 * cos(theta)^2 * a * m * r - 2 * a * m * r) / (cos(theta)^2 * a^2 + r^2), 0, 0, (-cos(theta)^4 * a^4 + 2 * cos(theta)^4 * a^2 * m * r - cos(theta)^4 * a^2 * r^2 + cos(theta)^2 * a^4 - 4 * cos(theta)^2 * a^2 * m * r - cos(theta)^2 * r^4 + 2 * a^2 * m * r + a^2 * r^2 + r^4) / (cos(theta)^2 * a^2 + r^2)]])",
+        )
+
+
 
 if __name__ == "__main__":
     unittest.main()
