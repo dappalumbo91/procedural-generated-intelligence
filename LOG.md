@@ -1367,3 +1367,17 @@ O2's B_e is printed in brackets and is not stored. The vibrational-frequency and
 That is 12 records.
 
 `python -m unittest discover -s tests -v` finished 424 tests, 0 failures, about 608.76 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Optics, atomic, nuclear: CIPM list, polarizabilities, medical half-lives pgi-0.128.0
+
+Added these records:
+
+- 2025 CIPM standard frequencies: 40Ca+, 115In+, 199Hg, 199Hg+, 176Lu+, 87Rb, 88Sr, 88Sr+, 171Yb+ E2 and E3;
+- static polarizabilities: Cs (Amini & Gould 2003), Na (Ekstrom 1995), He (CCCBDB experimental list);
+- DDEP half-lives: F-18, Tc-99m, I-131, C-11, O-15.
+
+The CIPM, polarizability, and medical half-life gaps close.
+
+That is 18 records.
+
+`python -m unittest discover -s tests -v` finished 425 tests, 0 failures, about 598.23 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

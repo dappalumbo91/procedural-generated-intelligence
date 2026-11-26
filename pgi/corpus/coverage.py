@@ -44,7 +44,7 @@ _CODATA = {
 
 _PREFIX: dict[str, str] = {}
 for _domain, _names in {
-    "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015"),
+    "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015", "amini2003", "ekstrom1995", "cccbdb_pol"),
     "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024", "shimanouchi1972"),
     "nuclear": ("ame2020", "ddep", "ensdf", "am2013"),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
@@ -146,12 +146,13 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("NIST ASD reference lines", ("asd512.line.",)),
         ("Schott N-BK7 indices and dispersion", ("schott.",)),
         ("water refractive index (IAPWS)", ("iapws1997.",)),
-        ("CIPM standard frequencies (I2 633 nm, Sr, Yb)", ("bipm2003.", "bipm2025.")),
+        ("CIPM standard frequencies (I2 633 nm and the 2025 list)", ("bipm2003.", "bipm2025.")),
         ("fused-silica Sellmeier coefficients (Malitson 1965)", ("malitson1965.",)),
         ("refractive index of air, Ciddor and modified Edlen (NIST)", ("nist_emt.",)),
         ("Verdet constants of fused silica and water", ("sivaramakrishnan1956.", "turvey1993.")),
     ),
     "atomic": (
+        ("static polarizabilities (Cs, Na, He)", ("amini2003.", "ekstrom1995.", "cccbdb_pol.",)),
         ("transition probabilities and oscillator strengths (NIST ASD lines)", ("asd512.tp.",)),
         ("measured excited-state lifetimes (Na 3p, Rb 5p, Cs 6p)", ("volz1996.", "gutterres2002.", "young1994.", "rafac1999.", "patterson2015.",)),
         ("NIST first and second ionization energies", ("asd512.ie.", "asd512.ie2.")),
@@ -170,7 +171,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
     "nuclear": (
         ("AME2020 masses and binding energies", ("ame2020.",)),
         ("CODATA deuteron, alpha, and nucleon moments", ("codata2022.",)),
-        ("DDEP and ENSDF half-lives", ("ddep.", "ensdf.")),
+        ("DDEP and ENSDF half-lives, including medical isotopes", ("ddep.", "ensdf.")),
         ("Angeli-Marinova charge radii", ("am2013.",)),
     ),
     "particle": (

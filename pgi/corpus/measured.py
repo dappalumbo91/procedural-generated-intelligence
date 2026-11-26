@@ -4648,7 +4648,83 @@ MOLECULAR_CONSTANTS: tuple[Quantity, ...] = (
     _h2o_mode("3", "antisymmetric stretch", "b1", "3756", "3755.79"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS
+_BIPM_DOC = "https://www.bipm.org/documents/20126/"
+_CIPM_NOTE = "Approved by the CCTF in September 2025, active on March 27, 2026."
+
+
+def _cipm(key: str, atom: str, title: str, transition: str, f: str, lam: str, rel: str, path: str, phrases: tuple[str, ...], extra: str = "") -> Quantity:
+    url = _BIPM_DOC + path
+    printed = f"f = {f} Hz" + (f", lambda = {lam} fm" if lam else "") + f", relative standard uncertainty {rel.replace(' e', ' x 10^')}"
+    return _q(f"bipm2025.{key}.frequency", f"{atom} {transition} frequency (CIPM recommended)", f"f({atom})", f.replace(" ", " "), rel, "Hz",
+              kind="relative standard uncertainty", source=f"BIPM, Recommended values of standard frequencies, {title}, approved by the CCTF in September 2025, active on March 27, 2026.",
+              edition="CIPM list of standard frequencies, 2025", url=url, retrieved_from=url,
+              keys=("standard frequency", "optical clock"), phrases=phrases + ("optical clock frequencies", "standard frequencies"),
+              notes=(f"Printed as {printed}.", _CIPM_NOTE) + ((extra,) if extra else ()))
+
+
+_POL_CCCBDB = "https://cccbdb.nist.gov/pollistx.asp"
+
+
+def _ddep16(key: str, nuclide: str, label: str, value: str, error: str, unit: str, printed: str, pdf: str, evaluator: str, dates: str) -> Quantity:
+    url = f"https://www.lnhb.fr/nuclides/{pdf}_tables.pdf"
+    return _q(f"ddep.t_half_{key}", f"half-life of {nuclide} (DDEP)", f"T1/2({label})", value, error, unit, kind="uncertainty as printed, level not stated",
+              source=f"{_DDEP_SOURCE}, {pdf} tables, evaluation by {evaluator}", edition=f"DDEP {pdf} tables as served 2026-11-25", url=url, retrieved_from=url,
+              keys=(f"half-life of {pdf.lower()}", f"{pdf.lower()} half-life"), phrases=(f"half-life of {pdf.lower()}", f"{pdf.lower()} half-life", f"half-life of {nuclide}", "medical isotope half-lives"),
+              notes=(f"Section 2 prints {printed} (decimal comma, uncertainty in the last digits).", f"Evaluation dates on the table footer: {dates}."))
+
+
+CLOCKS_POLARIZABILITY_HALFLIVES: tuple[Quantity, ...] = (
+    _cipm("ca40_ion", "40Ca+", "Calcium 40 ion (f ~ 411 THz)", "4s 2S1/2 - 3d 2D5/2", "411 042 129 776 400.30", "729 347 276.793 942 83", "5.5 e-16",
+          "288515003/40Ca+_411THz_2025/fb0a8014-32b2-e2ab-639f-f3313ded1edc", ("ca40+ clock frequency", "calcium ion clock frequency")),
+    _cipm("in115_ion", "115In+", "Indium 115 ion (f ~ 1 267 THz)", "5s2 1S0 - 5s5p 3P0", "1 267 402 452 901 039.07", "236 540 853.549 545 96", "1.8 e-16",
+          "288515121/115In+_1267THz_2025/18227b90-49fc-1a73-fe7a-f9fffd350dc1", ("in115+ clock frequency", "indium ion clock frequency")),
+    _cipm("hg199", "199Hg", "Mercury 199 atom (f ~ 1 129 THz)", "6s2 1S0 - 6s6p 3P0", "1 128 575 290 808 154.33", "265 637 977.759 838 71", "2.5 e-16",
+          "288515168/199Hg_1129THz_2025/ffd863a1-a0be-bd53-01f9-414a74a152bd", ("hg199 clock frequency", "mercury lattice clock frequency")),
+    _cipm("hg199_ion", "199Hg+", "Mercury 199 ion (f ~ 1 065 THz)", "5d10 6s 2S1/2 (F=0) - 5d9 6s2 2D5/2 (F=2)", "1 064 721 609 899 146.95", "281 568 867.591 968 08", "2.5 e-16",
+          "288514850/199Hg+_1065THz_2025/5e2a3382-c6c6-e61c-4cc0-b4ded661b859", ("hg199+ clock frequency", "mercury ion clock frequency")),
+    _cipm("lu176_ion", "176Lu+", "Lutetium 176 ion (f ~ 353.6 THz)", "mean of the three 6s2 1S0 (F=7) - 5d6s 3D1 (F=6, 7, 8)", "353 638 794 073 800.35", "", "2.8 e-15",
+          "288515214/176Lu+_353.6THz_2025/2b68827b-9b36-fbd3-6af5-5b73f09832a0", ("lu176+ clock frequency", "lutetium ion clock frequency"),
+          "The sheet defines f(176Lu+) = (nu1 + nu2 + nu3)/3 and prints no wavelength."),
+    _cipm("rb87", "87Rb", "Rubidium 87 atom (f ~ 6.835 GHz)", "ground-state hyperfine", "6 834 682 610.904 312 9", "", "3.4 e-16",
+          "288515266/87Rb_6.835GHz_2025/011eeef3-7afe-166f-8962-5003978dd25e", ("rb87 hyperfine frequency", "rubidium hyperfine frequency", "rubidium clock frequency"),
+          "The sheet says the radiation is endorsed as a secondary representation of the definition of the second."),
+    _cipm("sr88", "88Sr", "Strontium 88 atom (f ~ 429 THz)", "5s2 1S0 - 5s5p 3P0", "429 228 066 418 007.008", "698 445 608.419 382 438", "1.9 e-16",
+          "288515361/88Sr_429THz_2025/3d0db6ba-4c3f-2146-4bde-88a88b95c671", ("sr88 clock frequency", "strontium 88 clock frequency")),
+    _cipm("sr88_ion", "88Sr+", "Strontium 88 ion (f ~ 445 THz)", "5s 2S1/2 - 4d 2D5/2", "444 779 044 095 485.347", "674 025 590.863 135 253", "1.7 e-16",
+          "288516317/88Sr+_445THz_2025/6de68087-f958-96f9-23a2-2c5b944f5d35", ("sr88+ clock frequency", "strontium ion clock frequency")),
+    _cipm("yb171_ion_e2", "171Yb+ E2", "Ytterbium 171 ion (f ~ 688 THz)", "6s 2S1/2 (F=0) - 5d 2D3/2 (F=2)", "688 358 979 309 308.31", "435 517 610.739 687 59", "1.9 e-16",
+          "288516443/171Yb+_688THz_2025/b660ad09-7c1b-4629-e667-94e6d2fad827", ("yb171+ e2 clock frequency", "ytterbium ion quadrupole clock frequency")),
+    _cipm("yb171_ion_e3", "171Yb+ E3", "Ytterbium 171 ion (f ~ 642 THz)", "6s 2S1/2 (F=0) - 4f13 6s2 2F7/2 (F=3)", "642 121 496 772 645.18", "466 878 090.060 496 74", "1.7 e-16",
+          "288516395/171Yb+_642THz_2025/cdee7d00-642c-588e-cc7d-d0e760a9fc69", ("yb171+ e3 clock frequency", "ytterbium ion octupole clock frequency")),
+    _q("amini2003.cs.alpha0", "static scalar dipole polarizability of the cesium 6 2S1/2 ground state", "alpha_0(Cs)", "6.611 e-39", "0.009 e-39", "C m^2 V^-1",
+       kind="uncertainty as printed, level not stated",
+       source="J. M. Amini and H. Gould, High Precision Measurement of the Static Dipole Polarizability of Cesium, Phys. Rev. Lett. 91, 153001 (2003), doi:10.1103/PhysRevLett.91.153001, abstract",
+       edition="Phys. Rev. Lett. 91 (2003)", url="https://doi.org/10.1103/PhysRevLett.91.153001", retrieved_from="https://api.openalex.org/works/doi:10.1103/PhysRevLett.91.153001",
+       keys=("polarizability of cesium", "cesium polarizability"), phrases=("polarizability of cesium", "polarizability of caesium", "cesium polarizability", "static polarizabilities"),
+       notes=("Printed in the abstract as alpha_0 = 6.611 +- 0.009 x 10^-39 C m^2/V = 59.42 +- 0.08 x 10^-24 cm^3 = 401.0 +- 0.6 a_0^3; the SI form is stored.",
+              "Measured from the time of flight of laser-cooled, launched cesium atoms through an electric field; the abstract calls the 0.14% uncertainty a factor of 14 improvement.")),
+    _q("ekstrom1995.na.alpha", "ground-state electric polarizability of sodium", "alpha(Na)", "24.11 e-24", "0.06 e-24", "cm^3",
+       kind="statistical and systematic, printed separately", systematic_text="0.06 e-24",
+       source="C. R. Ekstrom, J. Schmiedmayer, M. S. Chapman, T. D. Hammond, and D. E. Pritchard, Measurement of the electric polarizability of sodium with an atom interferometer, Phys. Rev. A 51, 3883 (1995), doi:10.1103/PhysRevA.51.3883, abstract",
+       edition="Phys. Rev. A 51 (1995)", url="https://doi.org/10.1103/PhysRevA.51.3883", retrieved_from="https://api.openalex.org/works/doi:10.1103/PhysRevA.51.3883",
+       keys=("polarizability of sodium", "sodium polarizability"), phrases=("polarizability of sodium", "sodium polarizability", "static polarizabilities"),
+       notes=("Printed in the abstract as 24.11(6)_statistical(6)_systematic x 10^-24 cm^3.", _SPLIT_NOTE,
+              "The CCCBDB experimental list prints 24.110 A^3 for Na, citing Olney et al. (1997); it is not stored separately.")),
+    _q("cccbdb_pol.he.alpha", "static dipole polarizability of the helium atom (CCCBDB experimental list)", "alpha(He)", "0.208", "", "Angstrom^3",
+       kind="no uncertainty printed", source=CCCBDB_SOURCE.replace("Experimental > Energy > Atomization Energy.", "Experimental > Electrostatics > Polarizability (list of experimental polarizabilities)."),
+       edition="CCCBDB experimental polarizabilities", url=_POL_CCCBDB, retrieved_from=_POL_CCCBDB,
+       keys=("polarizability of helium", "helium polarizability"), phrases=("polarizability of helium", "helium polarizability", "static polarizabilities"),
+       notes=("The list ('Polarizabilites in A^3') prints He, Helium atom, alpha 0.208, squib 1997Oln/Can:59.",
+              "1997Oln/Can:59 is T. N. Olney, N. M. Cann, G. Cooper, and C. E. Brion, Chem. Phys. 223, 59-98 (1997), doi:10.1016/S0301-0104(97)00145-6: dipole sum rules over absolute photoabsorption spectra.",
+              "Schmidt et al., Phys. Rev. Lett. 98, 254504 (2007) measured helium's molar polarizability, but the abstract prints only its ratio to theory, so no value is stored from it.")),
+    _ddep16("f18", "fluorine-18", "18F", "1.82890", "0.00023", "h", "T1/2 (18F) : 1,82890 (23) h", "F-18", "V. Chiste, M. M. Be (LNHB), N. K. Kuzmenko (KRI)", "22/10/2002 - 29/8/2014"),
+    _ddep16("tc99m", "technetium-99m", "99mTc", "6.0067", "0.0010", "h", "T1/2 (99mTc) : 6,0067 (10) h", "Tc-99m", "C. Morillon, M. M. Be (LNHB), V. Chechev, A. Egorov (KRI)", "01/01/00 - 5/1/2012"),
+    _ddep16("i131", "iodine-131", "131I", "8.0233", "0.0019", "d", "T1/2 (131I) : 8,0233 (19) d", "I-131", "V. Chiste, M. M. Be (CEA/LNE-LNHB)", "13/11/2001 - 20/1/2014"),
+    _ddep16("c11", "carbon-11", "11C", "20.361", "0.023", "min", "T1/2 (11C) : 20,361 (23) min", "C-11", "V. Chiste, M. M. Be (LNE-LNHB/CEA)", "23/07/2002 - 3/11/2011"),
+    _ddep16("o15", "oxygen-15", "15O", "122.266", "0.049", "s", "T1/2 (15O) : 122,266 (49) s", "O-15", "X. Mougeot (CEA-LNHB)", "13/05/2002 - 03/03/2026"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

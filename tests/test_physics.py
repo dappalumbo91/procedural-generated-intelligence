@@ -2081,6 +2081,16 @@ class MolecularB16Tests(unittest.TestCase):
         self.assertEqual(quantity("hh1979.we_hcl").value_text, "2990.9463")
         self.assertEqual(quantity("shimanouchi1972.h2o.nu2").value_text, "1595")
 
+class ClocksPolHalfLifeB16Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("bipm2025.ca40_ion.frequency").value_text, "411 042 129 776 400.30")
+        self.assertEqual(quantity("bipm2025.rb87.frequency").uncertainty_text, "3.4 e-16")
+        self.assertEqual(quantity("amini2003.cs.alpha0").value_text, "6.611 e-39")
+        self.assertEqual(quantity("ekstrom1995.na.alpha").systematic_text, "0.06 e-24")
+        self.assertEqual(quantity("cccbdb_pol.he.alpha").value_text, "0.208")
+        self.assertEqual((quantity("ddep.t_half_tc99m").value_text, quantity("ddep.t_half_tc99m").uncertainty_text), ("6.0067", "0.0010"))
+        self.assertEqual(quantity("ddep.t_half_f18").value_text, "1.82890")
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

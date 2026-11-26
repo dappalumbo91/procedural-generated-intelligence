@@ -1007,9 +1007,44 @@ Shimanouchi's tables (via the WebBook) give the water fundamentals ν₁ `3657`,
 
 The vibrational-frequency and rotational-constant gap closes. This adds 12 records.
 
+### Optics, atomic, nuclear: CIPM frequencies, polarizabilities, medical half-lives
+
+The rest of the 2025 CIPM list of standard frequencies (BIPM data sheets, approved by the CCTF in September 2025 and active from March 27, 2026) gives these frequencies, with relative standard uncertainties:
+
+- ⁴⁰Ca⁺: `411 042 129 776 400.30` Hz (5.5 × 10⁻¹⁶);
+- ¹¹⁵In⁺: `1 267 402 452 901 039.07` Hz (1.8 × 10⁻¹⁶);
+- ¹⁹⁹Hg: `1 128 575 290 808 154.33` Hz (2.5 × 10⁻¹⁶);
+- ¹⁹⁹Hg⁺: `1 064 721 609 899 146.95` Hz (2.5 × 10⁻¹⁶);
+- ¹⁷⁶Lu⁺: `353 638 794 073 800.35` Hz (2.8 × 10⁻¹⁵), the mean of three lines;
+- ⁸⁷Rb hyperfine: `6 834 682 610.904 312 9` Hz (3.4 × 10⁻¹⁶);
+- ⁸⁸Sr: `429 228 066 418 007.008` Hz (1.9 × 10⁻¹⁶);
+- ⁸⁸Sr⁺: `444 779 044 095 485.347` Hz (1.7 × 10⁻¹⁶);
+- ¹⁷¹Yb⁺ E2: `688 358 979 309 308.31` Hz (1.9 × 10⁻¹⁶);
+- ¹⁷¹Yb⁺ E3: `642 121 496 772 645.18` Hz (1.7 × 10⁻¹⁶).
+
+The 2025 list has no ²⁷Al⁺ sheet.
+
+Static polarizabilities:
+
+- cesium: `6.611 ± 0.009` × 10⁻³⁹ C m²/V (Amini & Gould 2003 abstract);
+- sodium: `24.11(6)` statistical `(6)` systematic × 10⁻²⁴ cm³ (Ekstrom et al. 1995 abstract);
+- helium: `0.208` Å³, from the CCCBDB experimental list, which cites Olney et al. 1997 dipole sum rules.
+
+The helium value is a substitute. Schmidt et al. 2007 measured helium's molar polarizability, but the abstract prints only its ratio to theory, so no value is taken from it.
+
+DDEP half-lives, with uncertainties in the last digits:
+
+- ¹⁸F: `1.82890(23)` h;
+- ⁹⁹ᵐTc: `6.0067(10)` h;
+- ¹³¹I: `8.0233(19)` d;
+- ¹¹C: `20.361(23)` min;
+- ¹⁵O: `122.266(49)` s.
+
+The CIPM, polarizability, and medical half-life gaps close, and optics now lists no gaps. This adds 18 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.127.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.128.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
