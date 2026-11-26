@@ -4605,7 +4605,50 @@ VIRIAL_CRITICAL: tuple[Quantity, ...] = (
     _kl_crit("carbon dioxide", "p_c", "7.38", "MPa", "Carbon dioxide"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL
+_SUB_NOTE = "The WebBook row renders the last digit as a subscript (Huber and Herzberg's marking of a less certain digit); it is kept here as an ordinary digit. Numbers after the value on the row are footnote links."
+
+
+def _webbook_const(mol: str, cas: str, state: str, which: str, value: str, printed: str, extra: str = "") -> Quantity:
+    label, sym, short = {"we": ("harmonic vibrational wavenumber omega_e", "omega_e", "vibrational frequency"), "be": ("equilibrium rotational constant B_e", "B_e", "rotational constant")}[which]
+    m = mol.lower()
+    return _q(
+        f"hh1979.{which}_{m}", f"{label} of {mol}, ground state {state}", f"{sym}({mol})", value, "", "cm^-1",
+        kind="no uncertainty printed", source=WEBBOOK_DIATOMIC_SOURCE, edition=_WEBBOOK_EDITION,
+        url=f"https://webbook.nist.gov/cgi/cbook.cgi?ID={cas}&Mask=1000#Diatomic", retrieved_from=f"https://webbook.nist.gov/cgi/cbook.cgi?ID={cas}&Mask=1000",
+        keys=(f"{short} of {m}",), phrases=(f"{short} of {m}", f"{m} {short}", f"{short}s of diatomic molecules"),
+        notes=(f"Ground state {state}: the {sym} column prints '{printed}'.",) + ((_SUB_NOTE,) if "_" in printed else ()) + ((extra,) if extra else ()),
+    )
+
+
+_SHIMANOUCHI_URL = "https://webbook.nist.gov/cgi/cbook.cgi?ID=C7732185&Mask=800"
+_SHIMANOUCHI_SOURCE = ("T. Shimanouchi, Tables of Molecular Vibrational Frequencies Consolidated Volume I, NSRDS-NBS 39 (1972), "
+                       "as served in NIST Chemistry WebBook, SRD 69, 'Vibrational and/or electronic energy levels' for water")
+
+
+def _h2o_mode(n: str, mode: str, sym: str, value: str, ir: str) -> Quantity:
+    return _q(f"shimanouchi1972.h2o.nu{n}", f"water fundamental vibrational frequency nu{n} ({mode}, {sym})", f"nu{n}(H2O)", value, "", "cm^-1",
+              kind="no uncertainty printed", source=_SHIMANOUCHI_SOURCE, edition="NSRDS-NBS 39 (1972), via WebBook", url=_SHIMANOUCHI_URL, retrieved_from=_SHIMANOUCHI_URL,
+              keys=("vibrational frequency of water", "vibrational frequency of h2o"), phrases=("vibrational frequency of water", "water vibrational frequencies", "h2o fundamentals"),
+              notes=(f"The table prints the selected frequency {value} with rating A, and the gas-phase infrared value {ir}.",
+                     "The page's notes define rating A as '0~1 cm-1 uncertainty'; this is a rating class, not a per-value uncertainty."))
+
+
+MOLECULAR_CONSTANTS: tuple[Quantity, ...] = (
+    _webbook_const("H2", "C1333740", "X 1Sigma_g+", "we", "4401.213", "4401.21_3"),
+    _webbook_const("H2", "C1333740", "X 1Sigma_g+", "be", "60.8530", "60.853_0"),
+    _webbook_const("N2", "C7727379", "X 1Sigma_g+", "we", "2358.57", "2358.57 Z", "The trailing 'Z' is a flag on the WebBook row and is not interpreted here."),
+    _webbook_const("N2", "C7727379", "X 1Sigma_g+", "be", "1.998241", "1.99824_1"),
+    _webbook_const("O2", "C7782447", "X 3Sigma_g-", "we", "1580.193", "1580.19_3 Z", "The trailing 'Z' is a flag on the WebBook row and is not interpreted here. The O2 B_e is printed in brackets ([1.4376766]) and is not stored."),
+    _webbook_const("CO", "C630080", "X 1Sigma+", "we", "2169.81358", "2169.81358"),
+    _webbook_const("CO", "C630080", "X 1Sigma+", "be", "1.93128087", "1.93128087"),
+    _webbook_const("HCl", "C7647010", "X 1Sigma+", "we", "2990.9463", "2990.946_3", "The WebBook page lists constants for H35Cl."),
+    _webbook_const("HCl", "C7647010", "X 1Sigma+", "be", "10.593416", "10.59341_6", "The WebBook page lists constants for H35Cl."),
+    _h2o_mode("1", "symmetric stretch", "a1", "3657", "3656.65"),
+    _h2o_mode("2", "bend", "a1", "1595", "1594.59"),
+    _h2o_mode("3", "antisymmetric stretch", "b1", "3756", "3755.79"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

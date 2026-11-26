@@ -984,9 +984,32 @@ The same table gives these critical constants:
 
 None of these print an uncertainty. The virial-coefficient and critical-point gaps close. This adds 15 records.
 
+### Molecular: vibrational frequencies and rotational constants
+
+The NIST WebBook's Huber–Herzberg diatomic tables give these ground-state harmonic wavenumbers ω_e, in cm⁻¹:
+
+- H₂ `4401.213`;
+- N₂ `2358.57`;
+- O₂ `1580.193`;
+- CO `2169.81358`;
+- H³⁵Cl `2990.9463`.
+
+The same tables give these rotational constants B_e, in cm⁻¹:
+
+- H₂ `60.8530`;
+- N₂ `1.998241`;
+- CO `1.93128087`;
+- H³⁵Cl `10.593416`.
+
+Where the WebBook prints the last digit as a subscript, that digit is kept as an ordinary digit. O₂'s B_e is printed in brackets and is not stored.
+
+Shimanouchi's tables (via the WebBook) give the water fundamentals ν₁ `3657`, ν₂ `1595`, and ν₃ `3756` cm⁻¹. All three are rated A, which the table defines as "0~1 cm⁻¹".
+
+The vibrational-frequency and rotational-constant gap closes. This adds 12 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.126.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.127.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

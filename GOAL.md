@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.126.0`.
+Rule version `pgi-0.127.0`.
 
 In the kernel now:
 
@@ -206,6 +206,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `kayelaby_mag.*`, `khatiwada2015.*`, `havens1933.*`, `leviton2008.*`, `frey2006.*`, `kayelaby_gamma.*` | Magnetic susceptibilities, thermo-optic coefficients, heat-capacity ratios | χ (×10⁻⁸ m³/kg, 20 °C): water `-0.90`, Bi `-1.70`, Al `+0.82`, O₂ `+133.6`, Cu `-0.107`; water χ_v `-0.716 ± 0.094` ×10⁻⁶ (cgs); N₂ χ_mol `-11.938` ×10⁻⁶. dn/dT: fused silica `9.12E-06` (0.5 µm, 295 K), `8.86E-06`, `8.48E-06`, `3.60E-06` (100 K); Si `1.87E-04` (1.5 µm), `1.70E-04`; Ge `4.25E-04` (4 µm) /K. γ: He `1.63`, Ar `1.667`, N₂ `1.401`, O₂ `1.400`, air `1.405` (−79.3 °C), CO₂ `1.300`, CH₄ `1.307`. |
 | `nbs1953.*`, `ioffe.*.lattice_constant_300k` | Lattice constants beyond silicon | NBS Circular 539 (Å): Al `4.0494`, Cu `3.6150`, Ge `5.6576` (25 °C); diamond `3.5667`, NaCl `5.6402` (26 °C). Ioffe (300 K, Å): Ge `5.658`, GaAs `5.65325`, diamond `3.567`. |
 | `kayelaby_virial.*`, `kayelaby_crit.*` | Second virial coefficient fits, critical constants | B/(cm³ mol⁻¹) = a − b exp{c (K/T)}: He a `114.1`, b `98.7`, c `3.245` (7–150 K); Ar `154.2`, `119.3`, `105.1` (80–1024 K); N₂ `185.4`, `141.8`, `88.7` (75–700 K). T_c, p_c: He `5.19` K, `0.227` MPa; N₂ `126.2` K, `3.39` MPa; CO₂ `304.1` K, `7.38` MPa. |
+| `hh1979.we_*`, `hh1979.be_*`, `shimanouchi1972.*` | Vibrational frequencies and rotational constants | ω_e (cm⁻¹): H₂ `4401.213`, N₂ `2358.57`, O₂ `1580.193`, CO `2169.81358`, H³⁵Cl `2990.9463`. B_e (cm⁻¹): H₂ `60.8530`, N₂ `1.998241`, CO `1.93128087`, H³⁵Cl `10.593416`. H₂O ν₁ `3657`, ν₂ `1595`, ν₃ `3756` cm⁻¹. |
 | `gw150914.*` | Measured anchors | GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, via the GWOSC event API: source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, final mass `63.1 +3.4 −3.0` solar masses, final spin, radiated energy `3.1 ± 0.4` solar-mass c², `χ_eff`, `d_L = 440 +150 −170` Mpc, and `z`. Medians with 90% credible intervals. |
 | `bound.gw170817_speed_of_gravity` | Experimental bound | Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, from the 1.74 s delay of GRB 170817A, D = 26 Mpc, and an emission lag between 0 and 10 s. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |

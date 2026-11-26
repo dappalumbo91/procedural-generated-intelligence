@@ -1353,3 +1353,17 @@ The fit coefficients are stored as fit parameters, not as measured B. No open me
 That is 15 records.
 
 `python -m unittest discover -s tests -v` finished 423 tests, 0 failures, about 605.92 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Molecular: vibrational and rotational constants pgi-0.127.0
+
+Added these records:
+
+- Huber-Herzberg (WebBook) omega_e: H2, N2, O2, CO, HCl;
+- Huber-Herzberg (WebBook) B_e: H2, N2, CO, HCl;
+- Shimanouchi H2O fundamentals nu1, nu2, nu3.
+
+O2's B_e is printed in brackets and is not stored. The vibrational-frequency and rotational-constant gap closes.
+
+That is 12 records.
+
+`python -m unittest discover -s tests -v` finished 424 tests, 0 failures, about 608.76 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

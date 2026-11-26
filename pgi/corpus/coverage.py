@@ -45,7 +45,7 @@ _CODATA = {
 _PREFIX: dict[str, str] = {}
 for _domain, _names in {
     "atomic": ("asd512", "rk2002", "blondel2001", "volz1996", "gutterres2002", "young1994", "rafac1999", "patterson2015"),
-    "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024"),
+    "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024", "shimanouchi1972"),
     "nuclear": ("ame2020", "ddep", "ensdf", "am2013"),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
     "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015", "martin1973", "hpl1972", "nbs1953"),
@@ -159,6 +159,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("electron affinities", ("rk2002.", "blondel2001.")),
     ),
     "molecular and chemistry": (
+        ("diatomic vibrational and rotational constants (Huber-Herzberg) and water fundamentals (Shimanouchi)", ("hh1979.we_", "hh1979.be_", "shimanouchi1972.",)),
         ("dissociation energies", ("cccbdb.", "holsch2019.")),
         ("bond lengths", ("hh1979.",)),
         ("heats of formation", ("codata_key.", "janaf1998.", "gurvich1991.")),

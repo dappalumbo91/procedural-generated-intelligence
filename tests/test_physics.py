@@ -2074,6 +2074,13 @@ class VirialB16Tests(unittest.TestCase):
         self.assertEqual(quantity("kayelaby_crit.carbon_dioxide_t_c").value_text, "304.1")
         self.assertEqual(quantity("kayelaby_crit.helium_p_c").value_text, "0.227")
 
+class MolecularB16Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("hh1979.we_co").value_text, "2169.81358")
+        self.assertEqual(quantity("hh1979.be_h2").value_text, "60.8530")
+        self.assertEqual(quantity("hh1979.we_hcl").value_text, "2990.9463")
+        self.assertEqual(quantity("shimanouchi1972.h2o.nu2").value_text, "1595")
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:
