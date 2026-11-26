@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.117.0`.
+Rule version `pgi-0.118.0`.
 
 In the kernel now:
 
@@ -197,6 +197,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `martin1973.*` | Calorimetric Debye temperatures | Θ₀ᶜ: Cu `344.3 ± 0.2 K`, Ag `226.6 ± 0.2 K`, Au `161.8 ± 0.2 K`. γ: Cu `0.691`, Ag `0.640`, Au `0.689 ± 0.001 mJ/(K²·mol)`. All 95% statistical limits, as printed. |
 | `ccmgk2.*` | Absolute-gravity key comparison (CCM.G-K2.2017, NIM Changping) | The KCRVs at sites 1–9, printed minus 980 122 000.0 µGal: `575.1`, `568.9`, `579.0`, `575.6`, `581.1`, `649.6`, `641.9`, `653.9`, `647.3 µGal`. U(k=2) is 1.3–1.4 µGal, and all values are at 1.25 m. |
 | `base2022.*`, `torres2010.*`, `asplund2021.*` | Antiproton q/m, eclipsing-binary masses, solar abundances | R(p̄/p) `-1.000 000 000 003(16)` at 68%. Masses: V3903 Sgr `27.27 ± 0.55` / `19.01 ± 0.44`, V1143 Cyg, AI Phe `1.2336 ± 0.0045` / `1.1934 ± 0.0041`, EW Ori, CM Dra `0.23102 ± 0.00089` / `0.21409 ± 0.00083` M☉. Abundances: log ε C `8.46`, N `7.83`, O `8.69`, Fe `7.46`. Mass fractions: X `0.7438`, Y `0.2423`, Z `0.0139`, Z/X `0.0187`. |
+| `hpl1972.*`, `mills1973.*`, `db1998.he4.viscosity_*`, `db1998.he4.mutual_friction_*` | Thermal conductivities, water self-diffusion, helium II viscosity and mutual friction | k (W cm⁻¹ K⁻¹): Cu `4.03` (273.2 K), `4.01` (300 K); Al `2.36`, `2.37`; Si `1.48` (300 K); diamond type I `9.94`, type IIa `26.2` (273.2 K, typical). D at 25 °C: HTO in H₂O `2.236 ± 0.004`, H₂O `2.299`, D₂O `1.872` ×10⁻⁹ m²/s. He-4 η `1.346`, `1.468`, `3.319` µPa s at 1.5, 2.0, 4.0 K; B, B′ `1.296`, `0.317` (1.5 K), `1.024`, `0.052` (1.8 K). |
 | `gw150914.*` | Measured anchors | GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, via the GWOSC event API: source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, final mass `63.1 +3.4 −3.0` solar masses, final spin, radiated energy `3.1 ± 0.4` solar-mass c², `χ_eff`, `d_L = 440 +150 −170` Mpc, and `z`. Medians with 90% credible intervals. |
 | `bound.gw170817_speed_of_gravity` | Experimental bound | Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, from the 1.74 s delay of GRB 170817A, D = 26 Mpc, and an emission lag between 0 and 10 s. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |

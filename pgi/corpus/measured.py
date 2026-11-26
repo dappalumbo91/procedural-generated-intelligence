@@ -4263,7 +4263,62 @@ QED_ASTRO_B14: tuple[Quantity, ...] = (
     _asplund("z_over_x", "present-day solar surface metal-to-hydrogen mass ratio", "Z_surface/X_surface", "0.0187", "0.0009", ("solar metallicity",), "Z_surface/X_surface = 0.0187 +- 0.0009"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14
+_HPL1972 = "C. Y. Ho, R. W. Powell, and P. E. Liley, Thermal conductivity of the elements, J. Phys. Chem. Ref. Data 1, 279 (1972), doi:10.1063/1.3253100"
+_HPL1972_PDF = "https://srd.nist.gov/jpcrdreprint/1.3253100.pdf"
+_MILLS1973 = "R. Mills, Self-diffusion in normal and heavy water in the range 1-45 deg, J. Phys. Chem. 77, 685 (1973), doi:10.1021/j100624a025"
+_MILLS1973_PDF = "https://fenix.ciencias.ulisboa.pt/downloadFile/2533412229372806/Mills1973.pdf"
+
+
+def _hpl(id, element, t, k, table, remark, extra=()):
+    return _q(f"hpl1972.{id}", f"thermal conductivity of {element} at {t} K", f"k({element}, {t} K)", k, "", "W cm^-1 K^-1",
+              kind="no uncertainty printed", source=f"{_HPL1972}, {table}", edition="J. Phys. Chem. Ref. Data 1 (1972)", url="https://doi.org/10.1063/1.3253100",
+              retrieved_from=_HPL1972_PDF, keys=("thermal conductivity", f"{element.split()[0].lower()} thermal conductivity"),
+              phrases=(f"thermal conductivity of {element.split()[0].lower()}", "thermal conductivity of solids") + extra,
+              notes=(f"Printed in the table as T = {t}, k = {k} W cm^-1 K^-1 (read from the scanned reprint page image).", remark))
+
+
+def _db98x(key, name, symbol, value, unit, where, printed, phrases):
+    return _q(f"db1998.he4.{key}", f"liquid helium-4 at saturated vapour pressure: {name}", symbol, value, "", unit, kind="no uncertainty printed",
+              source=f"{_DB98_SOURCE}, {where}", edition="J. Phys. Chem. Ref. Data 27 (1998)", url="https://doi.org/10.1063/1.556028", retrieved_from=_DB98_URL,
+              keys=("helium-4", "superfluid helium"), phrases=phrases + ("superfluid helium", "helium ii", "liquid helium properties"),
+              notes=(f"{where} prints {printed}. These are recommended values from spline fits to an adopted database; the tables print no uncertainty for them.",))
+
+
+_CU_REMARK = "The table's remarks: values are for well-annealed high-purity copper and are considered accurate to within +-2% near room temperature and +-4% at low and high temperatures."
+_AL_REMARK = "The table's remarks: values are for well-annealed high-purity aluminum, thought accurate to within +-5% below room temperature and +-2 to +-3% above."
+_SI_REMARK = "The table's remarks: values for high-purity silicon at 300 K and above are recommended, accurate to within +-5% from 300 to 1000 K; values below 300 K are merely typical."
+_DIA_REMARK = "The diamond table is headed 'Typical values'; its remarks say the three sets only represent typical curves indicating the general trend for the three diamond types."
+
+TRANSPORT_B15: tuple[Quantity, ...] = (
+    _hpl("k_cu_273", "copper", "273.2", "4.03", "Thermal conductivity of copper, recommended values", _CU_REMARK),
+    _hpl("k_cu_300", "copper", "300", "4.01", "Thermal conductivity of copper, recommended values", _CU_REMARK),
+    _hpl("k_al_273", "aluminum", "273.2", "2.36", "Thermal conductivity of aluminum, recommended values", _AL_REMARK, ("thermal conductivity of aluminium",)),
+    _hpl("k_al_300", "aluminum", "300", "2.37", "Thermal conductivity of aluminum, recommended values", _AL_REMARK, ("thermal conductivity of aluminium",)),
+    _hpl("k_si_300", "silicon", "300", "1.48", "Thermal conductivity of silicon, recommended values", _SI_REMARK),
+    _hpl("k_diamond_i_273", "diamond type I", "273.2", "9.94", "Thermal conductivity of diamond, typical values", _DIA_REMARK),
+    _hpl("k_diamond_iia_273", "diamond type IIa", "273.2", "26.2", "Thermal conductivity of diamond, typical values", _DIA_REMARK),
+    _q("mills1973.d_hto_h2o_25c", "tracer diffusion coefficient of HTO in H2O at 25 C (diaphragm cell)", "D*(HTO in H2O, 25 C)", "2.236", "0.004", "1e-9 m^2/s",
+       kind="uncertainty as printed, level not stated", source=_MILLS1973 + ", Table I", edition="J. Phys. Chem. 77 (1973)", url="https://doi.org/10.1021/j100624a025",
+       retrieved_from=_MILLS1973_PDF, keys=("diffusion coefficient", "water self-diffusion"), phrases=("diffusion coefficient", "tracer diffusion of water", "self-diffusion of water"),
+       notes=("Printed in Table I as 2.236 +- 0.004 (D* x 10^9 m^2 s^-1) at 25 C; the abstract says the results 'are considered to be probably accurate to +-0.2%'.",)),
+    _q("mills1973.d_h2o_25c", "self-diffusion coefficient of pure H2O at 25 C", "D*(H2O, 25 C)", "2.299", "", "1e-9 m^2/s",
+       kind="no uncertainty printed", source=_MILLS1973 + ", Table III", edition="J. Phys. Chem. 77 (1973)", url="https://doi.org/10.1021/j100624a025",
+       retrieved_from=_MILLS1973_PDF, keys=("diffusion coefficient", "water self-diffusion"), phrases=("diffusion coefficient", "self-diffusion of water", "water self-diffusion coefficient"),
+       notes=("Printed in Table III, 'Calculated Self-Diffusion Coefficients of H2O and D2O', as 2.299 (D* x 10^9 m^2 s^-1) at 25 C. Mills calculated it from his HTO data and Longsworth's HDO data; it is the paper's own value, not recomputed here.",)),
+    _q("mills1973.d_d2o_25c", "self-diffusion coefficient of pure D2O at 25 C", "D*(D2O, 25 C)", "1.872", "", "1e-9 m^2/s",
+       kind="no uncertainty printed", source=_MILLS1973 + ", Table III", edition="J. Phys. Chem. 77 (1973)", url="https://doi.org/10.1021/j100624a025",
+       retrieved_from=_MILLS1973_PDF, keys=("diffusion coefficient", "heavy water self-diffusion"), phrases=("diffusion coefficient", "self-diffusion of heavy water"),
+       notes=("Printed in Table III as 1.872 (D* x 10^9 m^2 s^-1) for D2O-D2O at 25 C, calculated by Mills as for H2O.",)),
+    _db98x("viscosity_1p5k", "viscosity at 1.5 K", "eta(1.5 K)", "1.346 e-6", "Pa s", "Table 12.3", "T90 = 1.5 K, eta = 1.346E-06 Pa s", ("helium ii viscosity", "viscosity of liquid helium")),
+    _db98x("viscosity_2p0k", "viscosity at 2.0 K", "eta(2.0 K)", "1.468 e-6", "Pa s", "Table 12.3", "T90 = 2.0 K, eta = 1.468E-06 Pa s", ("helium ii viscosity", "viscosity of liquid helium")),
+    _db98x("viscosity_4p0k", "viscosity at 4.0 K (helium I)", "eta(4.0 K)", "3.319 e-6", "Pa s", "Table 12.3", "T90 = 4.0 K, eta = 3.319E-06 Pa s", ("viscosity of liquid helium", "helium i viscosity")),
+    _db98x("mutual_friction_b_1p5k", "mutual friction coefficient B at 1.5 K", "B(1.5 K)", "1.296", "", "Table 11.3", "T90 = 1.50 K, B = 1.296", ("mutual friction",)),
+    _db98x("mutual_friction_bprime_1p5k", "mutual friction coefficient B' at 1.5 K", "B'(1.5 K)", "0.317", "", "Table 11.3", "T90 = 1.50 K, B' = 0.317", ("mutual friction",)),
+    _db98x("mutual_friction_b_1p8k", "mutual friction coefficient B at 1.8 K", "B(1.8 K)", "1.024", "", "Table 11.3", "T90 = 1.80 K, B = 1.024", ("mutual friction",)),
+    _db98x("mutual_friction_bprime_1p8k", "mutual friction coefficient B' at 1.8 K", "B'(1.8 K)", "0.052", "", "Table 11.3", "T90 = 1.80 K, B' = 0.052", ("mutual friction",)),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

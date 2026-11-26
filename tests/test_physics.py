@@ -2019,6 +2019,18 @@ class QedAstroB14Tests(unittest.TestCase):
         # The printed X, Y, Z are kept as printed; their sum is not imposed.
         self.assertEqual([quantity(f"asplund2021.{k}_surface").value_text for k in "xyz"], ["0.7438", "0.2423", "0.0139"])
 
+class TransportB15Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual([quantity(f"hpl1972.k_{k}").value_text for k in ("cu_300", "al_300", "si_300", "diamond_iia_273")], ["4.01", "2.37", "1.48", "26.2"])
+        self.assertEqual(quantity("mills1973.d_h2o_25c").value_text, "2.299")
+        self.assertEqual(quantity("db1998.he4.mutual_friction_b_1p5k").value_text, "1.296")
+
+    def test_pound_rebka_gap_closes_against_pound1960(self) -> None:
+        from pgi.corpus.coverage import GAPS, closing
+        gap = next(g for g in GAPS["gravitation"] if g.text.startswith("Pound-Rebka 1960"))
+        self.assertIn("id:pound1960.", gap.terms)
+        self.assertTrue(any(i.startswith("pound1960.") for i in closing(gap, "gravitation")))
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

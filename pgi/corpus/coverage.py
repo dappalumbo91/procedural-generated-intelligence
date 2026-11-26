@@ -48,11 +48,11 @@ for _domain, _names in {
     "molecular and chemistry": ("cccbdb", "hh1979", "holsch2019", "codata_key", "crc91", "iupac_pka", "janaf1998", "gurvich1991", "iupac2021", "iapws2024"),
     "nuclear": ("ame2020", "ddep", "ensdf", "am2013"),
     "particle": ("atlas2024", "cdf2022", "cms2026", "flag2024", "mulan2013", "ucntau2021", "ucntau2025", "nist_beam2013", "lep2005", "atlas2022", "cms2022"),
-    "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015", "martin1973"),
+    "condensed matter": ("arajs1964", "ioffe", "srm767a", "wu1987", "knowles2017", "migliori2008", "kamm1964", "vallin1964", "nagamatsu2001", "drozdov2015", "nair2008", "ribeiropalau2015", "martin1973", "hpl1972"),
     "mechanics": ("grs80", "leaman2015", "liu2024", "iers2010", "iersc04", "wgs84", "ccmgk2"),
     "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971", "matula1979", "desai1984", "nist_tn1512"),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993"),
-    "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998", "jones1984", "berg2012", "teos10"),
+    "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998", "jones1984", "berg2012", "teos10", "mills1973"),
     "thermodynamics and statistical": ("codata2017", "iapws1992", "iapws2011", "its90", "formula"),
     "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1960", "pound1965", "chou2010", "bothwell2022", "ciufolini2016", "williams2004", "hofmann2018", "takamoto2020", "gw170817", "gw190521", "gw190814", "gw190425", "gw200115", "gw230529", "gw231123", "gw250114"),
     "astrophysics": ("borexino", "bond2017", "joyce2018", "fonseca2021", "riley2021", "miller2021", "salmi2024", "dittmann2024", "haberreiter2008",
@@ -181,6 +181,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("the OPERA timing known mistake", ("known.opera_timing",)),
     ),
     "condensed matter": (
+        ("thermal conductivities of Cu, Al, Si, and diamond (Ho-Powell-Liley)", ("hpl1972.",)),
         ("calorimetric Debye temperatures and electronic gamma (Cu, Ag, Au)", ("martin1973.",)),
         ("silicon lattice constants (CODATA)", ("codata2022.",)),
         ("band gaps", ("ioffe.",)),
@@ -191,6 +192,7 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("quantum Hall universality", ("ribeiropalau2015.",)),
     ),
     "fluids": (
+        ("water self-diffusion (Mills 1973)", ("mills1973.",)),
         ("measured dry-air viscosity (Kestin et al., via NBS TN 1186)", ("jones1984.",)),
         ("dilute-gas viscosities at 25 C (Berg-Moldover)", ("berg2012.",)),
         ("TEOS-10 seawater reference values", ("teos10.",)),
@@ -342,7 +344,7 @@ GAPS: dict[str, tuple[Gap, ...]] = {
         Gap("helium-4 viscosity and mutual friction", ("mutual friction", "helium ii viscosity")),
     ),
     "gravitation": (
-        Gap("Pound-Rebka 1960 itself (abstract not reachable)", ("pound-rebka 1960",)),
+        Gap("Pound-Rebka 1960 itself", ("id:pound1960.", "pound-rebka 1960")),
         Gap("Takamoto 2020 Tokyo Skytree clock test", ("skytree",)),
         Gap("Bothwell 2022 published-version numbers", ("bothwell published",)),
         Gap("gravitational-wave events beyond GW150914, with masses and distances", ("id:gw170817.", "id:gw190521.", "id:gwtc3.", "id:gwtc4.")),

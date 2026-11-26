@@ -1263,3 +1263,11 @@ The Hodge star of a k-form is the complementary (n-k)-form built from the invers
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 411 tests, 0 failures, about 657.47 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Condensed and fluids: thermal conductivities, water self-diffusion, He II viscosity pgi-0.118.0
+
+Added seven Ho-Powell-Liley 1972 thermal conductivities (Cu, Al, Si, diamond), three Mills 1973 water self-diffusion values, and helium-4 viscosity and mutual-friction values from Donnelly-Barenghi 1998. The Pound-Rebka 1960 gap matcher now names `pound1960.` by id.
+
+That is 17 records.
+
+`python -m unittest discover -s tests -v` finished 413 tests, 0 failures, about 552.54 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

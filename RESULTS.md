@@ -850,9 +850,32 @@ GOAL.md now carries a TOOLKIT_STATUS section: the mathematics still missing befo
 
 The Hodge star of a k-form is the complementary (n-k)-form built from the inverse metric and the exact volume density √|g|, kept only when that density squares back to |det g|. On Minkowski spacetime, ⋆⋆ of a 2-form is minus the form. A uniform charge density with potential A_t = -x²/2 satisfies d⋆F = ⋆(dt). On the Schwarzschild metric, the Coulomb potential A = dt/r has ⋆F = -sin(θ) dθ ∧ dφ and d⋆F = 0 away from the origin.
 
+### Condensed matter and fluids: thermal conductivities, water self-diffusion, helium II viscosity
+
+Ho, Powell, and Liley 1972 (J. Phys. Chem. Ref. Data 1, 279) give thermal conductivities in W cm⁻¹ K⁻¹, read from the scanned reprint:
+
+- copper: `4.03` at 273.2 K and `4.01` at 300 K (recommended, ±2% near room temperature);
+- aluminum: `2.36` at 273.2 K and `2.37` at 300 K (recommended, ±5% below room temperature, ±2–3% above);
+- silicon: `1.48` at 300 K (recommended, ±5% from 300 to 1000 K);
+- diamond at 273.2 K: type I `9.94`, type IIa `26.2`. The table calls these typical values.
+
+The tables print no per-value uncertainty, so the stated accuracies stay in the notes.
+
+Mills 1973 (J. Phys. Chem. 77, 685) gives water self-diffusion at 25 °C:
+
+- measured tracer value for HTO in H₂O: `2.236 ± 0.004` ×10⁻⁹ m²/s;
+- calculated pure-water values: H₂O `2.299` and D₂O `1.872`, from Table III.
+
+Donnelly and Barenghi 1998 add recommended values for liquid helium-4:
+
+- viscosity: `1.346` µPa s at 1.5 K, `1.468` at 2.0 K and `3.319` at 4.0 K;
+- mutual-friction coefficients B and B′: `1.296` and `0.317` at 1.5 K; `1.024` and `0.052` at 1.8 K.
+
+The Pound-Rebka 1960 gap now closes against the `pound1960.*` records by id. This adds 17 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.117.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.118.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
