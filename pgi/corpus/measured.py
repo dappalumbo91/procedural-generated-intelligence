@@ -4159,7 +4159,33 @@ FLUIDS_B14: tuple[Quantity, ...] = (
        notes=("Printed in Table 3.39.1, row 'Standard ocean' (S_A = 35.165 04 g/kg, t = 0 C, p = 0 dbar), as L_p^SA = 2 498 510 J kg^-1. It is a TEOS-10 computed reference value, from Eqn. (3.39.7), not a measurement.",)),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14
+_MARTIN1973 = "D. L. Martin, Specific heat of copper, silver, and gold below 30 K, Phys. Rev. B 8, 5357 (1973), doi:10.1103/PhysRevB.8.5357, abstract (erratum Phys. Rev. B 10, 5239 (1974), not reached)"
+_MARTIN_NOTE = "The abstract says: 'The error limits are 95% confidence limits from the statistical analysis and do not include possible systematic errors.' The data are automatic-calorimeter specific heats from 2.5 to 30 K, analysed with data from 0.4 to 3.0 K."
+
+
+def _martin(id, name, symbol, value, unc, unit, metal, printed_line, extra_phrases=()):
+    return _q(f"martin1973.{id}", name, symbol, value, unc, unit, kind="95% interval", source=_MARTIN1973, edition="Phys. Rev. B 8 (1973)",
+              url="https://doi.org/10.1103/PhysRevB.8.5357", retrieved_from="https://api.openalex.org/works/doi:10.1103/PhysRevB.8.5357",
+              keys=("specific heat", "calorimetry", "condensed matter", metal.lower()), phrases=extra_phrases + (f"{metal.lower()} specific heat",),
+              notes=(f"Printed in the abstract as {printed_line}.", _MARTIN_NOTE))
+
+
+DEBYE_B14: tuple[Quantity, ...] = (
+    _martin("theta0_cu", "calorimetric low-temperature limiting Debye temperature of copper", "Theta_0^c(Cu)", "344.3", "0.2", "K", "Copper",
+            "Theta_0^c = (344.3 +- 0.2) K", ("calorimetric debye", "debye temperature of copper", "debye temperature")),
+    _martin("theta0_ag", "calorimetric low-temperature limiting Debye temperature of silver", "Theta_0^c(Ag)", "226.6", "0.2", "K", "Silver",
+            "Theta_0^c = (226.6 +- 0.2) K", ("calorimetric debye", "debye temperature of silver", "debye temperature")),
+    _martin("theta0_au", "calorimetric low-temperature limiting Debye temperature of gold", "Theta_0^c(Au)", "161.8", "0.2", "K", "Gold",
+            "Theta_0^c = (161.8 +- 0.2) K", ("calorimetric debye", "debye temperature of gold", "debye temperature")),
+    _martin("gamma_cu", "electronic specific-heat coefficient of copper", "gamma(Cu)", "0.691", "0.001", "mJ/(K^2 mol)", "Copper",
+            "gamma = 165.0 +- 0.2 ucal/K^2 g atom (0.691 +- 0.001 mJ/K^2 g atom); the mJ form is stored", ("electronic specific heat", "sommerfeld coefficient")),
+    _martin("gamma_ag", "electronic specific-heat coefficient of silver", "gamma(Ag)", "0.640", "0.001", "mJ/(K^2 mol)", "Silver",
+            "gamma = 152.8 +- 0.2 ucal/K^2 g atom (0.640 +- 0.001 mJ/K^2 g atom); the mJ form is stored", ("electronic specific heat", "sommerfeld coefficient")),
+    _martin("gamma_au", "electronic specific-heat coefficient of gold", "gamma(Au)", "0.689", "0.001", "mJ/(K^2 mol)", "Gold",
+            "gamma = 164.7 +- 0.3 ucal/K^2 g atom (0.689 +- 0.001 mJ/K^2 g atom); the mJ form is stored", ("electronic specific heat", "sommerfeld coefficient")),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

@@ -1221,3 +1221,11 @@ Added five measured dry-air viscosities (NBS TN 1186, Table 1), the six Berg-Mol
 That is 14 records.
 
 `python -m unittest discover -s tests -v` finished 405 tests, 0 failures, about 527.10 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — condensed matter: calorimetric Debye temperatures pgi-0.113.0
+
+Added Martin 1973's Theta_0^c and gamma for Cu, Ag, and Au, at 95% statistical limits as printed. The calorimetric-Debye gap is closed. No source for gas heat-capacity ratios was reachable, so that gap stays open.
+
+That is 6 records.
+
+`python -m unittest discover -s tests -v` finished 407 tests, 0 failures, about 584.42 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

@@ -1993,6 +1993,15 @@ class FluidsB14Tests(unittest.TestCase):
         # The two 20.00 C points from the same table, 1.00 atm and 34.97 atm.
         self.assertLess(quantity("jones1984.air_eta_20c_1atm").value, quantity("jones1984.air_eta_20c_35atm").value)
 
+class DebyeB14Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual([quantity(f"martin1973.theta0_{m}").value_text for m in ("cu", "ag", "au")], ["344.3", "226.6", "161.8"])
+        self.assertEqual(quantity("martin1973.theta0_cu").uncertainty_kind, "95% interval")
+
+    def test_calorimetric_and_elastic_both_kept(self) -> None:
+        # The elastic Debye temperatures already on the board are a different observable; neither retracts the other.
+        self.assertTrue(any(i.startswith("martin1973.") for i in (q.id for q in QUANTITIES)))
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

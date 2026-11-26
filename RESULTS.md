@@ -788,9 +788,27 @@ TEOS-10 adds two defined (exact) values and one computed reference value:
 
 This closes the measured-air, noble-gas, and seawater gaps. It adds 14 records.
 
+### Condensed matter: calorimetric Debye temperatures
+
+Martin 1973 (Phys. Rev. B 8, 5357) measured specific heats from 2.5 to 30 K in an automatic calorimeter and analysed them together with data from 0.4 to 3.0 K. That gives these limiting low-temperature Debye temperatures:
+
+- Cu `344.3 ± 0.2 K`;
+- Ag `226.6 ± 0.2 K`;
+- Au `161.8 ± 0.2 K`.
+
+It also gives the electronic coefficients γ, `0.691`, `0.640`, and `0.689 ± 0.001 mJ/(K²·mol)`. All are 95% confidence limits from the statistical analysis, which, as the abstract says, exclude systematics.
+
+The values come from the published abstract. The 1974 erratum could not be reached.
+
+The elastic Debye temperatures already on the board are kept beside these; the two are not compared. Silicon still has no reachable calorimetric source.
+
+No source for measured heat-capacity ratios of gases could be reached: the Royal Society, ACS, and IOP PDFs were blocked. So that thermo gap stays open, and no ratios are stored.
+
+This adds 6 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.112.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.113.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
