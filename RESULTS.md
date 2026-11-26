@@ -1050,9 +1050,39 @@ The integral of a top-degree form over an axis-aligned box is the iterated exact
 
 The identity tetrad on Minkowski spacetime and the diagonal tetrad of flat FLRW, e^0 = dt and e^i = a(t) dx^i, are admitted. The metric rebuilds from the tetrad, and an inverse tetrad is kept only when both products are the identity. The spin connection is the torsion-free solution of Cartan's first structure equation, checked identically. The Dirac operator is gamma^a e_a^mu (partial_mu + (1/4) omega_mu^{bc} gamma_b gamma_c). On Minkowski it annihilates a constant spinor. On flat FLRW a constant spinor psi satisfies D psi = (3/2) (da/dt)/a gamma^0 psi, checked identically.
 
+### Condensed matter and thermodynamics: saturation magnetization and latent heats
+
+Kaye & Laby Sect. 2.6.6 (Wayback copy) gives these saturation polarizations J_s, with no temperature or uncertainty:
+
+- high-purity iron `2.16` T;
+- cobalt `1.76` T;
+- nickel `0.615` T.
+
+Danan, Herr and Meyer (1968 abstract) give the absolute saturation at 0 K:
+
+- iron: `221.71 ± 0.08` emu/g, which the paper prints as `2.216` μ_B;
+- nickel: `58.57 ± 0.03` emu/g, which the paper prints as `0.616` μ_B.
+
+Myers and Sucksmith (1951) extrapolate hexagonal cobalt to `162.55` at 0 K. The abstract prints no unit, so none is stored.
+
+Nigh, Legvold and Spedding (1963) give gadolinium's absolute saturation moment as `7.55` μ_B per atom.
+
+Kaye & Laby Sect. 3.10.4 gives these latent heats for water:
+
+- enthalpy of fusion `333` J/g;
+- enthalpy of vaporization `2257` J/g;
+- the Osborne–Stimson–Ginnings values `2500.58` J/g at 273.150 K and `2256.57` J/g at 373.124 K.
+
+Kaye & Laby Sect. 3.10.1 prints molar enthalpies for the elements in units of R·K, and they are stored that way:
+
+- nitrogen: fusion `87` (63.2 K), vaporization `672` (77.34 K);
+- helium: fusion `2.4` (3.5 K), vaporization `9.6` (4.22 K).
+
+The ferromagnet and latent-heat gaps close. This adds 17 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.130.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.131.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

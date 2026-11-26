@@ -2091,6 +2091,18 @@ class ClocksPolHalfLifeB16Tests(unittest.TestCase):
         self.assertEqual((quantity("ddep.t_half_tc99m").value_text, quantity("ddep.t_half_tc99m").uncertainty_text), ("6.0067", "0.0010"))
         self.assertEqual(quantity("ddep.t_half_f18").value_text, "1.82890")
 
+class FerroLatentB17Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("kayelaby_ferro.fe_js").value_text, "2.16")
+        self.assertEqual((quantity("danan1968.fe_sigma").value_text, quantity("danan1968.fe_sigma").uncertainty_text), ("221.71", "0.08"))
+        self.assertEqual(quantity("nigh1963.gd_moment").value_text, "7.55")
+        self.assertEqual(quantity("kayelaby_latent.water_vap").value_text, "2257")
+        self.assertEqual(quantity("kayelaby_latent.water_osg_vap_273p150k").value_text, "2500.58")
+        self.assertEqual(quantity("kayelaby_latent.helium_vap").unit, "R K")
+
+    def test_both_nickel_values_kept(self) -> None:
+        self.assertEqual({quantity("kayelaby_ferro.ni_js").value_text, quantity("danan1968.ni_moment").value_text}, {"0.615", "0.616"})
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

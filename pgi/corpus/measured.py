@@ -4724,7 +4724,80 @@ CLOCKS_POLARIZABILITY_HALFLIVES: tuple[Quantity, ...] = (
     _ddep16("o15", "oxygen-15", "15O", "122.266", "0.049", "s", "T1/2 (15O) : 122,266 (49) s", "O-15", "X. Mougeot (CEA-LNHB)", "13/05/2002 - 03/03/2026"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES
+_KL_266_SOURCE = "Kaye & Laby, Tables of Physical and Chemical Constants (NPL online, version 1.0), Sect. 2.6.6, Magnetic properties of materials, table (3) Soft (low coercivity) materials"
+_KL_266_NOTE = "kayelaby.npl.co.uk is retired; the page was read from the Internet Archive copy (original http://www.kayelaby.npl.co.uk/general_physics/2_6/2_6_6.html)."
+_OA = "https://api.openalex.org/works/doi:"
+
+
+def _kl_js(key: str, metal: str, row: str, value: str, curie: str) -> Quantity:
+    return _q(f"kayelaby_ferro.{key}_js", f"saturation magnetic polarization J_s of {metal} (Kaye & Laby)", f"J_s({metal})", value, "", "T",
+              kind="no uncertainty printed", source=_KL_266_SOURCE, edition="Kaye & Laby online, v1.0", url=_KL_MAG_WB, retrieved_from=_KL_MAG_WB,
+              keys=("saturation magnetization", f"saturation magnetization of {metal}"), phrases=(f"saturation magnetization of {metal}", f"{metal} saturation magnetization", "magnetic moments of ferromagnets"),
+              notes=(f"Under 'Ferromagnetic elements', the row '{row}' prints J_s = {value} T and Curie point {curie} C.", "The table gives no temperature for J_s and prints no uncertainty.", _KL_266_NOTE))
+
+
+_DANAN = ("H. Danan, A. Herr, and A. J. P. Meyer, New Determinations of the Saturation Magnetization of Nickel and Iron, J. Appl. Phys. 39, 669-670 (1968), "
+          "doi:10.1063/1.2163571, abstract")
+_DANAN_NOTE = "The abstract calls the values absolute saturation, sigma_0,infinity: extrapolated to 0 K and corrected for demagnetizing fields, rotations, and paramagnetic terms."
+
+
+def _danan(key: str, metal: str, which: str, value: str, unc: str, unit: str, printed: str) -> Quantity:
+    label, sym = {"sigma": ("absolute saturation magnetization (per mass) at 0 K", "sigma_0"), "moment": ("saturation magnetic moment per atom at 0 K", "M")}[which]
+    return _q(f"danan1968.{key}_{which}", f"{label} of {metal}", f"{sym}({metal})", value, unc, unit,
+              kind="uncertainty as printed, level not stated" if unc else "no uncertainty printed", source=_DANAN, edition="J. Appl. Phys. 39 (1968)",
+              url="https://doi.org/10.1063/1.2163571", retrieved_from=_OA + "10.1063/1.2163571",
+              keys=("saturation magnetization", f"saturation magnetization of {metal}"), phrases=(f"saturation magnetization of {metal}", f"magnetic moment of {metal}", "magnetic moments of ferromagnets"),
+              notes=(f"Printed in the abstract as {printed}.", _DANAN_NOTE))
+
+
+_KL_310_1 = "https://web.archive.org/web/20160702062422/http://www.kayelaby.npl.co.uk/chemistry/3_10/3_10_1.html"
+_KL_310_4 = "https://web.archive.org/web/20170120004136/http://www.kayelaby.npl.co.uk/chemistry/3_10/3_10_4.html"
+_KL_310_SOURCE = "Kaye & Laby, Tables of Physical and Chemical Constants (NPL online, version 1.0), Sect. 3.10.{n}, {title} (M. L. McGlashan)"
+_KL_RETIRED = "kayelaby.npl.co.uk is retired; the page was read from the Internet Archive copy named in retrieved_from."
+
+
+def _kl_latent(key: str, substance: str, which: str, value: str, unit: str, temp: str, sect: str, note: str) -> Quantity:
+    label = {"fus": "enthalpy of fusion", "vap": "enthalpy of vaporization"}[which]
+    other = {"fus": "latent heat of fusion", "vap": "latent heat of vaporization"}[which]
+    url, title = {"1": (_KL_310_1, "Standard molar heat capacities and properties of melting and evaporation of the elements"),
+                  "4": (_KL_310_4, "Cryoscopic and ebullioscopic constants and enthalpies of fusion and of evaporation of some common solvents")}[sect]
+    return _q(f"kayelaby_latent.{key}_{which}{'_' + temp.replace('.', 'p') + 'k' if sect == '4' and temp else ''}", f"{label} of {substance}" + (f" at {temp} K" if temp else ""), f"dH_{which}({substance})", value, "", unit,
+              kind="no uncertainty printed", source=_KL_310_SOURCE.format(n=sect, title=title), edition="Kaye & Laby online, v1.0", url=url, retrieved_from=url,
+              keys=(f"{label} of {substance}", f"{other} of {substance}"), phrases=(f"{label} of {substance}", f"{other} of {substance}", f"latent heat of {substance}", "latent heats"),
+              notes=(note, _KL_RETIRED))
+
+
+FERRO_LATENT: tuple[Quantity, ...] = (
+    _kl_js("fe", "iron", "Iron, high purity (single crystals in preferred direction)", "2.16", "770"),
+    _kl_js("co", "cobalt", "Cobalt", "1.76", "1115"),
+    _kl_js("ni", "nickel", "Nickel", "0.615", "358"),
+    _danan("fe", "iron", "sigma", "221.71", "0.08", "emu g^-1", "sigma_0,infinity = 221.71 +- 0.08 emu/g, corresponding to M = 2.216 mu_B"),
+    _danan("fe", "iron", "moment", "2.216", "", "mu_B", "sigma_0,infinity = 221.71 +- 0.08 emu/g, corresponding to M = 2.216 mu_B"),
+    _danan("ni", "nickel", "sigma", "58.57", "0.03", "emu g^-1", "sigma_0,infinity = 58.57 +- 0.03 emu/g, corresponding to M = 0.616 mu_B (1.6% above Weiss and Forrer's 0.606 mu_B)"),
+    _danan("ni", "nickel", "moment", "0.616", "", "mu_B", "sigma_0,infinity = 58.57 +- 0.03 emu/g, corresponding to M = 0.616 mu_B (1.6% above Weiss and Forrer's 0.606 mu_B)"),
+    _q("myers1951.co_hcp_sigma0", "spontaneous magnetization of hexagonal cobalt extrapolated to 0 K", "sigma_0(Co hcp)", "162.55", "", "",
+       kind="no uncertainty printed", source="H. P. Myers and W. Sucksmith, The spontaneous magnetization of cobalt, Proc. R. Soc. Lond. A 207, 427-446 (1951), doi:10.1098/rspa.1951.0132, abstract",
+       edition="Proc. R. Soc. A 207 (1951)", url="https://doi.org/10.1098/rspa.1951.0132", retrieved_from=_OA + "10.1098/rspa.1951.0132",
+       keys=("saturation magnetization", "saturation magnetization of cobalt"), phrases=("saturation magnetization of cobalt", "spontaneous magnetization of cobalt", "magnetic moments of ferromagnets"),
+       notes=("The abstract says: 'By extrapolation the value 162.55 was determined for the spontaneous magnetization of hexagonal cobalt at absolute zero of temperature.'",
+              "The abstract prints no unit for 162.55, so none is stored; measured with Sucksmith's magnetic balance from -183 to 1121 C.")),
+    _q("nigh1963.gd_moment", "absolute saturation magnetic moment of gadolinium (single crystal)", "M_s(Gd)", "7.55", "", "mu_B",
+       kind="no uncertainty printed", source="H. E. Nigh, S. Legvold, and F. H. Spedding, Magnetization and Electrical Resistivity of Gadolinium Single Crystals, Phys. Rev. 132, 1092-1097 (1963), doi:10.1103/PhysRev.132.1092, abstract",
+       edition="Phys. Rev. 132 (1963)", url="https://doi.org/10.1103/PhysRev.132.1092", retrieved_from=_OA + "10.1103/PhysRev.132.1092",
+       keys=("saturation magnetization", "saturation magnetization of gadolinium"), phrases=("saturation magnetization of gadolinium", "magnetic moment of gadolinium", "magnetic moments of ferromagnets"),
+       notes=("The abstract says: 'The absolute saturation magnetic moment was found to be 7.55 Bohr magnetons/atom.' It also reports a ferromagnetic Curie temperature of 293.2 K.",
+              "Fields 0 to 18 kOe along three crystal axes, 1.4 to 900 K.")),
+    _kl_latent("water", "water", "fus", "333", "J g^-1", "", "4", "The solvent table prints for H2O: k_fus 1.86, k_vap 0.51 K kg mol-1, massic enthalpy of fusion 333 J g-1, and of evaporation 2257 J g-1."),
+    _kl_latent("water", "water", "vap", "2257", "J g^-1", "", "4", "The solvent table prints for H2O: k_fus 1.86, k_vap 0.51 K kg mol-1, massic enthalpy of fusion 333 J g-1, and of evaporation 2257 J g-1 (at the normal boiling temperature, per the page)."),
+    _kl_latent("water_osg", "water", "vap", "2500.58", "J g^-1", "273.150", "4", "The page prints massic enthalpies of evaporation of water 'calculated, with temperatures T90 on ITS-90, from those measured by Osborne, Stimson, and Ginnings (1939)'; the row T90 = 273.150 K gives 2500.58 J g-1."),
+    _kl_latent("water_osg", "water", "vap", "2256.57", "J g^-1", "373.124", "4", "The page prints massic enthalpies of evaporation of water 'calculated, with temperatures T90 on ITS-90, from those measured by Osborne, Stimson, and Ginnings (1939)'; the row T90 = 373.124 K gives 2256.57 J g-1."),
+    _kl_latent("nitrogen", "nitrogen", "fus", "87", "R K", "", "1", "The N2 column prints T_fus 63.2 K and molar enthalpy of fusion 87 in units of R K (Delta H / (R K) = 87), with R = 8.314 51 J K-1 mol-1 given on the page; the value is stored in R K as printed."),
+    _kl_latent("nitrogen", "nitrogen", "vap", "672", "R K", "", "1", "The N2 column prints T_vap 77.34 K and molar enthalpy of evaporation 672 in units of R K; the value is stored in R K as printed."),
+    _kl_latent("helium", "helium", "fus", "2.4", "R K", "", "1", "The He column prints T_fus 3.5 K and molar enthalpy of fusion 2.4 in units of R K; the page gives no pressure for helium's melting point. Stored in R K as printed."),
+    _kl_latent("helium", "helium", "vap", "9.6", "R K", "", "1", "The He column prints T_vap 4.22 K and molar enthalpy of evaporation 9.6 in units of R K; the value is stored in R K as printed."),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

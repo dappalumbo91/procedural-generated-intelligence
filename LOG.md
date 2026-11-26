@@ -1397,3 +1397,19 @@ The identity tetrad on Minkowski spacetime and the diagonal tetrad of flat FLRW,
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 430 tests, 0 failures, about 740.31 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Condensed matter, thermo: saturation magnetization, latent heats pgi-0.131.0
+
+Added these records:
+
+- Kaye & Laby J_s: Fe, Co, Ni;
+- Danan 1968 absolute saturation of Fe and Ni, in emu/g and μ_B;
+- Myers & Sucksmith 1951 hcp Co;
+- Nigh 1963 Gd moment;
+- Kaye & Laby latent heats: water (4), N2 (2), He (2).
+
+The ferromagnet and latent-heat gaps close.
+
+That is 17 records.
+
+`python -m unittest discover -s tests -v` finished 432 tests, 0 failures, about 718.34 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
