@@ -819,9 +819,30 @@ Standard gravity was already on the board as `codata2022.g_n` (9.806 65 m/s², e
 
 This adds 9 records.
 
+### QED and astrophysics: BASE antiproton q/m, eclipsing binaries, solar abundances
+
+BASE (Borchert et al., Nature 2022) gives the antiproton-to-proton charge-to-mass ratio R = `-1.000 000 000 003(16)`. That is 16 p.p.t. at C.L. 0.68, measured against H⁻ in a Penning trap. The paper's WEP limit is not stored.
+
+Torres, Andersen, and Giménez 2010 give masses for both components of five detached eclipsing binaries, with mean errors as printed:
+
+- V3903 Sgr: `27.27 ± 0.55` / `19.01 ± 0.44 M☉`;
+- V1143 Cyg: `1.388 ± 0.016` / `1.344 ± 0.013`;
+- AI Phe: `1.2336 ± 0.0045` / `1.1934 ± 0.0041`;
+- EW Ori: `1.174 ± 0.012` / `1.1238 ± 0.0089`;
+- CM Dra: `0.23102 ± 0.00089` / `0.21409 ± 0.00083`.
+
+Asplund, Amarsi, and Grevesse 2021 give the solar abundance scale:
+
+- photospheric log ε: C `8.46 ± 0.04`, N `7.83 ± 0.07`, O `8.69 ± 0.04`, Fe `7.46 ± 0.04`;
+- surface mass fractions: X `0.7438 ± 0.0054`, Y `0.2423 ± 0.0054`, Z `0.0139 ± 0.0006`, Z/X `0.0187 ± 0.0009`.
+
+The printed X, Y, and Z are kept as printed, and no sum is imposed on them.
+
+With these, QED and astrophysics list no gaps. This adds 19 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.114.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.115.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

@@ -2008,6 +2008,17 @@ class CcmB14Tests(unittest.TestCase):
         self.assertEqual(values, ["575.1", "568.9", "579.0", "575.6", "581.1", "649.6", "641.9", "653.9", "647.3"])
         self.assertEqual({quantity(f"ccmgk2.kcrv_site{i}").uncertainty_kind for i in range(1, 10)}, {"95% interval"})
 
+class QedAstroB14Tests(unittest.TestCase):
+    def test_base_ratio_as_printed(self) -> None:
+        r = quantity("base2022.pbar_p_qm_ratio")
+        self.assertEqual((r.value_text, r.uncertainty_text, r.uncertainty_kind), ("-1.000 000 000 003", "0.000 000 000 016", "68% interval"))
+
+    def test_binary_masses_and_abundances(self) -> None:
+        self.assertEqual(quantity("torres2010.cmdra_a").value_text, "0.23102")
+        self.assertEqual(quantity("asplund2021.log_eps_o").value_text, "8.69")
+        # The printed X, Y, Z are kept as printed; their sum is not imposed.
+        self.assertEqual([quantity(f"asplund2021.{k}_surface").value_text for k in "xyz"], ["0.7438", "0.2423", "0.0139"])
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

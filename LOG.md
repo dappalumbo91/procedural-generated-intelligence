@@ -1237,3 +1237,11 @@ Added the nine CCM.G-K2.2017 KCRVs as printed (residuals after subtracting 980 1
 That is 9 records.
 
 `python -m unittest discover -s tests -v` finished 408 tests, 0 failures, about 552.42 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — QED and astro: BASE q/m, eclipsing binaries, solar abundances pgi-0.115.0
+
+Added BASE 2022's antiproton/proton q/m ratio, ten eclipsing-binary component masses from Torres et al. 2010, and eight Asplund 2021 solar abundance values. QED and astrophysics now list no gaps.
+
+That is 19 records.
+
+`python -m unittest discover -s tests -v` finished 410 tests, 0 failures, about 557.49 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

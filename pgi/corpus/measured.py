@@ -4211,7 +4211,59 @@ CCM_B14: tuple[Quantity, ...] = (
     _ccm("9", "647.3", "1.3"),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14
+_BASE2022 = "BASE Collaboration, M. J. Borchert et al., A 16-parts-per-trillion measurement of the antiproton-to-proton charge-mass ratio, Nature 601, 53 (2022), doi:10.1038/s41586-021-04203-w, arXiv:2311.16006"
+_TORRES2010 = "G. Torres, J. Andersen, and A. Gimenez, Accurate masses and radii of normal stars: modern results and applications, Astron. Astrophys. Rev. 18, 67 (2010), doi:10.1007/s00159-009-0025-1, arXiv:0908.2624, Table 'Observed parameters and derived quantities for 95 binary systems, with mean errors'"
+_ASPLUND2021 = "M. Asplund, A. M. Amarsi, and N. Grevesse, The chemical make-up of the Sun: A 2020 vision, Astron. Astrophys. 653, A141 (2021), doi:10.1051/0004-6361/202140445, arXiv:2105.01661"
+
+
+def _torres(id, system, star, value, unc, printed_row):
+    return _q(f"torres2010.{id}", f"mass of {system} {star} (detached eclipsing binary)", f"M({system} {star})", value, unc, "M_sun",
+              kind="uncertainty as printed, level not stated", source=_TORRES2010, edition="A&ARv 18 (2010)", url="https://doi.org/10.1007/s00159-009-0025-1",
+              retrieved_from="https://arxiv.org/e-print/0908.2624", keys=("eclipsing binary", "stellar mass", "astrophysics"),
+              phrases=("eclipsing binary", "eclipsing binary mass", "stellar mass", system.lower()),
+              notes=(f"Printed in the table as {printed_row}. The table heading says 'with mean errors'; no confidence level is stated.",
+                     "Torres et al. recomputed the masses from the original data with uniform constants, so they need not equal the discovery papers' values."))
+
+
+def _asplund(id, name, symbol, value, unc, phrases, printed_line):
+    return _q(f"asplund2021.{id}", name, symbol, value, unc, "", kind="uncertainty as printed, level not stated", source=_ASPLUND2021 + ", abstract",
+              edition="A&A 653 (2021)", url="https://doi.org/10.1051/0004-6361/202140445", retrieved_from="https://arxiv.org/e-print/2105.01661",
+              keys=("solar abundance", "sun", "astrophysics"), phrases=("solar abundance", "solar composition") + phrases,
+              notes=(f"Printed as {printed_line}.",))
+
+
+QED_ASTRO_B14: tuple[Quantity, ...] = (
+    _q("base2022.pbar_p_qm_ratio", "antiproton-to-proton charge-to-mass ratio", "R_pbar,p,exp", "-1.000 000 000 003", "0.000 000 000 016", "",
+       kind="68% interval", printed="-1.000 000 000 003(16)", source=_BASE2022, edition="Nature 601 (2022)", url="https://doi.org/10.1038/s41586-021-04203-w",
+       retrieved_from="https://arxiv.org/e-print/2311.16006", keys=("antiproton", "cpt", "penning trap", "qed"),
+       phrases=("antiproton", "antiproton to proton charge to mass ratio", "base q/m", "cpt test"),
+       notes=("Printed as R_pbar,p,exp = -1.000 000 000 003 (16), with 'an experimental uncertainty of 16 p.p.t. (C.L. 0.68)'.",
+              "Measured as the cyclotron-frequency ratio of an antiproton and an H- ion; the paper's derived WEP_cc limit is not stored.")),
+    _torres("v3903sgr_a", "V3903 Sgr", "A", "27.27", "0.55", "V3903 Sgr A, O7V, 27.27 +- 0.55 M_sun"),
+    _torres("v3903sgr_b", "V3903 Sgr", "B", "19.01", "0.44", "V3903 Sgr B, O9V, 19.01 +- 0.44 M_sun"),
+    _torres("v1143cyg_a", "V1143 Cyg", "A", "1.388", "0.016", "V1143 Cyg A, F5V, 1.388 +- 0.016 M_sun"),
+    _torres("v1143cyg_b", "V1143 Cyg", "B", "1.344", "0.013", "V1143 Cyg B, F5V, 1.344 +- 0.013 M_sun"),
+    _torres("aiphe_a", "AI Phe", "A", "1.2336", "0.0045", "AI Phe A, K0IV, 1.2336 +- 0.0045 M_sun"),
+    _torres("aiphe_b", "AI Phe", "B", "1.1934", "0.0041", "AI Phe B, F7V, 1.1934 +- 0.0041 M_sun"),
+    _torres("ewori_a", "EW Ori", "A", "1.174", "0.012", "EW Ori A, G0V, 1.174 +- 0.012 M_sun"),
+    _torres("ewori_b", "EW Ori", "B", "1.1238", "0.0089", "EW Ori B, G5V, 1.1238 +- 0.0089 M_sun"),
+    _torres("cmdra_a", "CM Dra", "A", "0.23102", "0.00089", "CM Dra A, M4.5V, 0.23102 +- 0.00089 M_sun"),
+    _torres("cmdra_b", "CM Dra", "B", "0.21409", "0.00083", "CM Dra B, M4.5V, 0.21409 +- 0.00083 M_sun"),
+    _asplund("log_eps_c", "solar photospheric carbon abundance", "log eps(C)", "8.46", "0.04", ("carbon abundance",), "log eps(C) = 8.46 +- 0.04 (H = 12.00)"),
+    _asplund("log_eps_n", "solar photospheric nitrogen abundance", "log eps(N)", "7.83", "0.07", ("nitrogen abundance",), "log eps(N) = 7.83 +- 0.07"),
+    _asplund("log_eps_o", "solar photospheric oxygen abundance", "log eps(O)", "8.69", "0.04", ("oxygen abundance",), "log eps(O) = 8.69 +- 0.04"),
+    _q("asplund2021.log_eps_fe", "solar photospheric iron abundance", "log eps(Fe)", "7.46", "0.04", "",
+       kind="uncertainty as printed, level not stated", source=_ASPLUND2021 + ", Table 2 (photosphere column)", edition="A&A 653 (2021)",
+       url="https://doi.org/10.1051/0004-6361/202140445", retrieved_from="https://arxiv.org/e-print/2105.01661",
+       keys=("solar abundance", "sun", "astrophysics"), phrases=("solar abundance", "solar composition", "iron abundance"),
+       notes=("Printed in the abundance table for Z = 26 as 7.46 +- 0.04 (photosphere); the CI-chondrite column, 7.46 +- 0.02, is not stored.",)),
+    _asplund("x_surface", "present-day solar surface hydrogen mass fraction", "X_surface", "0.7438", "0.0054", ("solar mass fractions",), "X_surface = 0.7438 +- 0.0054"),
+    _asplund("y_surface", "present-day solar surface helium mass fraction", "Y_surface", "0.2423", "0.0054", ("solar mass fractions",), "Y_surface = 0.2423 +- 0.0054"),
+    _asplund("z_surface", "present-day solar surface metal mass fraction", "Z_surface", "0.0139", "0.0006", ("solar metallicity", "solar mass fractions"), "Z_surface = 0.0139 +- 0.0006"),
+    _asplund("z_over_x", "present-day solar surface metal-to-hydrogen mass ratio", "Z_surface/X_surface", "0.0187", "0.0009", ("solar metallicity",), "Z_surface/X_surface = 0.0187 +- 0.0009"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 
