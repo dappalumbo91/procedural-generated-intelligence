@@ -1340,3 +1340,16 @@ The NBS and Ioffe values for Ge and diamond are both kept. The lattice-constant 
 That is 8 records.
 
 `python -m unittest discover -s tests -v` finished 422 tests, 0 failures, about 613.08 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Thermodynamics: virial fits and critical constants pgi-0.126.0
+
+Added these records:
+
+- Kaye & Laby Sect. 3.5 second-virial fit coefficients a, b, c: He, Ar, N2;
+- Kaye & Laby critical temperatures and pressures: He, N2, CO2.
+
+The fit coefficients are stored as fit parameters, not as measured B. No open measured B table was reachable, and ab initio tables are excluded. The virial-coefficient and critical-point gaps close.
+
+That is 15 records.
+
+`python -m unittest discover -s tests -v` finished 423 tests, 0 failures, about 605.92 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

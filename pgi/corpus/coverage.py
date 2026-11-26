@@ -53,7 +53,7 @@ for _domain, _names in {
     "electromagnetism": ("igrf14", "nbs1966", "iapwsr897", "williams1971", "matula1979", "desai1984", "nist_tn1512", "kayelaby_mag", "khatiwada2015", "havens1933"),
     "optics": ("schott", "iapws1997", "bipm2003", "bipm2025", "malitson1965", "nist_emt", "sivaramakrishnan1956", "turvey1993", "leviton2008", "frey2006"),
     "fluids": ("webbook", "iapws2014", "wong1986", "greenspan1987", "lemmon2004", "db1998", "jones1984", "berg2012", "teos10", "mills1973"),
-    "thermodynamics and statistical": ("codata2017", "iapws1992", "iapws2011", "its90", "formula", "kayelaby_gamma"),
+    "thermodynamics and statistical": ("codata2017", "iapws1992", "iapws2011", "its90", "formula", "kayelaby_gamma", "kayelaby_virial", "kayelaby_crit"),
     "gravitation": ("cassini", "double_pulsar", "psr_b1913", "gpb", "vlbi", "mercury", "inpop19a", "inpop20a", "inpop21a", "ppn", "g_input", "gw150914", "delva2018", "herrmann2018", "pound1960", "pound1965", "chou2010", "bothwell2022", "ciufolini2016", "williams2004", "hofmann2018", "takamoto2020", "gw170817", "gw190521", "gw190814", "gw190425", "gw200115", "gw230529", "gw231123", "gw250114"),
     "astrophysics": ("borexino", "bond2017", "joyce2018", "fonseca2021", "riley2021", "miller2021", "salmi2024", "dittmann2024", "haberreiter2008",
                      "iau2015", "iau2012", "iau2026", "nssdc", "williams2016", "gravity2018", "gravity2019", "gravity2022", "eht2019", "eht2022", "torres2010", "asplund2021"),
@@ -121,6 +121,8 @@ HELD: dict[str, tuple[tuple[str, tuple[str, ...]], ...]] = {
         ("WGS 84", ("wgs84.",)),
     ),
     "thermodynamics and statistical": (
+        ("second virial coefficient fits (Kaye & Laby)", ("kayelaby_virial.",)),
+        ("critical constants of He, N2, CO2 (Kaye & Laby)", ("kayelaby_crit.",)),
         ("heat-capacity ratios of gases (Kaye & Laby)", ("kayelaby_gamma.",)),
         ("CODATA radiation and gas constants", ("codata2022.",)),
         ("Planck and Rayleigh-Jeans spectra", ("formula.", "known.rayleigh_jeans")),

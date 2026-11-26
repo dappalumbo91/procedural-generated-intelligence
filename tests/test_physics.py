@@ -2066,6 +2066,14 @@ class LatticeB16Tests(unittest.TestCase):
         self.assertEqual({quantity("nbs1953.ge.lattice_constant").value_text, quantity("ioffe.ge.lattice_constant_300k").value_text}, {"5.6576", "5.658"})
         self.assertEqual({quantity("nbs1953.diamond.lattice_constant").value_text, quantity("ioffe.diamond.lattice_constant_300k").value_text}, {"3.5667", "3.567"})
 
+class VirialB16Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("kayelaby_virial.helium_c").value_text, "3.245")
+        self.assertEqual(quantity("kayelaby_virial.argon_a").value_text, "154.2")
+        self.assertEqual(quantity("kayelaby_virial.nitrogen_b").value_text, "141.8")
+        self.assertEqual(quantity("kayelaby_crit.carbon_dioxide_t_c").value_text, "304.1")
+        self.assertEqual(quantity("kayelaby_crit.helium_p_c").value_text, "0.227")
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

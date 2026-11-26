@@ -4559,7 +4559,53 @@ LATTICE_CONSTANTS: tuple[Quantity, ...] = (
     _ioffe_lattice("Diamond", "3.567", "3.567A", ("lattice constant of diamond", "diamond lattice constant")),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS
+_KL_35_WB = "https://web.archive.org/web/20161211084624/http://www.kayelaby.npl.co.uk/chemistry/3_5/3_5.html"
+_KL_35_SOURCE = "Kaye & Laby, Tables of Physical and Chemical Constants (NPL online, version 1.0), Sect. 3.5, Critical constants and second virial coefficients of gases (D. Ambrose, M. B. Ewing, M. L. McGlashan)"
+_KL_35_NOTE = "kayelaby.npl.co.uk is retired; the page was read from the Internet Archive copy (original http://www.kayelaby.npl.co.uk/chemistry/3_5/3_5.html)."
+_KL_FIT_NOTE = ("Sect. 3.5 fits B by B/(cm3 mol-1) = a - b exp{c (K/T)}, 'usually within experimental errors over the range of temperatures at which measurements have been made'; "
+                "the coefficients are fit parameters, not measured B values, and are stored as printed. The page refers to Dymond and Smith (1980) for experimental B values.")
+
+
+def _kl_virial(gas: str, coef: str, value: str, unit: str, tl: str, tu: str) -> Quantity:
+    return _q(f"kayelaby_virial.{gas.replace(' ', '_')}_{coef}", f"second virial coefficient fit coefficient {coef} for {gas} (Kaye & Laby)", f"{coef}_B({gas})", value, "", unit,
+              kind="no uncertainty printed", source=_KL_35_SOURCE, edition="Kaye & Laby online, v1.0", url=_KL_35_WB, retrieved_from=_KL_35_WB,
+              keys=("second virial coefficient", "virial coefficient"), phrases=(f"second virial coefficient of {gas}", f"{gas} virial coefficient", "second virial coefficients"),
+              notes=(f"Row '{gas.capitalize()}' prints a = {{a}}, b = {{b}}, c = {{c}} for T_L = {tl} K to T_U = {tu} K.".format(**_KL_ABC[gas]), _KL_FIT_NOTE, _KL_35_NOTE))
+
+
+_KL_ABC = {"helium": {"a": "114.1", "b": "98.7", "c": "3.245"}, "argon": {"a": "154.2", "b": "119.3", "c": "105.1"}, "nitrogen": {"a": "185.4", "b": "141.8", "c": "88.7"}}
+
+
+def _kl_crit(gas: str, which: str, value: str, unit: str, row: str) -> Quantity:
+    label = {"t_c": "critical temperature", "p_c": "critical pressure"}[which]
+    return _q(f"kayelaby_crit.{gas.replace(' ', '_')}_{which}", f"{label} of {gas} (Kaye & Laby)", f"{which[0].upper()}_c({gas})", value, "", unit,
+              kind="no uncertainty printed", source=_KL_35_SOURCE, edition="Kaye & Laby online, v1.0", url=_KL_35_WB, retrieved_from=_KL_35_WB,
+              keys=(f"{label} of {gas}",), phrases=(f"critical point of {gas}", f"{label} of {gas}", "critical constants"),
+              notes=(f"Row '{row}' prints p_c/MPa, V_c,m/(cm3 mol-1), T_c/K, p_cV_c,m/RT_c as {_KL_CRIT_ROW[gas]}.", _KL_35_NOTE))
+
+
+_KL_CRIT_ROW = {"helium": "0.227, 57.2, 5.19, 0.301", "nitrogen": "3.39, 89.5, 126.2, 0.289", "carbon dioxide": "7.38, 94.0, 304.1, 0.274"}
+
+
+VIRIAL_CRITICAL: tuple[Quantity, ...] = (
+    _kl_virial("helium", "a", "114.1", "cm^3 mol^-1", "7", "150"),
+    _kl_virial("helium", "b", "98.7", "cm^3 mol^-1", "7", "150"),
+    _kl_virial("helium", "c", "3.245", "", "7", "150"),
+    _kl_virial("argon", "a", "154.2", "cm^3 mol^-1", "80", "1024"),
+    _kl_virial("argon", "b", "119.3", "cm^3 mol^-1", "80", "1024"),
+    _kl_virial("argon", "c", "105.1", "", "80", "1024"),
+    _kl_virial("nitrogen", "a", "185.4", "cm^3 mol^-1", "75", "700"),
+    _kl_virial("nitrogen", "b", "141.8", "cm^3 mol^-1", "75", "700"),
+    _kl_virial("nitrogen", "c", "88.7", "", "75", "700"),
+    _kl_crit("helium", "t_c", "5.19", "K", "Helium"),
+    _kl_crit("helium", "p_c", "0.227", "MPa", "Helium"),
+    _kl_crit("nitrogen", "t_c", "126.2", "K", "Nitrogen"),
+    _kl_crit("nitrogen", "p_c", "3.39", "MPa", "Nitrogen"),
+    _kl_crit("carbon dioxide", "t_c", "304.1", "K", "Carbon dioxide"),
+    _kl_crit("carbon dioxide", "p_c", "7.38", "MPa", "Carbon dioxide"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 

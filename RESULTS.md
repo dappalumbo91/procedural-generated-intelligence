@@ -966,9 +966,27 @@ The Ioffe NSM "Basic Parameters at 300 K" pages, read from Internet Archive copi
 
 Neither source prints an uncertainty. Where the two sources overlap (Ge and diamond), both values are kept. The lattice-constant gap closes. This adds 8 records.
 
+### Thermodynamics: second virial coefficients and critical constants
+
+Kaye & Laby Sect. 3.5 (NPL online, read from the Wayback copy because the site is retired) fits the second virial coefficient as B/(cm³ mol⁻¹) = a − b exp{c (K/T)}. The fit is "usually within experimental errors" over the measured range. The coefficients are stored as printed:
+
+- helium: a `114.1`, b `98.7`, c `3.245`, for 7–150 K;
+- argon: a `154.2`, b `119.3`, c `105.1`, for 80–1024 K;
+- nitrogen: a `185.4`, b `141.8`, c `88.7`, for 75–700 K.
+
+These are fit coefficients, not measured B values. The page refers readers to Dymond and Smith (1980) for the measurements, which were not reachable. A search of open sources turned up only ab initio B tables, which are excluded.
+
+The same table gives these critical constants:
+
+- helium: T_c `5.19` K, p_c `0.227` MPa;
+- nitrogen: T_c `126.2` K, p_c `3.39` MPa;
+- carbon dioxide: T_c `304.1` K, p_c `7.38` MPa.
+
+None of these print an uncertainty. The virial-coefficient and critical-point gaps close. This adds 15 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.125.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.126.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
