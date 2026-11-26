@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.129.0`.
+Rule version `pgi-0.130.0`.
 
 In the kernel now:
 
@@ -116,6 +116,7 @@ In the kernel now:
 - Solid spherical harmonics r^ℓ Y_ℓ^m for ℓ = 0, 1, and 2, as homogeneous polynomials in x, y, z. L² = Lx² + Ly² + Lz² has eigenvalue ℓ(ℓ+1), and Lz has eigenvalue m, checked by applying the angular-momentum operators already admitted.
 - Hydrogen radial states for every (n, ℓ) with n = 1, 2, 3, or 4 and 0 ≤ ℓ < n. The residual of u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² vanishes identically in atomic units.
 - Exact integrals of forms on an axis-aligned box in an admitted chart, and Stokes' theorem as the identity of the integral of dω over the box with the integral of ω over the oriented boundary. An antiderivative is kept only when its derivative is the integrand. The fundamental theorem on an interval, the unit square, the unit cube, an angular rectangle, and the integral of the sphere area form over [0, pi] × [0, 2 pi], which is 4 pi, are checked identically.
+- A tetrad and a torsion-free spin connection on Minkowski spacetime and on flat FLRW. The metric rebuilds as eta_ab e^a_mu e^b_nu. An inverse tetrad is kept only when both products are the identity. Cartan's first structure equation, de^a + omega^a_b wedge e^b = 0, is checked identically. The Dirac operator is gamma^a e_a^mu (partial_mu + (1/4) omega_mu^{bc} gamma_b gamma_c). On Minkowski it annihilates a constant spinor. On flat FLRW a constant spinor psi satisfies D psi = (3/2) (da/dt)/a gamma^0 psi, checked identically.
 
 Still outside the kernel, and required before a physical law can be written:
 
@@ -132,7 +133,6 @@ The math toolkit is not finished. A derivation or prediction check of general re
 
 What a derivation round would still need:
 
-- The Dirac operator on curved spacetime, with a tetrad and a spin connection.
 - A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
 - Ricci = 0 for the Kerr metric. The generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A Hermitian spectrum whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational. Three or more independent square-free radicands stay open.

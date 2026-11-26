@@ -1389,3 +1389,11 @@ Exact integrals of forms over an axis-aligned box in an admitted chart are admit
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 428 tests, 0 failures, about 623.50 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Tetrad, spin connection, and the curved Dirac operator pgi-0.130.0
+
+The identity tetrad on Minkowski spacetime and the diagonal tetrad of flat FLRW, e^0 = dt and e^i = a(t) dx^i, are admitted. The metric rebuilds from the tetrad, and an inverse tetrad is kept only when both products are the identity. The spin connection is the torsion-free solution of Cartan's first structure equation, checked identically. The Dirac operator annihilates a constant spinor on Minkowski, and on flat FLRW a constant spinor psi satisfies D psi = (3/2) (da/dt)/a gamma^0 psi, checked identically.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 430 tests, 0 failures, about 740.31 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

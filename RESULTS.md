@@ -1046,9 +1046,13 @@ The CIPM, polarizability, and medical half-life gaps close, and optics now lists
 
 The integral of a top-degree form over an axis-aligned box is the iterated exact definite integral of its coefficient. An antiderivative is kept only when its derivative is the integrand. Stokes' theorem is the identity of that integral of dω with the integral of ω over the oriented boundary. The fundamental theorem on an interval, the unit square, the unit cube, an angular rectangle, and the area of the coordinate sphere, which is 4 pi, are checked identically.
 
+### Tetrad, spin connection, and the curved Dirac operator
+
+The identity tetrad on Minkowski spacetime and the diagonal tetrad of flat FLRW, e^0 = dt and e^i = a(t) dx^i, are admitted. The metric rebuilds from the tetrad, and an inverse tetrad is kept only when both products are the identity. The spin connection is the torsion-free solution of Cartan's first structure equation, checked identically. The Dirac operator is gamma^a e_a^mu (partial_mu + (1/4) omega_mu^{bc} gamma_b gamma_c). On Minkowski it annihilates a constant spinor. On flat FLRW a constant spinor psi satisfies D psi = (3/2) (da/dt)/a gamma^0 psi, checked identically.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.129.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.130.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
