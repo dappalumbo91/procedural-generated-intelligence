@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.105.0`.
+Rule version `pgi-0.106.0`.
 
 In the kernel now:
 
@@ -106,6 +106,7 @@ In the kernel now:
 - A Hermitian spectral decomposition in size up to 8, kept only when the eigenvalues lie in Q or Q(√d), eigenvector norms are positive rationals, `H = U D U†`, `U` is unitary, and `D` is real diagonal. The 3×3 case `[[0, 1, 0], [1, 0, 1], [0, 1, 0]]` has diagonal `diag(-√2, 0, √2)` and rebuilds exactly. Mixing two different square-free radicands stays open. An SU(3) gauge transformation by a constant special unitary matrix acts on a constant connection by `A ↦ U A U†`. The field strength `F = [A_x, A_y]` transforms as `F ↦ U F U†`, and `tr(F²)` is invariant.
 - Exact ODE checks. A candidate is kept only when its residual in a linear ODE vanishes identically. The harmonic oscillator, with ħ = ω = m = 1, is checked for n = 0, 1, and 2, where ψ'' − (x² − 2n − 1) ψ = 0 and E_n = n + 1/2. The hydrogen radial equation in atomic units is checked for (n, ℓ) = (1, 0), (2, 0), and (2, 1), where u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0 and E = −1/(2n²). The admitted candidates are polynomials times an exponential.
 - Differential forms and the exterior derivative. The wedge product is alternating. d² = 0 is checked identically, including on elementary 1-forms. On flat Minkowski spacetime, the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is that identity: the homogeneous Maxwell equations in the language of forms. The inhomogeneous equation d⋆F = J stays outside until the Hodge star is admitted.
+- Killing vectors and the Lie derivative of a metric. L_X g vanishes identically if and only if X is a Killing field. The translations and the rotation of the Euclidean plane are Killing. Schwarzschild's time-translation ∂_t, axial rotation ∂_φ, and the remaining rotation fields J_x and J_y are Killing, checked identically.
 
 Still outside the kernel, and required before a physical law can be written:
 
