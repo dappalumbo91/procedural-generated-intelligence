@@ -1810,6 +1810,30 @@ class DesiBaoTests(unittest.TestCase):
         self.assertIn("desi_dr2.bao.lrg1.dm_rd", self._linked("what are the DESI BAO distance measurements"))
 
 
+class BorexinoTests(unittest.TestCase):
+    def _linked(self, ask: str) -> set[str]:
+        session = unfold(Request(ask=ask, seed=1))
+        return {claim.atom[len("record("):-1] for claim in session.claims if claim.atom.startswith("record(")}
+
+    def test_split_and_asymmetric_parts_as_printed(self) -> None:
+        pp = quantity("borexino.phase2.phi_pp")
+        self.assertEqual((pp.value_text, pp.uncertainty_text, pp.systematic_text, pp.systematic_lower_text), ("6.1 e10", "0.5 e10", "0.3 e10", "0.5 e10"))
+        b8 = quantity("borexino.b8.phi_es")
+        self.assertEqual((b8.uncertainty, b8.lower_uncertainty, b8.systematic, b8.systematic_lower), (170000, 180000, 70000, 70000))
+        self.assertEqual(quantity("borexino.cno2020.phi_cno").uncertainty_kind, "asymmetric, level not stated")
+        self.assertEqual(quantity("borexino.cno2022.phi_cno").uncertainty_kind, "68% interval")
+
+    def test_flux_order_as_printed(self) -> None:
+        # The measured fluxes fall in the printed order pp > 7Be > CNO > pep > 8B (no-conversion equivalent).
+        order = ["phase2.phi_pp", "phase2.phi_be7", "cno2022.phi_cno", "phase2.phi_pep_hz", "b8.phi_es"]
+        values = [quantity(f"borexino.{k}").value for k in order]
+        self.assertEqual(values, sorted(values, reverse=True))
+
+    def test_asks_link(self) -> None:
+        linked = self._linked("what is the borexino solar neutrino flux")
+        self.assertTrue({"borexino.phase2.phi_pp", "borexino.cno2022.phi_cno"} & linked)
+
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

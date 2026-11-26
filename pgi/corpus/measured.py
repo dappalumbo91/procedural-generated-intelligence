@@ -39,11 +39,12 @@ UNCERTAINTY_KINDS = frozenset(
         "95% interval",
         "maximum relative uncertainty, ppm as printed",
         "relative standard uncertainty",
+        "asymmetric, level not stated",
     }
 )
 _NONE_KIND = "no uncertainty printed"
 _TRUNCATED_KIND = "exact, printed truncated"
-_ASYMMETRIC_KINDS = frozenset({"asymmetric standard uncertainty", "90% credible interval", "68% interval", "68.3% credible interval", "95% interval"})
+_ASYMMETRIC_KINDS = frozenset({"asymmetric, level not stated", "asymmetric standard uncertainty", "90% credible interval", "68% interval", "68.3% credible interval", "95% interval"})
 _SPLIT_KIND = "statistical and systematic, printed separately"
 _RELATIVE_PPM_KIND = "maximum relative uncertainty, ppm as printed"
 _RELATIVE_KINDS = {_RELATIVE_PPM_KIND: 10**6, "relative standard uncertainty": 1}
@@ -3740,7 +3741,52 @@ def _desi_bao() -> tuple[Quantity, ...]:
 DESI_DR2_BAO: tuple[Quantity, ...] = _desi_bao()
 
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO
+_BX_PHASE2 = "Borexino Collaboration, M. Agostini et al., First simultaneous precision spectroscopy of pp, 7Be, and pep solar neutrinos with Borexino Phase-II, Phys. Rev. D 100, 082004 (2019), doi:10.1103/PhysRevD.100.082004, arXiv:1707.09279, Table II"
+_BX_B8 = "Borexino Collaboration, M. Agostini et al., Improved measurement of 8B solar neutrinos with 1.5 kt y of Borexino exposure, Phys. Rev. D 101, 062001 (2020), doi:10.1103/PhysRevD.101.062001, arXiv:1709.00756, abstract"
+_BX_CNO2020 = "Borexino Collaboration, M. Agostini et al., Experimental evidence of neutrinos produced in the CNO fusion cycle in the Sun, Nature 587, 577-582 (2020), doi:10.1038/s41586-020-2934-0, arXiv:2006.15115"
+_BX_CNO2022 = "Borexino Collaboration, S. Appel et al., Improved measurement of solar neutrinos from the carbon-nitrogen-oxygen cycle by Borexino and its implications for the Standard Solar Model, Phys. Rev. Lett. 129, 252701 (2022), doi:10.1103/PhysRevLett.129.252701, arXiv:2205.15975, abstract"
+_BX_UNIT = "cm^-2 s^-1"
+_BX_EDITION = {"1707.09279": "Phys. Rev. D 100 (2019)", "1709.00756": "Phys. Rev. D 101 (2020)"}
+_BX_PHRASES = ("solar neutrino flux", "borexino", "solar neutrinos")
+_BX_PHASE2_NOTE = ("The Phase-II table gives 'fluxes inferred assuming the MSW-LMA oscillation parameters'; the first error is statistical (likelihood profile under Wilks' approximation), the second systematic.",
+                   "The same table also prints Standard Solar Model predictions (B16 GS98-HZ and AGSS09-LZ); those are model numbers and are not stored.")
+
+
+def _bx(key, name, symbol, value, stat, syst, syst_low, src, arxiv, phrases, notes, stat_low=""):
+    return _q(f"borexino.{key}", name, symbol, value, stat, _BX_UNIT, kind=_SPLIT_KIND, lower_text=stat_low, systematic_text=syst, systematic_lower_text=syst_low,
+              source=src, edition=_BX_EDITION[arxiv],
+              url="https://doi.org/" + src.split("doi:")[1].split(",")[0], retrieved_from=f"https://arxiv.org/e-print/{arxiv}",
+              keys=("borexino", "solar neutrinos", "neutrino flux"), phrases=_BX_PHRASES + phrases, notes=notes)
+
+
+BOREXINO: tuple[Quantity, ...] = (
+    _bx("phase2.phi_pp", "pp solar neutrino flux at Earth, Borexino Phase-II", "Phi_pp", "6.1 e10", "0.5 e10", "0.3 e10", "0.5 e10", _BX_PHASE2, "1707.09279",
+        ("pp neutrino flux", "pp solar neutrinos"), ("Printed as (6.1 +- 0.5 +0.3 -0.5) x 10^10 cm^-2 s^-1.",) + _BX_PHASE2_NOTE),
+    _bx("phase2.phi_be7", "7Be solar neutrino flux at Earth (862 + 384 keV lines), Borexino Phase-II", "Phi_7Be", "4.99 e9", "0.11 e9", "0.06 e9", "0.08 e9", _BX_PHASE2, "1707.09279",
+        ("7be neutrino flux", "beryllium-7 solar neutrinos"), ("Printed as (4.99 +- 0.11 +0.06 -0.08) x 10^9 cm^-2 s^-1.",) + _BX_PHASE2_NOTE),
+    _bx("phase2.phi_pep_hz", "pep solar neutrino flux at Earth, Borexino Phase-II, CNO constrained to the high-metallicity SSM", "Phi_pep(HZ)", "1.27 e8", "0.19 e8", "0.08 e8", "0.12 e8", _BX_PHASE2, "1707.09279",
+        ("pep neutrino flux",), ("Printed as (1.27 +- 0.19 +0.08 -0.12) x 10^8 cm^-2 s^-1 in the 'pep (HZ)' row; the pep result depends on the CNO rate assumed in the fit.",) + _BX_PHASE2_NOTE),
+    _bx("phase2.phi_pep_lz", "pep solar neutrino flux at Earth, Borexino Phase-II, CNO constrained to the low-metallicity SSM", "Phi_pep(LZ)", "1.39 e8", "0.19 e8", "0.08 e8", "0.13 e8", _BX_PHASE2, "1707.09279",
+        ("pep neutrino flux",), ("Printed as (1.39 +- 0.19 +0.08 -0.13) x 10^8 cm^-2 s^-1 in the 'pep (LZ)' row.",) + _BX_PHASE2_NOTE),
+    _bx("b8.phi_es", "8B solar neutrino flux, equivalent flux assuming no flavour conversion, Borexino", "Phi_8B^ES", "2.57 e6", "0.17 e6", "0.07 e6", "", _BX_B8, "1709.00756",
+        ("8b neutrino flux", "boron-8 solar neutrinos"),
+        ("Printed as 2.57 +0.17 -0.18 (stat) +0.07 -0.07 (syst) x 10^6 cm^-2 s^-1, 'an observed solar neutrino flux assuming no neutrino flavor conversion', from electron recoils above 3 MeV.",
+         "It is not the oscillation-corrected total 8B flux; the paper does not print one in the abstract. The same paper sets a hep flux limit of < 1.8 x 10^5 cm^-2 s^-1 (90% C.L.), not stored here."),
+        stat_low="0.18 e6"),
+    _q("borexino.cno2020.phi_cno", "CNO-cycle solar neutrino flux at Earth, Borexino 2020", "Phi_CNO", "7.0 e8", "3.0 e8", _BX_UNIT, lower_text="2.0 e8", kind="asymmetric, level not stated",
+       source=_BX_CNO2020, edition="Nature 587 (2020)", url="https://doi.org/10.1038/s41586-020-2934-0", retrieved_from="https://arxiv.org/e-print/2006.15115",
+       keys=("borexino", "solar neutrinos", "neutrino flux", "cno"), phrases=_BX_PHRASES + ("cno neutrino flux", "cno cycle neutrinos"),
+       notes=("Printed as 7.0 +3.0 -2.0 x 10^8 cm^-2 s^-1, converted from the rate 7.2 +3.0 -1.7 cpd/100 t after folding in the systematic uncertainty, assuming MSW conversion.",
+              "The paper calls its statistical-only interval 68% C.L. but does not name a level for the final folded interval, so none is assigned.",
+              "Superseded by borexino.cno2022.phi_cno; both are kept.")),
+    _q("borexino.cno2022.phi_cno", "CNO-cycle solar neutrino flux at Earth, Borexino Phase-III complete", "Phi_CNO", "6.6 e8", "2.0 e8", _BX_UNIT, lower_text="0.9 e8", kind="68% interval",
+       source=_BX_CNO2022, edition="Phys. Rev. Lett. 129 (2022)", url="https://doi.org/10.1103/PhysRevLett.129.252701", retrieved_from="https://arxiv.org/e-print/2205.15975",
+       keys=("borexino", "solar neutrinos", "neutrino flux", "cno"), phrases=_BX_PHRASES + ("cno neutrino flux", "cno cycle neutrinos"),
+       notes=("Printed as 6.6 +2.0 -0.9 x 10^8 cm^-2 s^-1, converted from the rate 6.7 +2.0 -0.8 cpd/100 t, which the paper says is 'obtained from the 68% quantile of the likelihood profile including the systematic uncertainty'.",)),
+)
+
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS
 
 
@@ -3783,7 +3829,7 @@ def audit_quantities(items: tuple[Quantity, ...] = QUANTITIES) -> None:
                 raise ValueError(f"{item.id} needs a positive uncertainty")
         elif item.lower_text:
             raise ValueError(f"{item.id} is exact and cannot carry an interval")
-        if item.lower_text and item.uncertainty_kind not in _ASYMMETRIC_KINDS:
+        if item.lower_text and item.uncertainty_kind not in _ASYMMETRIC_KINDS | {_SPLIT_KIND}:
             raise ValueError(f"{item.id} has a lower bound but a symmetric kind")
         if (item.uncertainty_kind == _SPLIT_KIND) != bool(item.systematic_text):
             raise ValueError(f"{item.id} carries a systematic part only under the split kind")

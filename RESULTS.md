@@ -651,9 +651,17 @@ A candidate solution is kept only when its residual in a linear ODE vanishes ide
 
 The hydrogen radial function is the reduced wave u_{n,ℓ}(r) = r R_{nℓ}(r) in atomic units with Z = 1. The admitted states are u_10 = r exp(-r), u_20 = r (1 − r/2) exp(-r/2), and u_21 = r² exp(-r/2). Each satisfies u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0, which is the radial equation at E = −1/(2n²), and `ode(hydrogen(n, l)) = 0`. A level or angular momentum outside that list stays open.
 
+### Astrophysics: Borexino solar neutrino fluxes
+
+The board now holds Borexino's solar neutrino fluxes as the collaboration printed them, read from each paper's arXiv source. From Phase-II (Phys. Rev. D 100, 082004, Table II): pp `(6.1 ± 0.5 +0.3 −0.5)×10¹⁰`, ⁷Be `(4.99 ± 0.11 +0.06 −0.08)×10⁹`, and pep `(1.27 ± 0.19 +0.08 −0.12)×10⁸` or `(1.39 ± 0.19 +0.08 −0.13)×10⁸`, depending on whether CNO is held at the high- or low-metallicity solar model. These are in cm⁻² s⁻¹, with statistical and systematic parts kept separate. ⁸B comes from Phys. Rev. D 101, 062001: `2.57 +0.17 −0.18 (stat) ± 0.07 (syst) ×10⁶`. That is the equivalent flux assuming no flavour conversion, which is what the paper prints, so it is labelled that way rather than as a total ⁸B flux. CNO comes from the 2020 Nature discovery (`7.0 +3.0 −2.0 ×10⁸`; the paper names no level for the final interval, so none is assigned) and the 2022 PRL (`6.6 +2.0 −0.9 ×10⁸`, a 68% quantile including systematics). The Standard Solar Model predictions printed beside these values are model numbers and are not stored.
+
+The ⁸B value needed a split statistical part that is itself asymmetric, so the split kind now accepts a lower statistical bound. There is also a new kind, "asymmetric, level not stated", for the 2020 CNO value.
+
+This adds 7 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.100.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.101.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.

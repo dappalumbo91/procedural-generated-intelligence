@@ -1124,3 +1124,11 @@ A candidate solution is kept only when its residual in a linear ODE vanishes ide
 Further sourced physics data is being admitted on a parallel stream.
 
 `python -m unittest discover -s tests -v` finished 370 tests, 0 failures, about 435.49 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — Borexino solar neutrino fluxes pgi-0.101.0
+
+Added Borexino's pp, 7Be, pep (HZ and LZ), 8B no-conversion equivalent, and CNO (2020 and 2022) fluxes. The split kind now takes an asymmetric statistical part, and there is a new "asymmetric, level not stated" kind. The solar-neutrino gap in COVERAGE.md closed itself.
+
+That is 7 records.
+
+`python -m unittest discover -s tests -v` finished 373 tests, 0 failures, about 317.48 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
