@@ -1381,3 +1381,11 @@ The CIPM, polarizability, and medical half-life gaps close.
 That is 18 records.
 
 `python -m unittest discover -s tests -v` finished 425 tests, 0 failures, about 598.23 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Stokes' theorem on admitted charts pgi-0.129.0
+
+Exact integrals of forms over an axis-aligned box in an admitted chart are admitted. An antiderivative is kept only when its derivative is the integrand. Stokes' theorem is the identity of the integral of dω over the box with the integral of ω over the oriented boundary. The fundamental theorem on an interval, the unit square, the unit cube, an angular rectangle, and the integral of the sphere area form over [0, pi] × [0, 2 pi], which is 4 pi, are checked identically.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 428 tests, 0 failures, about 623.50 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

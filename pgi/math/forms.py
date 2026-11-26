@@ -682,7 +682,10 @@ def _eval_form(term: Term) -> Form:
             if len(term.args) != 1:
                 raise NotExact("exterior takes a form")
             arg = term.args[0]
-            if isinstance(arg, App) and arg.op in FORMS_OPS:
+            # A sum or product that contains a form, not only a single forms
+            # constructor, is still a form. Otherwise exterior((-y) * coframe(x, x, y) + ...)
+            # would be read as the exterior of a scalar.
+            if has_forms(arg):
                 return exterior(_eval_form(arg))
             # A bare scalar is a 0-form on its free coordinates, or Minkowski if none.
             free = tuple(_free_names(arg))
@@ -705,11 +708,15 @@ def _eval_form(term: Term) -> Form:
         if term.op == "neg" and len(term.args) == 1:
             return form_neg(_eval_form(term.args[0]))
         if term.op == "mul" and len(term.args) == 2:
-            # scalar * form, if one side is a form
+            # scalar * form, if one side is a form. The scalar is embedded
+            # in the form's own chart, not always Minkowski, so a 2-form on
+            # (theta, phi) can be scaled by sin(theta).
             try:
-                return form_scale(_eval_form(term.args[1]), _eval_coeff(term.args[0], _MINKOWSKI))
+                form = _eval_form(term.args[1])
+                return form_scale(form, _eval_coeff(term.args[0], form.names))
             except NotExact:
-                return form_scale(_eval_form(term.args[0]), _eval_coeff(term.args[1], _MINKOWSKI))
+                form = _eval_form(term.args[0])
+                return form_scale(form, _eval_coeff(term.args[1], form.names))
     raise NotExact("this term is not a differential form")
 
 

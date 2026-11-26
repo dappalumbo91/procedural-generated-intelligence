@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.128.0`.
+Rule version `pgi-0.129.0`.
 
 In the kernel now:
 
@@ -115,6 +115,7 @@ In the kernel now:
 - FLRW with spatial curvature k = +1 and k = −1, in spherical coordinates, with a formal scale factor a(t). The Einstein tensor is exact: G_tt is 3 ((da/dt)² + k)/a², and the spatial components satisfy G_ij = -(2 (d²a/dt²)/a + ((da/dt)² + k)/a²) g_ij.
 - Solid spherical harmonics r^ℓ Y_ℓ^m for ℓ = 0, 1, and 2, as homogeneous polynomials in x, y, z. L² = Lx² + Ly² + Lz² has eigenvalue ℓ(ℓ+1), and Lz has eigenvalue m, checked by applying the angular-momentum operators already admitted.
 - Hydrogen radial states for every (n, ℓ) with n = 1, 2, 3, or 4 and 0 ≤ ℓ < n. The residual of u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² vanishes identically in atomic units.
+- Exact integrals of forms on an axis-aligned box in an admitted chart, and Stokes' theorem as the identity of the integral of dω over the box with the integral of ω over the oriented boundary. An antiderivative is kept only when its derivative is the integrand. The fundamental theorem on an interval, the unit square, the unit cube, an angular rectangle, and the integral of the sphere area form over [0, pi] × [0, 2 pi], which is 4 pi, are checked identically.
 
 Still outside the kernel, and required before a physical law can be written:
 
@@ -133,7 +134,6 @@ What a derivation round would still need:
 
 - The Dirac operator on curved spacetime, with a tetrad and a spin connection.
 - A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
-- Integration of forms, including Stokes' theorem on the charts already admitted.
 - Ricci = 0 for the Kerr metric. The generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A Hermitian spectrum whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational. Three or more independent square-free radicands stay open.
 - A continuum Hilbert space, and operators that are not polynomial differential operators in finitely many coordinates.

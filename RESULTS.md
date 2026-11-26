@@ -1042,9 +1042,13 @@ DDEP half-lives, with uncertainties in the last digits:
 
 The CIPM, polarizability, and medical half-life gaps close, and optics now lists no gaps. This adds 18 records.
 
+### Stokes' theorem on admitted charts
+
+The integral of a top-degree form over an axis-aligned box is the iterated exact definite integral of its coefficient. An antiderivative is kept only when its derivative is the integrand. Stokes' theorem is the identity of that integral of dω with the integral of ω over the oriented boundary. The fundamental theorem on an interval, the unit square, the unit cube, an angular rectangle, and the area of the coordinate sphere, which is 4 pi, are checked identically.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.128.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.129.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
