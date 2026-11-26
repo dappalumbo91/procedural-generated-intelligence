@@ -559,6 +559,71 @@ def _su2rot_field() -> tuple:
     return u, dagger
 
 
+
+def _su3rot_matrix() -> tuple[tuple[MRat, ...], ...]:
+    """The rational SU(2) rotation, embedded in the 1-2 block of SU(3)."""
+    u2 = _su2rot_matrix()
+    names = u2[0][0].num.names
+    zero = _rat_const(0, names)
+    one = _rat_const(1, names)
+    u = (
+        (u2[0][0], u2[0][1], zero),
+        (u2[1][0], u2[1][1], zero),
+        (zero, zero, one),
+    )
+    ident = (
+        (one, zero, zero),
+        (zero, one, zero),
+        (zero, zero, one),
+    )
+    if not _rm_eq(_rm_mul(_rm_transpose(u), u), ident) or not _rm_eq(_rm_mul(u, _rm_transpose(u)), ident):
+        raise KernelError("the rational SU(3) rotation was not unitary")
+    # det = det(SU(2) block) * 1 = 1, already checked on the 2-block.
+    return u
+
+
+def _su3rot_field() -> tuple:
+    u = _cm_from_rm(_su3rot_matrix())
+    dagger = _cm_dagger(u)
+    names = ("x", "y")
+    zero = _cf_zero(names)
+    one = _cf_from_mrat(_rat_const(1, names))
+    ident = (
+        (one, zero, zero),
+        (zero, one, zero),
+        (zero, zero, one),
+    )
+    if not _cm_eq(_cm_mul(u, dagger), ident) or not _cm_eq(_cm_mul(dagger, u), ident):
+        raise KernelError("the rational SU(3) rotation was not unitary over Q(i)(x, y)")
+    return u, dagger
+
+
+def gauge_transform_su3(connection, coord: str):
+    """A_mu maps to U A_mu U dagger plus U d_mu U dagger, for the rational SU(3) rotation."""
+    if coord not in {"x", "y"}:
+        raise NotExact("this non-constant SU(3) gauge transform is admitted in x or y")
+    u, dagger = _su3rot_field()
+    return _cm_add(_cm_mul(u, _cm_mul(connection, dagger)), _cm_mul(u, _cm_diff(dagger, coord)))
+
+
+def adjoint_field_su3(value):
+    """F maps to U F U dagger for the rational SU(3) rotation U(x, y)."""
+    u, dagger = _su3rot_field()
+    return _cm_mul(u, _cm_mul(value, dagger))
+
+
+def _nonconst_su3_covariance_check() -> None:
+    names = ("x", "y")
+    ax = _cm_from_cmatrix(su3_gen("1"), names)
+    ay = _cm_from_cmatrix(su3_gen("2"), names)
+    ax_p = gauge_transform_su3(ax, "x")
+    ay_p = gauge_transform_su3(ay, "y")
+    field = su2_field_fun(ax, ay)
+    field_p = su2_field_fun(ax_p, ay_p)
+    if not _cm_eq(field_p, adjoint_field_su3(field)):
+        raise KernelError("a non-constant SU(3) gauge transformation did not act covariantly on the field strength")
+
+
 def gauge_transform(connection, coord: str):
     """A_μ ↦ U A_μ U† + U ∂_μ U† for the rational SU(2) rotation U(x, y)."""
     if coord not in {"x", "y"}:
@@ -625,6 +690,7 @@ GAUGE_OPS = frozenset({
     "fieldstrength",
     "puregauge",
     "su2rot",
+    "su3rot",
     "adjoint",
     "gauge",
 })
@@ -694,12 +760,18 @@ def _eval(term: Term):
         if term.op == "fieldstrength":
             return _eval_field(term)
         if term.op == "gauge":
-            if len(term.args) != 3 or not _is_su2rot(term.args[0]):
-                raise NotExact("gauge takes su2rot, a connection component, and a coordinate")
+            if len(term.args) != 3:
+                raise NotExact("gauge takes a rotation, a connection component, and a coordinate")
+            if _is_su3rot(term.args[0]):
+                return gauge_transform_su3(_eval_connection_field(term.args[1]), _name(term.args[2]))
+            if not _is_su2rot(term.args[0]):
+                raise NotExact("gauge takes su2rot or su3rot, a connection component, and a coordinate")
             return gauge_transform(_eval_connection_field(term.args[1]), _name(term.args[2]))
         if term.op == "adjoint":
             if len(term.args) != 2:
                 raise NotExact("adjoint takes a special unitary matrix and a connection component")
+            if _is_su3rot(term.args[0]):
+                return adjoint_field_su3(_eval_connection_field(term.args[1]))
             if _is_su2rot(term.args[0]):
                 return adjoint_field(_eval_connection_field(term.args[1]))
             return adjoint_action(_eval_matrix(term.args[0]), _eval_matrix(term.args[1]))
@@ -737,10 +809,12 @@ def _eval_field(term: App):
     if group == "su3":
         if len(term.args) != 3:
             raise NotExact("an SU(3) field strength takes two connection components")
+        if _is_fun_connection(term.args[1]) or _is_fun_connection(term.args[2]):
+            return su2_field_fun(_eval_connection_field(term.args[1]), _eval_connection_field(term.args[2]))
         ax = _eval_matrix(term.args[1])
         ay = _eval_matrix(term.args[2])
         if ax.nrows != 3 or ay.nrows != 3:
-            raise NotExact("an SU(3) connection component must be 3×3")
+            raise NotExact("an SU(3) connection component must be 3x3")
         return su2_field_const(ax, ay)
     raise NotExact("a field strength for this group is not available here")
 
@@ -749,6 +823,12 @@ def _is_su2rot(term: Term) -> bool:
     if isinstance(term, Var) and term.name == "su2rot":
         return True
     return isinstance(term, App) and term.op == "su2rot"
+
+
+def _is_su3rot(term: Term) -> bool:
+    if isinstance(term, Var) and term.name == "su3rot":
+        return True
+    return isinstance(term, App) and term.op == "su3rot"
 
 
 def _is_cfun_matrix(value) -> bool:
@@ -762,7 +842,7 @@ def _is_cfun_matrix(value) -> bool:
 
 
 def _is_fun_connection(term: Term) -> bool:
-    return isinstance(term, App) and term.op in {"gauge"} or (isinstance(term, App) and term.op == "adjoint" and term.args and _is_su2rot(term.args[0]))
+    return isinstance(term, App) and term.op in {"gauge"} or (isinstance(term, App) and term.op == "adjoint" and term.args and (_is_su2rot(term.args[0]) or _is_su3rot(term.args[0])))
 
 
 def _eval_connection_field(term: Term):

@@ -1413,3 +1413,11 @@ The ferromagnet and latent-heat gaps close.
 That is 17 records.
 
 `python -m unittest discover -s tests -v` finished 432 tests, 0 failures, about 718.34 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-26 — Non-constant SU(3) gauge transformation pgi-0.132.0
+
+The rational rotation already checked, embedded in the 1-2 block of SU(3), is a position-dependent special unitary 3x3 matrix in x and y. It acts by A_mu |-> U A_mu U dagger + U d_mu U dagger, and the field strength F = dA + [A, A] transforms as F |-> U F U dagger, checked identically.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 433 tests, 0 failures, about 757.60 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

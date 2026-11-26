@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.131.0`.
+Rule version `pgi-0.132.0`.
 
 In the kernel now:
 
@@ -117,11 +117,12 @@ In the kernel now:
 - Hydrogen radial states for every (n, ℓ) with n = 1, 2, 3, or 4 and 0 ≤ ℓ < n. The residual of u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² vanishes identically in atomic units.
 - Exact integrals of forms on an axis-aligned box in an admitted chart, and Stokes' theorem as the identity of the integral of dω over the box with the integral of ω over the oriented boundary. An antiderivative is kept only when its derivative is the integrand. The fundamental theorem on an interval, the unit square, the unit cube, an angular rectangle, and the integral of the sphere area form over [0, pi] × [0, 2 pi], which is 4 pi, are checked identically.
 - A tetrad and a torsion-free spin connection on Minkowski spacetime and on flat FLRW. The metric rebuilds as eta_ab e^a_mu e^b_nu. An inverse tetrad is kept only when both products are the identity. Cartan's first structure equation, de^a + omega^a_b wedge e^b = 0, is checked identically. The Dirac operator is gamma^a e_a^mu (partial_mu + (1/4) omega_mu^{bc} gamma_b gamma_c). On Minkowski it annihilates a constant spinor. On flat FLRW a constant spinor psi satisfies D psi = (3/2) (da/dt)/a gamma^0 psi, checked identically.
+- A position-dependent SU(3) gauge transformation by the rational rotation already checked, embedded in the 1-2 block of SU(3). It acts by A_mu |-> U A_mu U dagger + U d_mu U dagger, and the field strength F = dA + [A, A] transforms as F |-> U F U dagger, checked identically as 3x3 matrices of rational functions in x and y.
 
 Still outside the kernel, and required before a physical law can be written:
 
 - A set whose upper-bound predicate the kernel cannot decide. The bisection runs for a lessThan ray and for an interval whose upper end is open. An affine comparison in the binder is decided: `{x. x <= x + 1}` is UNIV and is not bounded above. A polynomial comparison, with rational or algebraic coefficients, is decided by a checked sign chart: `{x. x * x <= 2}` is atLeastAtMost(-sqrt(2), sqrt(2)) and its supremum is sqrt(2); `{x. x * x * x <= 2}` is atMost(root(x^3 - 2, 1)); `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}` is atLeastAtMost of the two real square roots of that radicand; `{x. x * x * x <= sqrt(2)}` is atMost(root(x^6 - 2, 2)). `>=` and `>` are rewritten to `<=` and `<` by flipping the sides. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A boolean connective whose sides the kernel can settle individually is composed: `{x. x * x <= 2 and 0 <= x}` is atLeastAtMost(0, sqrt(2)). A boolean connective whose sides the kernel cannot settle stays outside. A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring and checked by `real_sqrt_unique`. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A negative radicand stays open. Division by zero stays open.
-- An SU(3) gauge transformation on a connection that is not a constant special unitary matrix, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked, stay outside. A Hermitian matrix whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational, stays open. Three or more independent square-free radicands stay open. Angular charts that would need trigonometric functions stay outside.
+- An SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked stays outside. A Hermitian matrix whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational, stays open. Three or more independent square-free radicands stay open. Angular charts that would need trigonometric functions stay outside.
 - Any encoding of general relativity or the Standard Model.
 - The rest of the gravitational-wave catalogs, and atomic-clock comparisons. They will enter as sourced anchors or bounds. GW150914 from GWTC-1 and the GW170817 speed-of-gravity bound entered in `pgi-0.50.0`. They will not be typed in as theorems. The PDG 2026 masses, couplings, and CKM fit entered that way in `pgi-0.49.0`. The CODATA 2022 recommended values entered that way in `pgi-0.47.0`.
 - A modern Mercury residual from more than one ephemeris with a named confidence level throughout. Clemence's 1947 reduction is on the board as of `pgi-0.50.0`, with his probable errors. Since `pgi-0.53.0` the MESSENGER fit of Park et al. (2017), the EPM2011 additional precession and PPN parameters, and the Cassini `γ` are on the board as well. Newtonian gravity is the historical effective theory that left that residual. No relativistic prediction is stored.
@@ -133,7 +134,7 @@ The math toolkit is not finished. A derivation or prediction check of general re
 
 What a derivation round would still need:
 
-- A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
+- An SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
 - Ricci = 0 for the Kerr metric. The generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A Hermitian spectrum whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational. Three or more independent square-free radicands stay open.
 - A continuum Hilbert space, and operators that are not polynomial differential operators in finitely many coordinates.

@@ -1080,9 +1080,13 @@ Kaye & Laby Sect. 3.10.1 prints molar enthalpies for the elements in units of R�
 
 The ferromagnet and latent-heat gaps close. This adds 17 records.
 
+### Non-constant SU(3) gauge transformation
+
+The rational rotation already checked, embedded in the 1-2 block of SU(3), is a position-dependent special unitary 3x3 matrix in x and y. It acts by A_mu |-> U A_mu U dagger + U d_mu U dagger, and the field strength F = dA + [A, A] transforms as F |-> U F U dagger, checked identically.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.131.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.132.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
@@ -1091,5 +1095,5 @@ This list is the current state as of `pgi-0.131.0`. Earlier sections above are h
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
-- An SU(3) gauge transformation that is not a constant special unitary matrix, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked (including its inhomogeneous action on a connection), stay outside. A Hermitian matrix whose eigenvalues are not in Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational, stays open. Three or more independent square-free radicands, or two that do not lie in one coprime biquadratic field, stay open.
+- An SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked (including its inhomogeneous action on a connection) stays outside. A Hermitian matrix whose eigenvalues are not in Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational, stays open. Three or more independent square-free radicands, or two that do not lie in one coprime biquadratic field, stay open.
 - CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The modern Mercury fits are on the board since `pgi-0.53.0`. The neutron lifetime, `g_A`, muon and electron `g − 2`, and the proton radius entered in `pgi-0.56.0`. NIST ASD first ionization energies H to Ne entered in `pgi-0.57.0`, and Na to Kr in `pgi-0.59.0`. INPOP perihelion and PPN results entered in `pgi-0.58.0`. AME2020 atomic masses entered in `pgi-0.61.0`. PDG 2026 light hadron masses entered in `pgi-0.62.0`. Binary pulsar, Gravity Probe B, VLBI, and the 16 values of G entered in `pgi-0.63.0`. Hydrogen spectroscopy (1S–2S, Lamb shift, 21 cm, H-alpha, muonic hydrogen) entered in `pgi-0.64.0`. Nuclear constants (deuteron binding, alpha mass, nucleon moments) entered in `pgi-0.65.0`. Stefan–Boltzmann and Wien constants entered in `pgi-0.67.0`. The rest of the gravitational-wave catalogs are not.
