@@ -1084,9 +1084,52 @@ The ferromagnet and latent-heat gaps close. This adds 17 records.
 
 The rational rotation already checked, embedded in the 1-2 block of SU(3), is a position-dependent special unitary 3x3 matrix in x and y. It acts by A_mu |-> U A_mu U dagger + U d_mu U dagger, and the field strength F = dA + [A, A] transforms as F |-> U F U dagger, checked identically.
 
+### Molecular and chemistry: dipole moments, electrode potentials, solubility products, combustion
+
+The CCCBDB experimental dipole list gives these values in debye:
+
+- H₂O `1.857` (Shostak et al. 1991);
+- NH₃ `1.476 ± 0.0029` (Shimizu 1970);
+- HCl `1.093`;
+- CO `0.112` (NSRDS-NBS 10);
+- HF `1.827`.
+
+Kaye & Laby Sect. 3.9.3 gives these standard potentials at 25 °C:
+
+- Li⁺/Li `−3.045` V;
+- Na⁺/Na `−2.714` V;
+- Zn²⁺/Zn `−0.762 6` V;
+- Cu²⁺/Cu `+0.340` V;
+- Ag⁺/Ag `+0.799 1` V;
+- AgCl/Ag `+0.222 3` V;
+- Cl₂/Cl⁻ `+1.358 3` V;
+- O₂/H₂O `+1.229` V.
+
+The digit grouping is kept as printed. The page's introduction rounds Zn to −0.763 V.
+
+Kaye & Laby Sect. 3.9.8 gives these pK_s0 values:
+
+- AgCl `9.749`;
+- AgBr `12.30`;
+- AgI `16.08`;
+- BaSO₄ `9.99`;
+- CaCO₃ `8.32`;
+- CaF₂ `10.31`;
+- Mg(OH)₂ `11.3`;
+- Fe(OH)₃ `39.43`.
+
+The WebBook gives these enthalpies of combustion:
+
+- methane: `−890.7 ± 0.4` kJ/mol (Pittam & Pilcher) and `−890.35 ± 0.30` kJ/mol (Prosen & Rossini), both kept;
+- ethane: `−1560.7 ± 0.3` kJ/mol;
+- propane: `−2219.2 ± 0.46` kJ/mol;
+- liquid ethanol: `−1367.6 ± 0.3` kJ/mol.
+
+All four molecular gaps close. This adds 26 records.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.132.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.133.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - Ricci = 0 for the Kerr metric stays outside: the generic Levi-Civita computation exceeds the polynomial degree and term limits.
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.

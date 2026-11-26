@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.132.0`.
+Rule version `pgi-0.133.0`.
 
 In the kernel now:
 
@@ -210,6 +210,7 @@ The records live in `pgi/corpus/records.py`. Each one has a source. Experimental
 | `hh1979.we_*`, `hh1979.be_*`, `shimanouchi1972.*` | Vibrational frequencies and rotational constants | ω_e (cm⁻¹): H₂ `4401.213`, N₂ `2358.57`, O₂ `1580.193`, CO `2169.81358`, H³⁵Cl `2990.9463`. B_e (cm⁻¹): H₂ `60.8530`, N₂ `1.998241`, CO `1.93128087`, H³⁵Cl `10.593416`. H₂O ν₁ `3657`, ν₂ `1595`, ν₃ `3756` cm⁻¹. |
 | `bipm2025.*` (2025 list), `amini2003.*`, `ekstrom1995.*`, `cccbdb_pol.*`, `ddep.t_half_*` (medical) | CIPM frequencies, polarizabilities, medical half-lives | f (Hz): ⁴⁰Ca⁺ `411 042 129 776 400.30`, ¹¹⁵In⁺ `1 267 402 452 901 039.07`, ¹⁹⁹Hg `1 128 575 290 808 154.33`, ¹⁹⁹Hg⁺ `1 064 721 609 899 146.95`, ¹⁷⁶Lu⁺ `353 638 794 073 800.35`, ⁸⁷Rb `6 834 682 610.904 312 9`, ⁸⁸Sr `429 228 066 418 007.008`, ⁸⁸Sr⁺ `444 779 044 095 485.347`, ¹⁷¹Yb⁺ E2 `688 358 979 309 308.31`, E3 `642 121 496 772 645.18`. α: Cs `6.611 ± 0.009` ×10⁻³⁹ C m²/V, Na `24.11(6)(6)` ×10⁻²⁴ cm³, He `0.208` Å³. T½: ¹⁸F `1.82890(23)` h, ⁹⁹ᵐTc `6.0067(10)` h, ¹³¹I `8.0233(19)` d, ¹¹C `20.361(23)` min, ¹⁵O `122.266(49)` s. |
 | `kayelaby_ferro.*`, `danan1968.*`, `myers1951.*`, `nigh1963.*`, `kayelaby_latent.*` | Saturation magnetization, latent heats | J_s (T): Fe `2.16`, Co `1.76`, Ni `0.615`. Danan 1968 (0 K): Fe `221.71 ± 0.08` emu/g = `2.216` μ_B, Ni `58.57 ± 0.03` emu/g = `0.616` μ_B. Co (hcp, 0 K) `162.55` (no unit printed). Gd `7.55` μ_B. Water: fusion `333`, vaporization `2257` J/g; Osborne–Stimson–Ginnings `2500.58` (273.150 K), `2256.57` (373.124 K) J/g. N₂: fusion `87`, vaporization `672` R·K; He: `2.4`, `9.6` R·K. |
+| `cccbdb_dip.*`, `kayelaby_e0.*`, `kayelaby_ksp.*`, `webbook_comb.*` | Dipole moments, electrode potentials, solubility products, combustion enthalpies | μ (D): H₂O `1.857`, NH₃ `1.476 ± 0.0029`, HCl `1.093`, CO `0.112`, HF `1.827`. E° (V, 25 °C): Li `−3.045`, Na `−2.714`, Zn `−0.762 6`, Cu `+0.340`, Ag `+0.799 1`, AgCl `+0.222 3`, Cl₂ `+1.358 3`, O₂ `+1.229`. pK_s0: AgCl `9.749`, AgBr `12.30`, AgI `16.08`, BaSO₄ `9.99`, CaCO₃ `8.32`, CaF₂ `10.31`, Mg(OH)₂ `11.3`, Fe(OH)₃ `39.43`. Δ_cH (kJ/mol): CH₄ `−890.7 ± 0.4` and `−890.35 ± 0.30`, C₂H₆ `−1560.7 ± 0.3`, C₃H₈ `−2219.2 ± 0.46`, C₂H₅OH(l) `−1367.6 ± 0.3`. |
 | `gw150914.*` | Measured anchors | GWTC-1, Phys. Rev. X 9, 031040 (2019), Table III, via the GWOSC event API: source-frame `m_1 = 35.6 +4.7 −3.1`, `m_2 = 30.6 +3.0 −4.4`, chirp mass `28.6 +1.7 −1.5`, final mass `63.1 +3.4 −3.0` solar masses, final spin, radiated energy `3.1 ± 0.4` solar-mass c², `χ_eff`, `d_L = 440 +150 −170` Mpc, and `z`. Medians with 90% credible intervals. |
 | `bound.gw170817_speed_of_gravity` | Experimental bound | Abbott et al., ApJL 848, L13 (2017), Eq. (2): `−3 × 10^-15 ≤ (v_GW − v_EM)/v_EM ≤ +7 × 10^-16`, from the 1.74 s delay of GRB 170817A, D = 26 Mpc, and an emission lag between 0 and 10 s. |
 | `open.cosmological_constant` | Open problem | Weinberg, Rev. Mod. Phys. 61, 1 (1989), is the named statement of the mismatch between cutoff-dependent vacuum-energy estimates and the observed cosmological constant. No ratio is stored. A later number has to name its cutoff and its source. |

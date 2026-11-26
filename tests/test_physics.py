@@ -2103,6 +2103,17 @@ class FerroLatentB17Tests(unittest.TestCase):
     def test_both_nickel_values_kept(self) -> None:
         self.assertEqual({quantity("kayelaby_ferro.ni_js").value_text, quantity("danan1968.ni_moment").value_text}, {"0.615", "0.616"})
 
+class ChemB17Tests(unittest.TestCase):
+    def test_values_as_printed(self) -> None:
+        self.assertEqual(quantity("cccbdb_dip.h2o").value_text, "1.857")
+        self.assertEqual(quantity("cccbdb_dip.nh3").uncertainty_text, "0.0029")
+        self.assertEqual(quantity("kayelaby_e0.zn").value_text, "-0.762 6")
+        self.assertEqual(quantity("kayelaby_ksp.agcl").value_text, "9.749")
+        self.assertEqual(quantity("webbook_comb.c3h8_pittam1972").value_text, "-2219.2")
+
+    def test_methane_combustion_both_kept(self) -> None:
+        self.assertEqual({quantity("webbook_comb.ch4_pittam1972").value_text, quantity("webbook_comb.ch4_prosen1945").value_text}, {"-890.7", "-890.35"})
+
 class Gw150914Tests(unittest.TestCase):
     def test_intervals_are_ninety_percent_and_well_formed(self) -> None:
         for item in QUANTITIES:

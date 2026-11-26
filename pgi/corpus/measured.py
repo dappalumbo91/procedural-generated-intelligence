@@ -4797,7 +4797,78 @@ FERRO_LATENT: tuple[Quantity, ...] = (
     _kl_latent("helium", "helium", "vap", "9.6", "R K", "", "1", "The He column prints T_vap 4.22 K and molar enthalpy of evaporation 9.6 in units of R K; the value is stored in R K as printed."),
 )
 
-QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT
+_DIP_URL = "https://cccbdb.nist.gov/diplistx.asp"
+_DIP_SOURCE = CCCBDB_SOURCE.replace("Experimental > Energy > Atomization Energy.", "Experimental > Electrostatics > Dipole (list of experimental dipole moments).")
+
+
+def _dipole(key: str, mol: str, name: str, value: str, unc: str, row: str, ref: str) -> Quantity:
+    m = mol.lower()
+    return _q(f"cccbdb_dip.{key}", f"electric dipole moment of {name} ({mol}, ground state)", f"mu({mol})", value, unc, "D",
+              kind="uncertainty as printed, level not stated" if unc else "no uncertainty printed", source=_DIP_SOURCE, edition="CCCBDB experimental dipoles",
+              url=_DIP_URL, retrieved_from=_DIP_URL, keys=(f"dipole moment of {m}", f"dipole moment of {name}"), phrases=(f"dipole moment of {m}", f"dipole moment of {name}", f"{name} dipole moment", "molecular dipole moments"),
+              notes=(f"The list ('Dipole moments in Debye') prints the row: {row}.", f"Squib: {ref}."))
+
+
+_KL_393 = "https://web.archive.org/web/20170214104813/http://www.kayelaby.npl.co.uk/chemistry/3_9/3_9_3.html"
+_KL_398 = "https://web.archive.org/web/20161215143328/http://www.kayelaby.npl.co.uk/chemistry/3_9/3_9_8.html"
+
+
+def _e0(key: str, couple: str, reaction: str, value: str, printed: str) -> Quantity:
+    return _q(f"kayelaby_e0.{key}", f"standard electrode potential of {couple} at 25 C", f"E0({couple})", value, "", "V",
+              kind="no uncertainty printed", source="Kaye & Laby, Tables of Physical and Chemical Constants (NPL online, version 1.0), Sect. 3.9.3, Standard potentials at 25 C",
+              edition="Kaye & Laby online, v1.0", url=_KL_393, retrieved_from=_KL_393,
+              keys=("standard electrode potential", f"electrode potential of {couple}"), phrases=(f"electrode potential of {couple}", "standard electrode potentials", "standard reduction potential"),
+              notes=(f"The table prints '{reaction}' with E0/V = {printed} (IUPAC reduction convention, hydrogen electrode = 0).", _KL_RETIRED))
+
+
+def _pks(key: str, salt: str, anion: str, cation: str, value: str) -> Quantity:
+    return _q(f"kayelaby_ksp.{key}", f"pK_s0 (negative log solubility product) of {salt} in water", f"pK_s0({salt})", value, "", "",
+              kind="no uncertainty printed", source="Kaye & Laby, Tables of Physical and Chemical Constants (NPL online, version 1.0), Sect. 3.9.8, Solubility products in aqueous solutions",
+              edition="Kaye & Laby online, v1.0", url=_KL_398, retrieved_from=_KL_398,
+              keys=("solubility product", f"solubility product of {salt}"), phrases=(f"solubility product of {salt}", f"{salt} solubility product", "solubility products"),
+              notes=(f"Anion '{anion}', cation '{cation}': pK_s0 = {value}.", "The page says most values relate to 298 K and zero ionic strength, with others in Sillen and Martell (1964); it does not mark which.", _KL_RETIRED))
+
+
+def _comb(key: str, cas: str, mol: str, phase: str, value: str, unc: str, ref: str, extra: str = "") -> Quantity:
+    url = f"https://webbook.nist.gov/cgi/cbook.cgi?ID={cas}&Mask=3"
+    return _q(f"webbook_comb.{key}", f"standard enthalpy of combustion of {mol} ({phase}), {ref}", f"dcH({mol})", value, unc, "kJ mol^-1",
+              kind="uncertainty as printed, level not stated", source=f"NIST Chemistry WebBook, SRD 69, {mol} thermochemistry (Mask=3), Delta_cH {phase} row from {ref}",
+              edition="NIST Chemistry WebBook, SRD 69", url=url, retrieved_from=url,
+              keys=("enthalpy of combustion", f"enthalpy of combustion of {mol.lower()}", f"heat of combustion of {mol.lower()}"),
+              phrases=(f"enthalpy of combustion of {mol.lower()}", f"heat of combustion of {mol.lower()}", "enthalpies of combustion"),
+              notes=(f"The WebBook row prints Delta_cH {phase} = {value} +- {unc} kJ/mol, method Ccb or Cm, reference {ref}.",) + ((extra,) if extra else ()))
+
+
+CHEM_B17: tuple[Quantity, ...] = (
+    _dipole("h2o", "H2O", "water", "1.857", "", "H2O, Water, 1A1, tot 1.857, comment mu_0 = 1.85498", "1991Sho/Ebe:5875-5882 = S. L. Shostak, W. L. Ebenstein, and J. S. Muenter, J. Chem. Phys. 94, 5875 (1991), doi:10.1063/1.460471"),
+    _dipole("nh3", "NH3", "ammonia", "1.476", "0.0029", "NH3, Ammonia, 1A1, 1.476, comment '+- 0.0029 D Laser resonance'", "1970Shi:3572-3576 = F. Shimizu, J. Chem. Phys. 52, 3572 (1970), doi:10.1063/1.1673524"),
+    _dipole("hcl", "HCl", "hydrogen chloride", "1.093", "", "HCl, Hydrogen chloride, 1Sigma, 1.093, comment MB", "NISTDiatomic"),
+    _dipole("co", "CO", "carbon monoxide", "0.112", "", "CO, Carbon monoxide, 1Sigma, 0.112, comment MW", "NSRDS-NBS10 = R. D. Nelson, D. R. Lide, and A. A. Maryott, Selected values of electric dipole moments for molecules in the gas phase, NSRDS-NBS 10 (1967)"),
+    _dipole("hf", "HF", "hydrogen fluoride", "1.827", "", "HF, Hydrogen fluoride, 1Sigma, 1.827, comment MB", "NISTDiatomic"),
+    _e0("li", "Li+/Li", "Li+ + e- -> Li", "-3.045", "- 3.045"),
+    _e0("na", "Na+/Na", "Na+ + e- -> Na", "-2.714", "- 2.714"),
+    _e0("zn", "Zn2+/Zn", "Zn2+ + 2e- -> Zn", "-0.762 6", "- 0.762 6"),
+    _e0("cu", "Cu2+/Cu", "Cu2+ + 2e- -> Cu", "+0.340", "+ 0.340"),
+    _e0("ag", "Ag+/Ag", "Ag+ + e- -> Ag", "+0.799 1", "+ 0.799 1"),
+    _e0("agcl", "AgCl/Ag", "AgCl + e- -> Ag + Cl-", "+0.222 3", "+ 0.222 3"),
+    _e0("cl2", "Cl2/Cl-", "Cl2 + 2e- -> 2Cl-", "+1.358 3", "+ 1.358 3"),
+    _e0("o2", "O2/H2O", "O2 + 4H+ + 4e- -> 2H2O", "+1.229", "+ 1.229"),
+    _pks("agcl", "silver chloride", "chloride", "silver (I)", "9.749"),
+    _pks("agbr", "silver bromide", "bromide", "silver (I)", "12.30"),
+    _pks("agi", "silver iodide", "iodide", "silver (I)", "16.08"),
+    _pks("baso4", "barium sulfate", "sulphate", "barium", "9.99"),
+    _pks("caco3", "calcium carbonate", "carbonate", "calcium", "8.32"),
+    _pks("caf2", "calcium fluoride", "fluoride", "calcium", "10.31"),
+    _pks("mgoh2", "magnesium hydroxide", "hydroxide", "magnesium", "11.3"),
+    _pks("feoh3", "iron(III) hydroxide", "hydroxide", "iron (III)", "39.43"),
+    _comb("ch4_pittam1972", "C74828", "Methane", "gas", "-890.7", "0.4", "Pittam and Pilcher, 1972"),
+    _comb("ch4_prosen1945", "C74828", "Methane", "gas", "-890.35", "0.30", "Prosen and Rossini, 1945", "The WebBook lists four methane values (Pittam and Pilcher 1972, Prosen and Rossini 1945, Roth and Banse 1932, Rossini 1931); two are stored and both are kept."),
+    _comb("c2h6_pittam1972", "C74840", "Ethane", "gas", "-1560.7", "0.3", "Pittam and Pilcher, 1972"),
+    _comb("c3h8_pittam1972", "C74986", "Propane", "gas", "-2219.2", "0.46", "Pittam and Pilcher, 1972"),
+    _comb("c2h5oh_chao1965", "C64175", "Ethanol", "liquid", "-1367.6", "0.3", "Chao and Rossini, 1965"),
+)
+
+QUANTITIES = QUANTITIES + IUPAC_ATOMIC_WEIGHTS + CHEMISTRY + CONDENSED_MATTER + PARTICLE_B5 + ASTROPHYSICS + NUCLEAR_PARTICLE_B6 + ATOMIC_MOLECULAR_B6 + EARLY_UNIVERSE + EXOTIC_QED + NULL_RESULTS + THERMO_FLUIDS + OPTICS + MECHANICS_EM + EARTH_ROTATION + REDSHIFT_ZPOLE + NUCLEAR_DECAY_RADII + EM_EXTRAS + CONDENSED_EXTRAS + FLUIDS_HELIUM + CLOCKS_FRAME_LLR + PARTICLE_EXTRAS + OPTICS_EXTRAS + PARTICLE_HADRONS_BR + GRAV_EVENTS_SKYTREE + EM_MATERIALS + DESI_DR2_BAO + BOREXINO + BOLTZMANN_PRE2019 + ELECTRON_MASS_PENNING + POUND_REBKA_1960 + SME_LIMITS + NULL_B13 + COSMO_B13 + QED_B13 + ASTRO_B13 + FLUIDS_B14 + DEBYE_B14 + CCM_B14 + QED_ASTRO_B14 + TRANSPORT_B15 + MECHANICS_B15 + ATOMIC_B15 + EMOPTICS_B15 + LATTICE_CONSTANTS + VIRIAL_CRITICAL + MOLECULAR_CONSTANTS + CLOCKS_POLARIZABILITY_HALFLIVES + FERRO_LATENT + CHEM_B17
 BOUNDS = BOUNDS + IUPAC_ATOMIC_WEIGHT_INTERVALS + HIGGS_WIDTH_BOUNDS + NULL_BOUNDS + GPA_BOUND + COULOMB_BOUNDS + NULL_B13_BOUNDS
 
 
