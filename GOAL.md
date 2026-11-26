@@ -78,7 +78,7 @@ Learned modules, if they are added later, supply intuition and candidate links. 
 
 ## Where the work stands
 
-Rule version `pgi-0.115.0`.
+Rule version `pgi-0.116.0`.
 
 In the kernel now:
 
@@ -103,21 +103,38 @@ In the kernel now:
 - The Schwarzschild metric in Schwarzschild coordinates, with mass parameter `m`. The inverse multiplies back to the identity. The Levi-Civita connection is torsion-free and metric-compatible. Ricci vanishes identically, the Einstein tensor vanishes, the scalar curvature is `0`, and the Kretschmann scalar is `48 m^2 / r^6`.
 - Flat FLRW, with a formal scale factor `a(t)` and its exact derivatives. The Einstein tensor is exact: `G_tt` is `3 (da/dt)^2 / a^2`, and each spatial diagonal is `-(2 a d^2a/dt^2 + (da/dt)^2)`.
 - The Lorentz algebra so(3,1) and the Dirac matrices. The Minkowski metric is `η = diag(-1, 1, 1, 1)`. A boost with a rational velocity is kept only when `1 - v^2` is the square of a positive rational, and when both `Λ^T η Λ` and `Λ η Λ^T` equal `η`. The so(3,1) generators satisfy `[J_i, J_j] = ε_ijk J_k`, `[K_i, K_j] = -ε_ijk J_k`, and `[J_i, K_j] = ε_ijk K_k`, and each preserves `η` infinitesimally. The Dirac matrices satisfy `{γ^μ, γ^ν} = 2 η^{μν} I`, checked on every pair.
-- A Hermitian spectral decomposition in size up to 8, kept only when the eigenvalues lie in Q or Q(√d), eigenvector norms are positive rationals, `H = U D U†`, `U` is unitary, and `D` is real diagonal. The 3×3 case `[[0, 1, 0], [1, 0, 1], [0, 1, 0]]` has diagonal `diag(-√2, 0, √2)` and rebuilds exactly. Mixing two different square-free radicands stays open. An SU(3) gauge transformation by a constant special unitary matrix acts on a constant connection by `A ↦ U A U†`. The field strength `F = [A_x, A_y]` transforms as `F ↦ U F U†`, and `tr(F²)` is invariant.
+- A Hermitian spectral decomposition in size up to 8, kept only when the eigenvalues lie in Q, Q(√d), or Q(√d, √e), eigenvector norms are positive rationals, `H = U D U†`, `U` is unitary, and `D` is real diagonal. The 3×3 case `[[0, 1, 0], [1, 0, 1], [0, 1, 0]]` has diagonal `diag(-√2, 0, √2)` and rebuilds exactly. The 3×3 case `[[2, 1, 1], [1, 2, 1], [1, 1, 2]]` has diagonal `diag(1, 1, 4)`, a spectral factor in Q(√2, √3), and rebuilds exactly. An SU(3) gauge transformation by a constant special unitary matrix acts on a constant connection by `A ↦ U A U†`. The field strength `F = [A_x, A_y]` transforms as `F ↦ U F U†`, and `tr(F²)` is invariant.
 - Exact ODE checks. A candidate is kept only when its residual in a linear ODE vanishes identically. The harmonic oscillator, with ħ = ω = m = 1, is checked for n = 0, 1, and 2, where ψ'' − (x² − 2n − 1) ψ = 0 and E_n = n + 1/2. The hydrogen radial equation in atomic units is checked for (n, ℓ) = (1, 0), (2, 0), and (2, 1), where u'' − ℓ(ℓ+1)/r² u + 2/r u − u/n² = 0 and E = −1/(2n²). The admitted candidates are polynomials times an exponential.
 - Differential forms and the exterior derivative. The wedge product is alternating. d² = 0 is checked identically, including on elementary 1-forms. On flat Minkowski spacetime, the Faraday 2-form of a 4-potential is F = dA, and dF = 0 is that identity: the homogeneous Maxwell equations in the language of forms. The inhomogeneous equation d⋆F = J stays outside until the Hodge star is admitted.
 - Killing vectors and the Lie derivative of a metric. L_X g vanishes identically if and only if X is a Killing field. The translations and the rotation of the Euclidean plane are Killing. Schwarzschild's time-translation ∂_t, axial rotation ∂_φ, and the remaining rotation fields J_x and J_y are Killing, checked identically.
 - Canonical commutators, angular momentum, and oscillator ladder operators. With ħ = 1, position is multiplication by the coordinate and P = −i ∂. The identities [X_i, P_j] = i δ_ij and [L_i, L_j] = i ε_ijk L_k are checked as operator equalities in normal form. The oscillator ladders a = (X + iP)/√2 and a† = (X − iP)/√2 satisfy [a, a†] = 1, checked identically.
 - A position-dependent SU(2) gauge transformation by the rational rotation already checked. It acts by A_μ ↦ U A_μ U† + U ∂_μ U†, and the field strength F = ∂A + [A, A] transforms as F ↦ U F U†, checked identically as matrix-valued rational functions.
+- Complex scalars in Q(√d, √e, i) when d and e are coprime square-free integers. √d, √e, and √(de) are the same field. An inverse is kept only when both products are 1. Three or more independent square-free radicands, or two that do not lie in one such field, stay open.
 
 Still outside the kernel, and required before a physical law can be written:
 
 - A set whose upper-bound predicate the kernel cannot decide. The bisection runs for a lessThan ray and for an interval whose upper end is open. An affine comparison in the binder is decided: `{x. x <= x + 1}` is UNIV and is not bounded above. A polynomial comparison, with rational or algebraic coefficients, is decided by a checked sign chart: `{x. x * x <= 2}` is atLeastAtMost(-sqrt(2), sqrt(2)) and its supremum is sqrt(2); `{x. x * x * x <= 2}` is atMost(root(x^3 - 2, 1)); `{x. x * x <= sqrt(sqrt(2)) + sqrt(sqrt(3))}` is atLeastAtMost of the two real square roots of that radicand; `{x. x * x * x <= sqrt(2)}` is atMost(root(x^6 - 2, 2)). `>=` and `>` are rewritten to `<=` and `<` by flipping the sides. A polynomial whose resultant would exceed the kernel's degree limit stays outside. A boolean connective whose sides the kernel can settle individually is composed: `{x. x * x <= 2 and 0 <= x}` is atLeastAtMost(0, sqrt(2)). A boolean connective whose sides the kernel cannot settle stays outside. A sum of conjugate nested binomials of the same square-free integer is rewritten by squaring and checked by `real_sqrt_unique`. A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside. A negative radicand stays open. Division by zero stays open.
-- An SU(3) gauge transformation on a connection, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked, stay outside. A 3×3 or larger spectral decomposition, a Hermitian matrix whose eigenvector norm is not a positive rational, mixing two different square-free radicands, and angular charts that would need trigonometric functions stay outside.
+- An SU(3) gauge transformation on a connection that is not a constant special unitary matrix, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked, stay outside. A Hermitian matrix whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational, stays open. Three or more independent square-free radicands stay open. Angular charts that would need trigonometric functions stay outside.
 - Any encoding of general relativity or the Standard Model.
 - The rest of the gravitational-wave catalogs, and atomic-clock comparisons. They will enter as sourced anchors or bounds. GW150914 from GWTC-1 and the GW170817 speed-of-gravity bound entered in `pgi-0.50.0`. They will not be typed in as theorems. The PDG 2026 masses, couplings, and CKM fit entered that way in `pgi-0.49.0`. The CODATA 2022 recommended values entered that way in `pgi-0.47.0`.
 - A modern Mercury residual from more than one ephemeris with a named confidence level throughout. Clemence's 1947 reduction is on the board as of `pgi-0.50.0`, with his probable errors. Since `pgi-0.53.0` the MESSENGER fit of Park et al. (2017), the EPM2011 additional precession and PPN parameters, and the Cassini `γ` are on the board as well. Newtonian gravity is the historical effective theory that left that residual. No relativistic prediction is stored.
 - Rayleigh's and Jeans' own statements of their law. Since `pgi-0.51.0`, the Rayleigh–Jeans formula is stored from Planck's equation (8) with equipartition, marked failed at high frequency, beside Planck's equation (12).
+
+## TOOLKIT_STATUS
+
+The math toolkit is not finished. A derivation or prediction check of general relativity or quantum mechanics against the board stays on hold until the items below are in the kernel, each checked exactly, never approximated. When they are closed, or when a later session records that a named item is not required for the first derivation round, the toolkit can be called finished for that purpose.
+
+What a derivation round would still need:
+
+- The Hodge star, and the inhomogeneous Maxwell equation d⋆F = J, including Maxwell's equations on a curved metric.
+- The Dirac operator on curved spacetime, with a tetrad and a spin connection.
+- A non-constant SU(3) gauge transformation, and an SU(2) transformation other than a constant special unitary matrix or the rational rotation already checked.
+- Variational principles: an action, the Euler–Lagrange equation, and a Noether current, checked identically for a Lagrangian the kernel already admits.
+- Integration of forms, including Stokes' theorem on the charts already admitted.
+- The Kerr metric, and FLRW with spatial curvature k ≠ 0.
+- Spherical harmonics, and hydrogen states beyond (n, ℓ) = (1, 0), (2, 0), and (2, 1).
+- A Hermitian spectrum whose eigenvalues leave Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational. Three or more independent square-free radicands stay open.
+- A continuum Hilbert space, and operators that are not polynomial differential operators in finitely many coordinates.
 
 ## The board
 

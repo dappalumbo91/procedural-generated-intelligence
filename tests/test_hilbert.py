@@ -1,4 +1,4 @@
-"""Finite-dimensional inner product spaces over Q(i) and Q(√d, i)."""
+"""Finite-dimensional inner product spaces over Q(i), Q(√d, i), and Q(√d, √e, i)."""
 
 from __future__ import annotations
 
@@ -179,7 +179,32 @@ class HilbertTests(unittest.TestCase):
         )
         self.assertEqual(
             mixed.claims[0].atom,
-            "open(these numbers lie in different quadratic fields)",
+            "cmatrix([[-1/2 * sqrt(2), -1/6 * sqrt(6), 1/3 * sqrt(3)], [1/2 * sqrt(2), -1/6 * sqrt(6), 1/3 * sqrt(3)], [0, 1/3 * sqrt(6), 1/3 * sqrt(3)]])",
+        )
+        mixed_diag = run(
+            Request(
+                ask="what is eigendiag([[2, 1, 1], [1, 2, 1], [1, 1, 2]])",
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            mixed_diag.claims[0].atom,
+            "cmatrix([[1, 0, 0], [0, 1, 0], [0, 0, 4]])",
+        )
+        mixed_rebuilt = run(
+            Request(
+                ask=(
+                    "prove spectral([[2, 1, 1], [1, 2, 1], [1, 1, 2]]) "
+                    "* eigendiag([[2, 1, 1], [1, 2, 1], [1, 1, 2]]) "
+                    "* dagger(spectral([[2, 1, 1], [1, 2, 1], [1, 1, 2]])) "
+                    "= [[2, 1, 1], [1, 2, 1], [1, 1, 2]]"
+                ),
+                seed=1,
+            )
+        )
+        self.assertEqual(
+            mixed_rebuilt.claims[0].atom,
+            "identity(spectral([[2, 1, 1], [1, 2, 1], [1, 1, 2]]) * eigendiag([[2, 1, 1], [1, 2, 1], [1, 1, 2]]) * dagger(spectral([[2, 1, 1], [1, 2, 1], [1, 1, 2]])) = [[2, 1, 1], [1, 2, 1], [1, 1, 2]])",
         )
 
     def test_tensor_products_and_spin_half(self) -> None:

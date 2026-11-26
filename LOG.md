@@ -1245,3 +1245,13 @@ Added BASE 2022's antiproton/proton q/m ratio, ten eclipsing-binary component ma
 That is 19 records.
 
 `python -m unittest discover -s tests -v` finished 410 tests, 0 failures, about 557.49 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.
+
+## 2026-11-25 — mixed square-free radicands and toolkit status pgi-0.116.0
+
+Complex scalars now close in Q(√d, √e, i) when d and e are coprime square-free integers. √d, √e, and √(de) are the same field, so √2, √3, and √6 can be added, multiplied, and inverted together. An inverse is kept only when both products are 1. The Hermitian matrix [[2, 1, 1], [1, 2, 1], [1, 1, 2]] has eigenvalues 1, 1, and 4, and its spectral factor uses those three radicals and rebuilds exactly. Three or more independent square-free radicands, or two that do not lie in one such field, stay open.
+
+GOAL.md now has a TOOLKIT_STATUS section listing the mathematics a derivation round would still need.
+
+Further sourced physics data is being admitted on a parallel stream.
+
+`python -m unittest discover -s tests -v` finished 410 tests, 0 failures, about 603.57 seconds, on Python 3.13.5, with GNU Octave 9.4.0 on PATH.

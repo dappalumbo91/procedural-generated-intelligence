@@ -840,9 +840,15 @@ The printed X, Y, and Z are kept as printed, and no sum is imposed on them.
 
 With these, QED and astrophysics list no gaps. This adds 19 records.
 
+### Mixed square-free radicands, and toolkit status
+
+A complex scalar may now lie in Q(√d, √e, i) when d and e are coprime square-free integers, with basis 1, √d, √e, √(de). √d, √e, and √(de) are the same field. Arithmetic follows the field laws, and an inverse is kept only when both products are 1. The Hermitian matrix [[2, 1, 1], [1, 2, 1], [1, 1, 2]] has eigenvalues 1, 1, and 4. Its spectral factor has columns in Q(√2, √3), and H = U D U† rebuilds exactly. Three or more independent square-free radicands, or two that do not lie in one coprime biquadratic field, stay open.
+
+GOAL.md now carries a TOOLKIT_STATUS section: the mathematics still missing before a derivation or prediction check of general relativity or quantum mechanics against the board can start.
+
 ### Current open math gaps
 
-This list is the current state as of `pgi-0.115.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
+This list is the current state as of `pgi-0.116.0`. Earlier sections above are historical and are not rewritten when a later slice closes a gap they recorded.
 
 - A radicand or divisor whose sign the exact algebraic or Sturm test cannot decide stays outside.
 - A boolean connective whose sides the kernel cannot settle stays outside.
@@ -850,5 +856,5 @@ This list is the current state as of `pgi-0.115.0`. Earlier sections above are h
 - A negative radicand stays open. Division by zero stays open. Isabelle `real_sqrt_minus` and `inverse (0::real) = 0` stay refused.
 - `primitive.continuum` still blocks `law(sqrt_two_is_rational)`.
 - An unbounded quantifier stays open unless a uniform reason covers it. The least-upper-bound proof for a completely general set stays outside.
-- An SU(3) gauge transformation that is not a constant special unitary matrix, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked (including its inhomogeneous action on a connection), stay outside. A Hermitian matrix whose eigenvalues are not in Q or Q(√d), or whose eigenvector norm is not a positive rational, stays open. Mixing two different square-free radicands stays open. The Hodge star and the inhomogeneous Maxwell equation d⋆F = J stay outside.
+- An SU(3) gauge transformation that is not a constant special unitary matrix, and an SU(2) gauge transformation that is not a constant special unitary matrix or the rational rotation already checked (including its inhomogeneous action on a connection), stay outside. A Hermitian matrix whose eigenvalues are not in Q, Q(√d), or Q(√d, √e), or whose eigenvector norm is not a positive rational, stays open. Three or more independent square-free radicands, or two that do not lie in one coprime biquadratic field, stay open. The Hodge star and the inhomogeneous Maxwell equation d⋆F = J stay outside.
 - CODATA 2022, PDG 2026, Clemence's Mercury residual, GW150914, the GW170817 bound, and the Planck and Rayleigh–Jeans formulas are on the board. Rayleigh's and Jeans' own pages are not. The modern Mercury fits are on the board since `pgi-0.53.0`. The neutron lifetime, `g_A`, muon and electron `g − 2`, and the proton radius entered in `pgi-0.56.0`. NIST ASD first ionization energies H to Ne entered in `pgi-0.57.0`, and Na to Kr in `pgi-0.59.0`. INPOP perihelion and PPN results entered in `pgi-0.58.0`. AME2020 atomic masses entered in `pgi-0.61.0`. PDG 2026 light hadron masses entered in `pgi-0.62.0`. Binary pulsar, Gravity Probe B, VLBI, and the 16 values of G entered in `pgi-0.63.0`. Hydrogen spectroscopy (1S–2S, Lamb shift, 21 cm, H-alpha, muonic hydrogen) entered in `pgi-0.64.0`. Nuclear constants (deuteron binding, alpha mass, nucleon moments) entered in `pgi-0.65.0`. Stefan–Boltzmann and Wien constants entered in `pgi-0.67.0`. The rest of the gravitational-wave catalogs are not.

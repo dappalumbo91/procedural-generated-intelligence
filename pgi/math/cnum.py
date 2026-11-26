@@ -2,11 +2,15 @@
 
 An element is (re0 + re1 √d) + (im0 + im1 √d) i, with reduced rational
 coefficients and a square-free radicand d. When d is 0, the number
-lies in Q(i). Arithmetic is the field laws. An inverse is kept only
-when it multiplies back to 1. The identity i * i = -1 is a standing
-check. A square root of a positive rational is adjoined by extracting
-square factors and, if needed, changing the radicand; mixing two
-different square-free radicands stays open.
+lies in Q(i). A second coprime square-free radicand e may be adjoined,
+so the number lies in Q(√d, √e, i) with basis 1, √d, √e, √(de).
+Arithmetic is the field laws. An inverse is kept only when it
+multiplies back to 1. The identity i * i = -1 is a standing check.
+A square root of a positive rational is adjoined by extracting square
+factors and, if needed, changing the radicand. Mixing three or more independent
+square-free radicands, or two that do not lie in one coprime
+biquadratic field Q(√d, √e), stays open. √d, √e, and √(de) are
+the same field.
 
 These are the scalars for finite-dimensional inner product spaces.
 """
@@ -85,13 +89,23 @@ def split_square(n: int) -> tuple[int, int]:
 
 @dataclass(frozen=True)
 class CNum:
-    """(re0 + re1 √d) + (im0 + im1 √d) i, with d square-free or 0."""
+    """A number in Q(i), Q(√d, i), or Q(√d, √e, i).
+
+    The quadratic case is (re0 + re1 √d) + (im0 + im1 √d) i.
+    When e > 1, the basis is 1, √d, √e, √(de), with coefficients
+    re2, re3 and im2, im3.
+    """
 
     d: int
     re0: Ratio
     re1: Ratio
     im0: Ratio
     im1: Ratio
+    e: int = 0
+    re2: Ratio = _ZERO
+    re3: Ratio = _ZERO
+    im2: Ratio = _ZERO
+    im3: Ratio = _ZERO
 
     def __post_init__(self) -> None:
         if not _cnum_ok(self):
@@ -99,43 +113,92 @@ class CNum:
 
 
 def _cnum_ok(value: CNum) -> bool:
-    if value.d < 0:
+    if value.d < 0 or value.e < 0:
         return False
     if value.d > 1:
         k, m = split_square(value.d)
         if k != 1 or m != value.d:
             return False
-    coeffs = (value.re0, value.re1, value.im0, value.im1)
+    if value.e > 1:
+        k, m = split_square(value.e)
+        if k != 1 or m != value.e:
+            return False
+        if value.d <= 1 or value.e == value.d or value.d >= value.e:
+            return False
+        if gcd(value.d, value.e) != 1:
+            return False
+    coeffs = (value.re0, value.re1, value.im0, value.im1, value.re2, value.re3, value.im2, value.im3)
     for coeff in coeffs:
         if coeff.den <= 0 or gcd(abs(coeff.num), coeff.den) != 1:
             return False
     if value.d == 0 and (not _qeq(value.re1, _ZERO) or not _qeq(value.im1, _ZERO)):
         return False
-    if value.d == 1:
+    if value.e == 0 and (not _qeq(value.re2, _ZERO) or not _qeq(value.re3, _ZERO) or not _qeq(value.im2, _ZERO) or not _qeq(value.im3, _ZERO)):
+        return False
+    if value.d == 1 or value.e == 1:
         return False
     return True
 
 
-def _reduce_cnum(d: int, re0: Ratio, re1: Ratio, im0: Ratio, im1: Ratio) -> CNum:
-    if d < 0:
+def _reduce_cnum(d: int, re0: Ratio, re1: Ratio, im0: Ratio, im1: Ratio, e: int = 0, re2: Ratio = _ZERO, re3: Ratio = _ZERO, im2: Ratio = _ZERO, im3: Ratio = _ZERO, keep: bool = False) -> CNum:
+    if d < 0 or e < 0:
         raise NotExact("a negative radicand stays open")
     if d == 1:
-        # √1 = 1, fold into the rational parts.
         re0, re1 = _qadd(re0, re1), _ZERO
         im0, im1 = _qadd(im0, im1), _ZERO
+        # √1 * √e = √e, so re3, im3 fold into re2, im2.
+        re2, re3 = _qadd(re2, re3), _ZERO
+        im2, im3 = _qadd(im2, im3), _ZERO
         d = 0
+    if e == 1:
+        re0, re2 = _qadd(re0, re2), _ZERO
+        im0, im2 = _qadd(im0, im2), _ZERO
+        re1, re3 = _qadd(re1, re3), _ZERO
+        im1, im3 = _qadd(im1, im3), _ZERO
+        e = 0
     if d > 1:
         k, m = split_square(d)
         if k != 1:
-            # √(k^2 m) = k √m, should not happen if callers pass square-free d.
             re1 = _qmul(re1, _q(k))
             im1 = _qmul(im1, _q(k))
+            re3 = _qmul(re3, _q(k))
+            im3 = _qmul(im3, _q(k))
             d = m
         if d == 1:
-            return _reduce_cnum(0, _qadd(re0, re1), _ZERO, _qadd(im0, im1), _ZERO)
-    if d > 1 and _qeq(re1, _ZERO) and _qeq(im1, _ZERO):
-        d = 0
-    return CNum(d, re0, re1, im0, im1)
+            return _reduce_cnum(0, _qadd(re0, re1), _ZERO, _qadd(im0, im1), _ZERO, e, _qadd(re2, re3), _ZERO, _qadd(im2, im3), _ZERO)
+    if e > 1:
+        k, m = split_square(e)
+        if k != 1:
+            re2 = _qmul(re2, _q(k))
+            im2 = _qmul(im2, _q(k))
+            re3 = _qmul(re3, _q(k))
+            im3 = _qmul(im3, _q(k))
+            e = m
+        if e == 1:
+            return _reduce_cnum(d, _qadd(re0, re2), re1, _qadd(im0, im2), im1, 0, _ZERO, _ZERO, _ZERO, _ZERO)
+    # Canonical order d < e when both present.
+    if d > 1 and e > 1 and d > e:
+        d, e = e, d
+        re1, re2 = re2, re1
+        im1, im2 = im2, im1
+    if e > 1 and (d <= 1 or d == e or gcd(d, e) != 1):
+        raise NotExact("these numbers lie in different quadratic fields")
+    if not keep:
+        if e > 1 and _qeq(re2, _ZERO) and _qeq(re3, _ZERO) and _qeq(im2, _ZERO) and _qeq(im3, _ZERO):
+            e = 0
+        if d > 1 and e == 0 and _qeq(re1, _ZERO) and _qeq(im1, _ZERO):
+            d = 0
+        if d > 1 and e > 1 and _qeq(re1, _ZERO) and _qeq(re3, _ZERO) and _qeq(im1, _ZERO) and _qeq(im3, _ZERO):
+            # Only √e remains: drop d and move e into d.
+            return _reduce_cnum(e, re0, re2, im0, im2)
+        if d > 1 and e > 1 and _qeq(re1, _ZERO) and _qeq(re2, _ZERO) and _qeq(im1, _ZERO) and _qeq(im2, _ZERO):
+            # Only 1 and √(de) remain: drop to Q(√(de)).
+            return _reduce_cnum(d * e, re0, re3, im0, im3)
+        if d == 0 and e > 1:
+            return _reduce_cnum(e, re0, re2, im0, im2)
+        if e == 0:
+            re2 = im2 = re3 = im3 = _ZERO
+    return CNum(d, re0, re1, im0, im1, e, re2, re3, im2, im3)
 
 
 def c_zero() -> CNum:
@@ -173,7 +236,12 @@ def c_eq(left: CNum, right: CNum) -> bool:
         and _qeq(a.re1, b.re1)
         and _qeq(a.im0, b.im0)
         and _qeq(a.im1, b.im1)
+        and _qeq(a.re2, b.re2)
+        and _qeq(a.re3, b.re3)
+        and _qeq(a.im2, b.im2)
+        and _qeq(a.im3, b.im3)
         and a.d == b.d
+        and a.e == b.e
     )
 
 
@@ -186,11 +254,11 @@ def c_is_one(value: CNum) -> bool:
 
 
 def c_is_real(value: CNum) -> bool:
-    return _qeq(value.im0, _ZERO) and _qeq(value.im1, _ZERO)
+    return _qeq(value.im0, _ZERO) and _qeq(value.im1, _ZERO) and _qeq(value.im2, _ZERO) and _qeq(value.im3, _ZERO)
 
 
 def c_is_rational(value: CNum) -> bool:
-    return value.d == 0 and c_is_real(value)
+    return value.d == 0 and value.e == 0 and c_is_real(value)
 
 
 def c_as_ratio(value: CNum) -> Ratio | None:
@@ -199,14 +267,94 @@ def c_as_ratio(value: CNum) -> Ratio | None:
     return None
 
 
-def c_align(left: CNum, right: CNum) -> tuple[CNum, CNum]:
-    if left.d == right.d:
-        return left, right
-    if left.d == 0:
-        return CNum(right.d, left.re0, _ZERO, left.im0, _ZERO), right
-    if right.d == 0:
-        return left, CNum(left.d, right.re0, _ZERO, right.im0, _ZERO)
+def _radicands(value: CNum) -> tuple[int, ...]:
+    if value.e > 1:
+        return (value.d, value.e)
+    if value.d > 1:
+        return (value.d,)
+    return ()
+
+
+def _compositum(rads: set[int]) -> tuple[int, int]:
+    """A coprime pair (d, e) generating the same field, or (d, 0).
+
+    √d, √e, and √(de) with gcd(d, e) = 1 are one biquadratic field.
+    Two radicands where one is the other times a coprime square-free
+    k are Q(√a, √k). Anything else stays open.
+    """
+    rads = {rad for rad in rads if rad > 1}
+    if not rads:
+        return 0, 0
+    if len(rads) == 1:
+        return next(iter(rads)), 0
+
+    def pair_from(a: int, b: int) -> tuple[int, int] | None:
+        if a > b:
+            a, b = b, a
+        if gcd(a, b) == 1:
+            return a, b
+        if b % a == 0:
+            k = b // a
+            if k > 1 and gcd(a, k) == 1:
+                return (a, k) if a < k else (k, a)
+        return None
+
+    if len(rads) == 2:
+        a, b = tuple(rads)
+        got = pair_from(a, b)
+        if got is None:
+            raise NotExact("these numbers lie in different quadratic fields")
+        return got
+    if len(rads) == 3:
+        items = tuple(rads)
+        for i in range(3):
+            for j in range(i + 1, 3):
+                a, b = items[i], items[j]
+                c = next(iter(rads - {a, b}))
+                if gcd(a, b) == 1 and a * b == c:
+                    return (a, b) if a < b else (b, a)
+        raise NotExact("these numbers lie in different quadratic fields")
     raise NotExact("these numbers lie in different quadratic fields")
+
+
+def _in_field(rad: int, d: int, e: int) -> bool:
+    if rad <= 1:
+        return True
+    if rad == d:
+        return True
+    return e > 1 and (rad == e or rad == d * e)
+
+
+def _lift_to(value: CNum, d: int, e: int) -> CNum:
+    for rad in _radicands(value):
+        if not _in_field(rad, d, e):
+            raise NotExact("these numbers lie in different quadratic fields")
+    if value.e > 1:
+        if value.d == d and value.e == e:
+            return value
+        raise NotExact("these numbers lie in different quadratic fields")
+    if value.d == 0:
+        return _reduce_cnum(d, value.re0, _ZERO, value.im0, _ZERO, e, keep=True)
+    re0, re1, re2, re3 = value.re0, _ZERO, _ZERO, _ZERO
+    im0, im1, im2, im3 = value.im0, _ZERO, _ZERO, _ZERO
+    if value.d == d:
+        re1, im1 = value.re1, value.im1
+    elif e > 1 and value.d == e:
+        re2, im2 = value.re1, value.im1
+    elif e > 1 and value.d == d * e:
+        re3, im3 = value.re1, value.im1
+    else:
+        raise NotExact("these numbers lie in different quadratic fields")
+    return _reduce_cnum(d, re0, re1, im0, im1, e, re2, re3, im2, im3, keep=True)
+
+
+def c_align(left: CNum, right: CNum) -> tuple[CNum, CNum]:
+    if left.d == right.d and left.e == right.e:
+        return left, right
+    d, e = _compositum(set(_radicands(left)) | set(_radicands(right)))
+    if d == 0:
+        return left, right
+    return _lift_to(left, d, e), _lift_to(right, d, e)
 
 
 def c_add(left: CNum, right: CNum) -> CNum:
@@ -217,43 +365,89 @@ def c_add(left: CNum, right: CNum) -> CNum:
         _qadd(a.re1, b.re1),
         _qadd(a.im0, b.im0),
         _qadd(a.im1, b.im1),
+        a.e,
+        _qadd(a.re2, b.re2),
+        _qadd(a.re3, b.re3),
+        _qadd(a.im2, b.im2),
+        _qadd(a.im3, b.im3),
     )
 
 
 def c_neg(value: CNum) -> CNum:
-    return _reduce_cnum(value.d, _qneg(value.re0), _qneg(value.re1), _qneg(value.im0), _qneg(value.im1))
+    return _reduce_cnum(
+        value.d,
+        _qneg(value.re0),
+        _qneg(value.re1),
+        _qneg(value.im0),
+        _qneg(value.im1),
+        value.e,
+        _qneg(value.re2),
+        _qneg(value.re3),
+        _qneg(value.im2),
+        _qneg(value.im3),
+    )
 
 
 def c_sub(left: CNum, right: CNum) -> CNum:
     return c_add(left, c_neg(right))
 
 
+def _rmul4(left: tuple[Ratio, Ratio, Ratio, Ratio], right: tuple[Ratio, Ratio, Ratio, Ratio], d: int, e: int) -> tuple[Ratio, Ratio, Ratio, Ratio]:
+    """Product in Q(√d, √e) with basis 1, √d, √e, √(de)."""
+    # √d * √d = d, √e * √e = e, √d * √e = √(de), √d * √(de) = d √e, √e * √(de) = e √d, √(de)*√(de) = d e
+    a0, a1, a2, a3 = left
+    b0, b1, b2, b3 = right
+    qd = _q(d) if d else _ZERO
+    qe = _q(e) if e else _ZERO
+    qde = _qmul(qd, qe)
+
+    def acc(parts):
+        total = _ZERO
+        for part in parts:
+            total = _qadd(total, part)
+        return total
+
+    c0 = acc((_qmul(a0, b0), _qmul(_qmul(a1, b1), qd), _qmul(_qmul(a2, b2), qe), _qmul(_qmul(a3, b3), qde)))
+    c1 = acc((_qmul(a0, b1), _qmul(a1, b0), _qmul(_qmul(a2, b3), qe), _qmul(_qmul(a3, b2), qe)))
+    c2 = acc((_qmul(a0, b2), _qmul(a2, b0), _qmul(_qmul(a1, b3), qd), _qmul(_qmul(a3, b1), qd)))
+    c3 = acc((_qmul(a0, b3), _qmul(a3, b0), _qmul(a1, b2), _qmul(a2, b1)))
+    return c0, c1, c2, c3
+
+
 def c_mul(left: CNum, right: CNum) -> CNum:
     a, b = c_align(left, right)
-    d = a.d
-    # (p + q √d)(r + s √d) = (pr + qs d) + (ps + qr) √d
-    def _rmul(p0: Ratio, p1: Ratio, r0: Ratio, r1: Ratio) -> tuple[Ratio, Ratio]:
-        real = _qadd(_qmul(p0, r0), _qmul(_qmul(p1, r1), _q(d) if d else _ZERO))
-        rad = _qadd(_qmul(p0, r1), _qmul(p1, r0))
-        return real, rad
-
-    # (x + y i)(u + v i) = (xu - yv) + (xv + yu) i
-    # x = re(a), y = im(a), u = re(b), v = im(b), each in Q(√d)
-    xu0, xu1 = _rmul(a.re0, a.re1, b.re0, b.re1)
-    yv0, yv1 = _rmul(a.im0, a.im1, b.im0, b.im1)
-    xv0, xv1 = _rmul(a.re0, a.re1, b.im0, b.im1)
-    yu0, yu1 = _rmul(a.im0, a.im1, b.re0, b.re1)
+    # (x + y i)(u + v i) = (xu - yv) + (xv + yu) i, each of x,y,u,v in Q(√d, √e)
+    xu = _rmul4((a.re0, a.re1, a.re2, a.re3), (b.re0, b.re1, b.re2, b.re3), a.d, a.e)
+    yv = _rmul4((a.im0, a.im1, a.im2, a.im3), (b.im0, b.im1, b.im2, b.im3), a.d, a.e)
+    xv = _rmul4((a.re0, a.re1, a.re2, a.re3), (b.im0, b.im1, b.im2, b.im3), a.d, a.e)
+    yu = _rmul4((a.im0, a.im1, a.im2, a.im3), (b.re0, b.re1, b.re2, b.re3), a.d, a.e)
     return _reduce_cnum(
-        d,
-        _qsub(xu0, yv0),
-        _qsub(xu1, yv1),
-        _qadd(xv0, yu0),
-        _qadd(xv1, yu1),
+        a.d,
+        _qsub(xu[0], yv[0]),
+        _qsub(xu[1], yv[1]),
+        _qadd(xv[0], yu[0]),
+        _qadd(xv[1], yu[1]),
+        a.e,
+        _qsub(xu[2], yv[2]),
+        _qsub(xu[3], yv[3]),
+        _qadd(xv[2], yu[2]),
+        _qadd(xv[3], yu[3]),
     )
 
 
 def c_conj(value: CNum) -> CNum:
-    return _reduce_cnum(value.d, value.re0, value.re1, _qneg(value.im0), _qneg(value.im1))
+    return _reduce_cnum(
+        value.d,
+        value.re0,
+        value.re1,
+        _qneg(value.im0),
+        _qneg(value.im1),
+        value.e,
+        value.re2,
+        value.re3,
+        _qneg(value.im2),
+        _qneg(value.im3),
+    )
 
 
 def c_norm2(value: CNum) -> CNum:
@@ -274,14 +468,52 @@ def _quad_inv(d: int, a: Ratio, b: Ratio) -> tuple[Ratio, Ratio]:
     return _qmul(a, inv), _qmul(_qneg(b), inv)
 
 
+def _flip_d(value: CNum) -> CNum:
+    return _reduce_cnum(
+        value.d,
+        value.re0,
+        _qneg(value.re1),
+        value.im0,
+        _qneg(value.im1),
+        value.e,
+        value.re2,
+        _qneg(value.re3),
+        value.im2,
+        _qneg(value.im3),
+    )
+
+
+def _flip_e(value: CNum) -> CNum:
+    return _reduce_cnum(
+        value.d,
+        value.re0,
+        value.re1,
+        value.im0,
+        value.im1,
+        value.e,
+        _qneg(value.re2),
+        _qneg(value.re3),
+        _qneg(value.im2),
+        _qneg(value.im3),
+    )
+
+
 def c_inv(value: CNum) -> CNum:
     if c_is_zero(value):
         raise NotExact("division by zero")
-    # 1/z = conj(z) / |z|^2, and |z|^2 = p + q √d.
+    # 1/z = conj(z) / |z|^2.
     conj = c_conj(value)
-    n0, n1 = c_norm2(value).re0, c_norm2(value).re1
-    i0, i1 = _quad_inv(value.d, n0, n1)
-    scale = _reduce_cnum(value.d, i0, i1, _ZERO, _ZERO)
+    norm = c_norm2(value)
+    if norm.e == 0:
+        i0, i1 = _quad_inv(norm.d, norm.re0, norm.re1)
+        scale = _reduce_cnum(norm.d, i0, i1, _ZERO, _ZERO)
+    else:
+        # Invert the real biquadratic norm by the Galois product of conjugates.
+        galois = c_mul(c_mul(_flip_d(norm), _flip_e(norm)), _flip_e(_flip_d(norm)))
+        total = c_mul(norm, galois)
+        if not c_is_rational(total) or total.re0.num == 0:
+            raise KernelError("the biquadratic norm was not a nonzero rational")
+        scale = c_mul(galois, c_from_ratio(_qinv(total.re0)))
     result = c_mul(conj, scale)
     if not c_eq(c_mul(value, result), c_one()) or not c_eq(c_mul(result, value), c_one()):
         raise KernelError("this inverse did not multiply back to 1")
@@ -313,28 +545,45 @@ def show_ratio(value: Ratio) -> str:
     return f"{value.num}/{value.den}"
 
 
-def _show_real(d: int, a: Ratio, b: Ratio) -> str:
-    if _qeq(b, _ZERO):
-        return show_ratio(a)
-    rad = "sqrt(" + str(d) + ")"
-    if _qeq(b, _ONE):
-        tail = rad
-    elif _qeq(b, _NEG_ONE):
-        tail = "-" + rad
+def _show_term(coeff: Ratio, rad: str) -> str:
+    if _qeq(coeff, _ZERO):
+        return ""
+    if rad == "":
+        return show_ratio(coeff)
+    if _qeq(coeff, _ONE):
+        return rad
+    if _qeq(coeff, _NEG_ONE):
+        return "-" + rad
+    return show_ratio(coeff) + " * " + rad
+
+
+def _join_terms(parts: list[str]) -> str:
+    parts = [part for part in parts if part]
+    if not parts:
+        return "0"
+    out = parts[0]
+    for part in parts[1:]:
+        if part.startswith("-"):
+            out += " - " + part[1:]
+        else:
+            out += " + " + part
+    return out
+
+
+def _show_real(value: CNum, imag: bool) -> str:
+    if imag:
+        coeffs = (value.im0, value.im1, value.im2, value.im3)
     else:
-        tail = show_ratio(b) + " * " + rad
-    if _qeq(a, _ZERO):
-        return tail
-    if tail.startswith("-"):
-        return show_ratio(a) + " - " + tail[1:]
-    return show_ratio(a) + " + " + tail
+        coeffs = (value.re0, value.re1, value.re2, value.re3)
+    rads = ["", f"sqrt({value.d})" if value.d > 1 else "", f"sqrt({value.e})" if value.e > 1 else "", f"sqrt({value.d * value.e})" if value.d > 1 and value.e > 1 else ""]
+    return _join_terms([_show_term(coeff, rad) for coeff, rad in zip(coeffs, rads)])
 
 
 def show_cnum(value: CNum) -> str:
     if c_is_zero(value):
         return "0"
-    re = _show_real(value.d, value.re0, value.re1)
-    im = _show_real(value.d, value.im0, value.im1)
+    re = _show_real(value, False)
+    im = _show_real(value, True)
     if im == "0":
         return re
     if re == "0":
